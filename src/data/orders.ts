@@ -43,7 +43,7 @@ export function createOrder(): void {
     const localIds = new Set(state.localProducts.map((lp) => localToProduct(lp).id));
     const nonLocalCount = state.cart
       .filter((i) => !localIds.has(i.product.id))
-      .reduce((s, i) => s + i.qty, 0);
+      .reduce((s, i) => s + (i.draftVolume !== undefined ? i.qty / i.draftVolume : i.qty), 0);
 
     const hasPkg      = state.cart.some((i) => /пакет/i.test(i.product.name ?? ''));
     const hasDelivery = state.cart.some((i) => /доставка/i.test(i.product.name ?? ''));

@@ -3,6 +3,7 @@ import { saveClient, saveOrderMeta, saveOrderApp, saveOrders, saveOrderMode } fr
 import { render } from '../render/trigger';
 import { upsertClientRecord } from './clients';
 import { buildCartItems, roundQty } from './cart';
+import { localToProduct } from './vendor';
 import { unitPrice } from '../utils';
 import { showChangeCalculator, showOrderReceipt } from '../ui/receipt';
 import { storeDisplayNum } from '../render/products-panel';
@@ -34,36 +35,20 @@ export function newOrder(): void {
   render();
 }
 
-function showOrderWarning(lines: string[], onConfirm: () => void): void {
-  const overlay = document.createElement('div');
-  overlay.className = 'modal-overlay';
-  overlay.innerHTML = `
-    <div class="modal order-warn-modal" role="dialog" aria-modal="true">
-      <div class="order-warn-title">В заказе не хватает</div>
-      <ul class="order-warn-list">${lines.map((l) => `<li>${l}</li>`).join('')}</ul>
-      <div class="modal-actions">
-        <button type="button" class="btn btn-primary" id="warn-ok">Создать всё равно</button>
-        <button type="button" class="btn btn-ghost" id="warn-cancel">Вернуться</button>
-      </div>
-    </div>`;
-  document.body.appendChild(overlay);
-  const close = () => overlay.remove();
-  overlay.querySelector('#warn-ok')?.addEventListener('click', () => { close(); onConfirm(); });
-  overlay.querySelector('#warn-cancel')?.addEventListener('click', close);
-  overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
-}
-
-export function createOrder(skipCheck = false): void {
+export function createOrder(): void {
   const isAppTab = state.orderMode === 'app';
   if (!state.cart.length && !isAppTab) return;
 
-  if (!isAppTab && !skipCheck && !state.editingOrderId) {
+  if (!isAppTab && !state.editingOrderId) {
     const hasPkg      = state.cart.some((i) => /пакет/i.test(i.product.name ?? ''));
     const hasDelivery = state.cart.some((i) => /доставка/i.test(i.product.name ?? ''));
-    const missing = [...(!hasPkg ? ['Пакет'] : []), ...(!hasDelivery ? ['Доставка'] : [])];
-    if (missing.length) {
-      showOrderWarning(missing, () => createOrder(true));
-      return;
+    if (!hasPkg) {
+      const lp = state.localProducts.find((p) => /^пакет$/i.test(p.name));
+      if (lp) state.cart.push({ product: localToProduct(lp), qty: 1 });
+    }
+    if (!hasDelivery) {
+      const lp = state.localProducts.find((p) => /^доставка$/i.test(p.name));
+      if (lp) state.cart.push({ product: localToProduct(lp), qty: 1 });
     }
   }
 

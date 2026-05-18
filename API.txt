@@ -1,0 +1,349 @@
+OrderDesk REST API
+==================
+Базовый URL: http://127.0.0.1:3001
+Формат данных: JSON (Content-Type: application/json)
+CORS: разрешён для всех источников (*)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ЗАКАЗЫ
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+GET /api/orders
+  Получить список всех заказов.
+  Ответ 200: массив объектов SavedOrder (см. структуру ниже).
+
+──────────────────────────────────────────────────────────────
+
+GET /api/orders/:id
+  Получить один заказ по ID.
+  Ответ 200: объект SavedOrder.
+  Ответ 404: { "error": "not found" }
+
+──────────────────────────────────────────────────────────────
+
+POST /api/orders
+  Создать новый заказ.
+  Тело запроса (все поля опциональны, кроме логики ниже):
+    {
+      "storeId":       "string",          — ID магазина
+      "status":        "created",         — created | in_progress | done (по умолч. created)
+      "orderMethod":   "phone",           — phone | app (по умолч. phone)
+      "payMethod":     "cash",            — cash | card (по умолч. cash)
+      "operator":      "string",          — имя оператора
+      "orderNumber":   "string",          — номер заказа в приложении (только для app)
+      "deliveryPrice": 0,                 — стоимость доставки (только для app)
+      "orderAmount":   0,                 — сумма из приложения (только для app)
+      "client": {
+        "phone":     "string",
+        "name":      "string",
+        "street":    "string",
+        "house":     "string",
+        "entrance":  "string",
+        "floor":     "string",
+        "apartment": "string",
+        "intercom":  "string",
+        "notes":     "string"
+      },
+      "items": [
+        {
+          "id":          123,             — числовой ID товара (опционально)
+          "name":        "string",
+          "qty":         1,
+          "price":       100,
+          "productType": "PIECE",         — PIECE | WEIGHT
+          "details":     "string"         — опционально
+        }
+      ]
+    }
+  Итого (total) рассчитывается автоматически:
+    — для phone: сумма позиций (qty × price)
+    — для app:   orderAmount + deliveryPrice + сумма позиций
+  Ответ 201: созданный объект SavedOrder.
+
+──────────────────────────────────────────────────────────────
+
+PATCH /api/orders/:id
+  Обновить поля заказа.
+  Тело запроса — любые из допустимых полей:
+    status, storeId, client, payMethod, operator, orderMethod,
+    orderNumber, deliveryPrice, orderAmount, items, given, change
+  При изменении items / deliveryPrice / orderAmount — total пересчитывается.
+  Ответ 200: обновлённый объект SavedOrder.
+  Ответ 404: { "error": "not found" }
+
+  Примеры:
+    Сменить статус:
+      { "status": "in_progress" }
+    Указать сдачу:
+      { "given": 1000, "change": 150 }
+    Сменить способ оплаты:
+      { "payMethod": "card" }
+
+──────────────────────────────────────────────────────────────
+
+DELETE /api/orders/:id
+  Удалить заказ.
+  Ответ 200: { "ok": true }
+  Ответ 404: { "error": "not found" }
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ПОЗИЦИИ ЗАКАЗА
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+POST /api/orders/:id/items
+  Добавить позицию в заказ.
+  Тело запроса:
+    {
+      "id":          123,          — опционально
+      "name":        "string",     — обязательно
+      "qty":         1,
+      "price":       100,
+      "productType": "PIECE",      — PIECE | WEIGHT
+      "details":     "string"      — опционально
+    }
+  После добавления total пересчитывается.
+  Ответ 201: обновлённый объект SavedOrder.
+  Ответ 404: { "error": "order not found" }
+
+──────────────────────────────────────────────────────────────
+
+PATCH /api/orders/:id/items/:idx
+  Изменить позицию по её индексу в массиве (0-based).
+  Тело запроса (любые из):
+    {
+      "qty":   2,
+      "price": 150,
+      "name":  "string"
+    }
+  qty не может быть меньше 0.001.
+  После изменения total пересчитывается.
+  Ответ 200: обновлённый объект SavedOrder.
+  Ответ 404: { "error": "order not found" } или { "error": "item not found" }
+
+──────────────────────────────────────────────────────────────
+
+DELETE /api/orders/:id/items/:idx
+  Удалить позицию по индексу (0-based).
+  После удаления total пересчитывается.
+  Ответ 200: обновлённый объект SavedOrder.
+  Ответ 404: { "error": "order not found" } или { "error": "item not found" }
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+КЛИЕНТЫ
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+GET /api/clients
+  Получить список всех клиентов.
+  Ответ 200: массив объектов Client.
+
+──────────────────────────────────────────────────────────────
+
+GET /api/clients/:phone
+  Получить клиента по номеру телефона.
+  Ответ 200: объект Client.
+  Ответ 404: { "error": "not found" }
+
+──────────────────────────────────────────────────────────────
+
+POST /api/clients
+  Создать нового клиента или обновить существующего (по полю phone).
+  Тело запроса:
+    {
+      "phone":     "string",   — обязательно (ключ поиска)
+      "name":      "string",
+      "street":    "string",
+      "house":     "string",
+      "entrance":  "string",
+      "floor":     "string",
+      "apartment": "string",
+      "intercom":  "string",
+      "notes":     "string"
+    }
+  Если клиент с таким phone уже существует — поля обновляются (merge).
+  Ответ 201: новый клиент.
+  Ответ 200: обновлённый клиент.
+
+──────────────────────────────────────────────────────────────
+
+PATCH /api/clients/:phone
+  Обновить отдельные поля клиента.
+  Тело запроса — любые поля клиента.
+  Ответ 200: обновлённый объект Client.
+  Ответ 404: { "error": "not found" }
+
+──────────────────────────────────────────────────────────────
+
+DELETE /api/clients/:phone
+  Удалить клиента по телефону.
+  Ответ 200: { "ok": true }
+  Ответ 404: { "error": "not found" }
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+СВОИ ТОВАРЫ
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+GET /api/local-products
+  Получить список своих товаров.
+  Ответ 200: массив объектов LocalProduct.
+
+──────────────────────────────────────────────────────────────
+
+POST /api/local-products
+  Добавить товар.
+  Тело запроса:
+    {
+      "name":        "string",   — обязательно
+      "price":       100,        — число ≥ 0
+      "productType": "PIECE"     — PIECE | WEIGHT (по умолч. PIECE)
+    }
+  ID генерируется автоматически (local_<timestamp>).
+  Ответ 201: созданный объект LocalProduct.
+  Ответ 400: { "error": "name required" }
+
+──────────────────────────────────────────────────────────────
+
+PATCH /api/local-products/:id
+  Редактировать товар.
+  Тело запроса (любые из):
+    {
+      "name":        "string",
+      "price":       150,
+      "productType": "WEIGHT"
+    }
+  Ответ 200: обновлённый объект LocalProduct.
+  Ответ 404: { "error": "not found" }
+
+──────────────────────────────────────────────────────────────
+
+DELETE /api/local-products/:id
+  Удалить товар.
+  Ответ 200: { "ok": true }
+  Ответ 404: { "error": "not found" }
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+СПРАВОЧНИКИ
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+GET /api/whitelist
+  Получить список разрешённых номеров телефонов.
+  Ответ 200: массив строк, например ["79001234567", "79009876543"].
+
+──────────────────────────────────────────────────────────────
+
+POST /api/whitelist
+  Заменить весь список разрешённых номеров.
+  Тело запроса: массив строк.
+    ["79001234567", "79009876543"]
+  Ответ 400: { "error": "array expected" } — если тело не массив.
+  Ответ 200: { "ok": true }
+
+──────────────────────────────────────────────────────────────
+
+GET /api/operator-names
+  Получить словарь имён операторов.
+  Ответ 200: объект { "login": "Имя", ... }
+
+──────────────────────────────────────────────────────────────
+
+POST /api/operator-names
+  Сохранить словарь имён операторов (полная замена).
+  Тело запроса: объект { "login": "Имя", ... }
+  Ответ 200: { "ok": true }
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+СТРУКТУРЫ ДАННЫХ
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+SavedOrder:
+  {
+    "id":            "string",       — timestamp в виде строки
+    "createdAt":     "ISO 8601",
+    "status":        "created" | "in_progress" | "done",
+    "storeId":       "string",
+    "orderMethod":   "phone" | "app",
+    "payMethod":     "cash" | "card",
+    "operator":      "string",
+    "orderNumber":   "string",       — только для app
+    "deliveryPrice": number,         — только для app
+    "orderAmount":   number,         — только для app
+    "given":         number,         — сколько дал клиент
+    "change":        number,         — сдача
+    "client": {
+      "phone":     "string",
+      "name":      "string",
+      "street":    "string",
+      "house":     "string",
+      "entrance":  "string",
+      "floor":     "string",
+      "apartment": "string",
+      "intercom":  "string",
+      "notes":     "string"
+    },
+    "items": [ SavedOrderItem ],
+    "total":         number
+  }
+
+SavedOrderItem:
+  {
+    "id":          number,        — опционально
+    "name":        "string",
+    "qty":         number,
+    "price":       number,
+    "productType": "PIECE" | "WEIGHT",
+    "details":     "string"       — опционально
+  }
+
+LocalProduct:
+  {
+    "id":          "local_<timestamp>",
+    "name":        "string",
+    "price":       number,
+    "productType": "PIECE" | "WEIGHT"
+  }
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ПРИМЕРЫ ЗАПРОСОВ (curl)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Получить все заказы:
+  curl http://127.0.0.1:3001/api/orders
+
+Создать заказ:
+  curl -X POST http://127.0.0.1:3001/api/orders \
+    -H "Content-Type: application/json" \
+    -d '{
+      "storeId": "101",
+      "operator": "Ольга",
+      "client": { "phone": "79001234567", "name": "Иван" },
+      "items": [
+        { "name": "Балтика 7", "qty": 2, "price": 120, "productType": "PIECE" }
+      ]
+    }'
+
+Сменить статус заказа:
+  curl -X PATCH http://127.0.0.1:3001/api/orders/1779117421338 \
+    -H "Content-Type: application/json" \
+    -d '{ "status": "done" }'
+
+Добавить позицию в заказ:
+  curl -X POST http://127.0.0.1:3001/api/orders/1779117421338/items \
+    -H "Content-Type: application/json" \
+    -d '{ "name": "Сухарики", "qty": 1, "price": 50, "productType": "PIECE" }'
+
+Удалить первую позицию (индекс 0):
+  curl -X DELETE http://127.0.0.1:3001/api/orders/1779117421338/items/0
+
+Найти клиента:
+  curl http://127.0.0.1:3001/api/clients/79001234567
+
+Добавить свой товар:
+  curl -X POST http://127.0.0.1:3001/api/local-products \
+    -H "Content-Type: application/json" \
+    -d '{ "name": "Снеки домашние", "price": 80, "productType": "PIECE" }'

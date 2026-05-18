@@ -15,6 +15,10 @@ desk-orders.json
 desk-cache-*.json
 .env
 
+# API server
+api-server.cjs
+API.txt
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

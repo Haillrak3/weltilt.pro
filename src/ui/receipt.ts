@@ -1,6 +1,17 @@
 import { state } from '../state';
 import { escapeHtml, dayKeyGMT3 } from '../utils';
-import type { SavedOrder } from '../types';
+import type { SavedOrder, SavedOrderItem } from '../types';
+
+function sortReceiptItems(items: SavedOrderItem[]): SavedOrderItem[] {
+  const rank = (item: SavedOrderItem): number => {
+    const isDraft = item.productType === 'DRAFT' || /^\d+(\.\d+)?\s*л$/i.test(item.details ?? '');
+    if (isDraft) return 0;
+    if (/тара|бутылка/i.test(item.name)) return 1;
+    if (/пакет|доставка/i.test(item.name)) return 3;
+    return 2;
+  };
+  return [...items].sort((a, b) => rank(a) - rank(b));
+}
 
 export function buildOrderNumbers(): Map<string, number> {
   const sorted = [...state.orders].sort((a, b) => a.createdAt.localeCompare(b.createdAt));
@@ -78,9 +89,10 @@ async function buildReceiptBlob(order: SavedOrder, orderNum: number | string): P
   const X_RIGHT = W - PAD;
 
   // Pre-measure item name wrapping (17px font, same as drawing)
+  const sortedItems = sortReceiptItems(order.items);
   const _mCtx = document.createElement('canvas').getContext('2d')!;
   _mCtx.font = `17px ${F}`;
-  const itemLines = order.items.map((item) => {
+  const itemLines = sortedItems.map((item) => {
     const suffix = item.details ? ` ${item.details}` : '';
     const name = item.productType === 'DRAFT' ? `${item.name} розлив` : `${item.name}${suffix}`;
     return wrapText(_mCtx, name, NAME_MAX_W);
@@ -203,8 +215,8 @@ async function buildReceiptBlob(order: SavedOrder, orderNum: number | string): P
     cy += 22;
 
     // Items
-    for (let i = 0; i < order.items.length; i++) {
-      const item = order.items[i];
+    for (let i = 0; i < sortedItems.length; i++) {
+      const item = sortedItems[i];
       const qtyStr = Number.isInteger(item.qty) ? String(item.qty) : item.qty.toFixed(3).replace(/\.?0+$/, '');
       const lineTotal = (item.price * item.qty).toLocaleString('ru-RU', { minimumFractionDigits: 0 }) + ' ₽';
       const lines = itemLines[i];
@@ -219,7 +231,7 @@ async function buildReceiptBlob(order: SavedOrder, orderNum: number | string): P
         ctx.fillText(lines[1], PAD, cy);
         cy += 28;
       }
-      if (i < order.items.length - 1) cy += 6;
+      if (i < sortedItems.length - 1) cy += 6;
     }
 
     divider();
@@ -340,7 +352,7 @@ export function showOrderReceipt(order: SavedOrder): void {
       <div class="receipt-divider"></div>
       ${clientBlock ? `<div class="receipt-client">${clientBlock}</div>` : ''}`;
   } else {
-    const itemsHtml = order.items.map((item) => {
+    const itemsHtml = sortReceiptItems(order.items).map((item) => {
       const qtyStr = Number.isInteger(item.qty) ? String(item.qty) : item.qty.toFixed(3).replace(/\.?0+$/, '');
       const lineTotal = (item.price * item.qty).toLocaleString('ru-RU', { minimumFractionDigits: 0 });
       return `<tr>

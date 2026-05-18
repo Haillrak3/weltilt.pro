@@ -120,6 +120,18 @@ export function addToCart(product: Product): void {
   }
   if (existing) existing.qty += 1;
   else state.cart.push({ product, qty: 1 });
+
+  if (/доставка/i.test(product.name ?? '')) {
+    const defaultLp = state.localProducts.find((p) => /^доставка$/i.test(p.name));
+    if (defaultLp) {
+      const defaultId = localToProduct(defaultLp).id;
+      if (product.id !== defaultId) {
+        const idx = state.cart.findIndex((i) => i.product.id === defaultId);
+        if (idx !== -1) state.cart.splice(idx, 1);
+      }
+    }
+  }
+
   syncAutoItems();
   render();
 }

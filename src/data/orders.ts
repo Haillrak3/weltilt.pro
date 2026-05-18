@@ -1,5 +1,5 @@
 import { state } from '../state';
-import { saveClient, saveOrderMeta, saveOrderApp, saveOrders, saveOrderMode } from '../storage';
+import { saveClient, saveOrderMeta, saveOrderApp, saveOrders, saveOrderMode, ORDERS_KEY } from '../storage';
 import { render } from '../render/trigger';
 import { upsertClientRecord } from './clients';
 import { buildCartItems, roundQty } from './cart';
@@ -274,8 +274,15 @@ export async function loadOrdersFromServer(): Promise<void> {
     if (!res.ok) return;
     const serverOrders = await res.json() as SavedOrder[];
     if (serverOrders.length > 0) {
-      if (JSON.stringify(serverOrders) !== JSON.stringify(state.orders)) {
-        state.orders = serverOrders;
+      // Мержим: сервер авторитетен, но сохраняем локальные заказы ещё не дошедшие до сервера
+      const serverIds = new Set(serverOrders.map(o => o.id));
+      const localOnly = state.orders.filter(o => !serverIds.has(o.id));
+      const merged = localOnly.length > 0
+        ? [...localOnly, ...serverOrders].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+        : serverOrders;
+      if (JSON.stringify(merged) !== JSON.stringify(state.orders)) {
+        state.orders = merged;
+        localStorage.setItem(ORDERS_KEY, JSON.stringify(merged));
         render();
       }
     } else if (state.orders.length > 0) {

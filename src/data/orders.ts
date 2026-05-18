@@ -3,7 +3,6 @@ import { saveClient, saveOrderMeta, saveOrderApp, saveOrders, saveOrderMode } fr
 import { render } from '../render/trigger';
 import { upsertClientRecord } from './clients';
 import { buildCartItems, roundQty } from './cart';
-import { localToProduct } from './vendor';
 import { unitPrice } from '../utils';
 import { showChangeCalculator, showOrderReceipt } from '../ui/receipt';
 import { storeDisplayNum } from '../render/products-panel';
@@ -39,31 +38,6 @@ export function createOrder(): void {
   const isAppTab = state.orderMode === 'app';
   if (!state.cart.length && !isAppTab) return;
 
-  if (!isAppTab && !state.editingOrderId) {
-    const localIds = new Set(state.localProducts.map((lp) => localToProduct(lp).id));
-    const nonLocalCount = state.cart
-      .filter((i) => !localIds.has(i.product.id))
-      .reduce((s, i) => s + (i.draftVolume !== undefined ? i.qty / i.draftVolume : i.qty), 0);
-
-    const hasPkg      = state.cart.some((i) => /пакет/i.test(i.product.name ?? ''));
-    const hasDelivery = state.cart.some((i) => /доставка/i.test(i.product.name ?? ''));
-    let autoAdded = false;
-
-    if (!hasPkg) {
-      const lp = state.localProducts.find((p) => /^пакет$/i.test(p.name));
-      if (lp) { state.cart.push({ product: localToProduct(lp), qty: Math.max(1, Math.ceil(nonLocalCount / 7)) }); autoAdded = true; }
-    }
-    if (!hasDelivery) {
-      const lp = state.localProducts.find((p) => /^доставка$/i.test(p.name));
-      if (lp) { state.cart.push({ product: localToProduct(lp), qty: 1 }); autoAdded = true; }
-    }
-
-    if (autoAdded) {
-      state.cartTab = 'cart';
-      render();
-      return;
-    }
-  }
 
   const cartSum = state.cart.reduce((sum, item) => sum + unitPrice(item.product) * item.qty, 0);
   const total = isAppTab

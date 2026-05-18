@@ -82,7 +82,32 @@ export function addDraftWithTara(product: Product, liters: number): void {
     else state.cart.push({ product: tara, qty: 1 });
   }
 
+  syncAutoItems();
   render();
+}
+
+function syncAutoItems(): void {
+  const localIds = new Set(state.localProducts.map((lp) => localToProduct(lp).id));
+  const nonLocalCount = state.cart
+    .filter((i) => !localIds.has(i.product.id))
+    .reduce((s, i) => s + (i.draftVolume !== undefined ? i.qty / i.draftVolume : i.qty), 0);
+
+  if (nonLocalCount === 0) return;
+
+  const hasDelivery = state.cart.some((i) => /доставка/i.test(i.product.name ?? ''));
+  if (!hasDelivery) {
+    const lp = state.localProducts.find((p) => /^доставка$/i.test(p.name));
+    if (lp) state.cart.push({ product: localToProduct(lp), qty: 1 });
+  }
+
+  const neededPkgs = Math.max(1, Math.ceil(nonLocalCount / 7));
+  const pkgLp = state.localProducts.find((p) => /^пакет$/i.test(p.name));
+  if (pkgLp) {
+    const pkgProduct = localToProduct(pkgLp);
+    const existing = state.cart.find((i) => i.product.id === pkgProduct.id);
+    if (existing) existing.qty = neededPkgs;
+    else state.cart.push({ product: pkgProduct, qty: neededPkgs });
+  }
 }
 
 export function addToCart(product: Product): void {
@@ -95,6 +120,7 @@ export function addToCart(product: Product): void {
   }
   if (existing) existing.qty += 1;
   else state.cart.push({ product, qty: 1 });
+  syncAutoItems();
   render();
 }
 

@@ -41,7 +41,9 @@ export function createOrder(): void {
 
   if (!isAppTab && !state.editingOrderId) {
     const localIds = new Set(state.localProducts.map((lp) => localToProduct(lp).id));
-    const nonLocalCount = state.cart.filter((i) => !localIds.has(i.product.id)).length;
+    const nonLocalCount = state.cart
+      .filter((i) => !localIds.has(i.product.id))
+      .reduce((s, i) => s + i.qty, 0);
 
     const hasPkg      = state.cart.some((i) => /пакет/i.test(i.product.name ?? ''));
     const hasDelivery = state.cart.some((i) => /доставка/i.test(i.product.name ?? ''));

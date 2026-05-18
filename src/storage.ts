@@ -110,23 +110,11 @@ export function saveOrderMode(mode: 'phone' | 'app'): void {
 
 export function saveOrders(orders: SavedOrder[]): void {
   localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
-  // Перед записью на сервер — мержим с его текущим состоянием,
-  // чтобы не затереть заказы добавленные ботом или другим браузером
-  fetch('/desk-api/orders')
-    .then(r => r.ok ? r.json() as Promise<SavedOrder[]> : Promise.resolve([] as SavedOrder[]))
-    .then(serverOrders => {
-      const localIds = new Set(orders.map(o => o.id));
-      const extra = (serverOrders as SavedOrder[]).filter(o => !localIds.has(o.id));
-      const toSave = extra.length > 0
-        ? [...orders, ...extra].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-        : orders;
-      return fetch('/desk-api/orders', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(toSave),
-      });
-    })
-    .catch(() => {});
+  fetch('/desk-api/orders', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(orders),
+  }).catch(() => {});
 }
 
 // ── Кэш товаров ─────────────────────────────────────────────────────────────

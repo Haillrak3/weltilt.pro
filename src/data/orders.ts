@@ -40,11 +40,15 @@ export function createOrder(): void {
   if (!state.cart.length && !isAppTab) return;
 
   if (!isAppTab && !state.editingOrderId) {
+    const localIds = new Set(state.localProducts.map((lp) => localToProduct(lp).id));
+    const nonLocalCount = state.cart.filter((i) => !localIds.has(i.product.id)).length;
+
     const hasPkg      = state.cart.some((i) => /пакет/i.test(i.product.name ?? ''));
     const hasDelivery = state.cart.some((i) => /доставка/i.test(i.product.name ?? ''));
+
     if (!hasPkg) {
       const lp = state.localProducts.find((p) => /^пакет$/i.test(p.name));
-      if (lp) state.cart.push({ product: localToProduct(lp), qty: 1 });
+      if (lp) state.cart.push({ product: localToProduct(lp), qty: Math.max(1, Math.ceil(nonLocalCount / 7)) });
     }
     if (!hasDelivery) {
       const lp = state.localProducts.find((p) => /^доставка$/i.test(p.name));

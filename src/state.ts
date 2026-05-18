@@ -50,6 +50,7 @@ export const state = {
   vendorProductsLoading: false,
   pendingProducts: [] as ModeratedProduct[],
   pendingProductsLoading: false,
+  pendingPage: 0,
   localProducts: loadLocalProducts(),
   showLocalProductForm: false,
   localProductForm: { name: '', price: '', productType: 'PIECE' },

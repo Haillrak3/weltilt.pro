@@ -27,7 +27,6 @@ export async function loadCategories(): Promise<void> {
     }));
     void prefetchAll().then(() => triggerServerWarmup(ALL_STORE_IDS, state.settings.authToken));
     void loadVendorProducts();
-    void loadPendingProducts();
   } catch (e) {
     state.categoriesError = e instanceof ApiError ? e.message : 'Не удалось загрузить категории';
     state.categories = [];
@@ -104,6 +103,10 @@ export async function selectSubcategory(categoryId: number): Promise<void> {
   if (categoryId === NO_CATEGORY_ID || categoryId === PENDING_ID || categoryId === LOCAL_CATEGORY_ID) {
     state.products = [];
     state.productsLoading = false;
+    if (categoryId === PENDING_ID) {
+      state.pendingPage = 0;
+      if (!state.pendingProducts.length && !state.pendingProductsLoading) void loadPendingProducts();
+    }
     render();
     return;
   }

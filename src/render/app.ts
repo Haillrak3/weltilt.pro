@@ -496,6 +496,15 @@ function bindEvents(): void {
     void selectSubcategory(PENDING_ID);
   });
 
+  document.getElementById('btn-pending-prev')?.addEventListener('click', () => {
+    if (state.pendingPage > 0) { state.pendingPage--; renderApp(); }
+  });
+
+  document.getElementById('btn-pending-next')?.addEventListener('click', () => {
+    const totalPages = Math.ceil(state.pendingProducts.length / 30);
+    if (state.pendingPage < totalPages - 1) { state.pendingPage++; renderApp(); }
+  });
+
   document.getElementById('btn-local-products')?.addEventListener('click', () => {
     state.categories.forEach((n) => { n.expanded = false; });
     state.showLocalProductForm = false;

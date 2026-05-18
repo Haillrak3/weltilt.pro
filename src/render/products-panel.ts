@@ -314,7 +314,16 @@ export function renderProducts(): string {
         ? '<p class="panel-status">Загрузка…</p>'
         : '<p class="panel-status">Нет позиций в обработке</p>');
     }
-    return statusEl + renderPendingTiles(items);
+    const PAGE_SIZE = 30;
+    const totalPages = Math.ceil(items.length / PAGE_SIZE);
+    const page = Math.min(state.pendingPage, totalPages - 1);
+    const pageItems = items.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+    const nav = `<div class="pending-pagination">
+      <button type="button" class="btn btn-ghost" id="btn-pending-prev"${page === 0 ? ' disabled' : ''}>←</button>
+      <span class="pending-page-label">${page + 1} / ${totalPages} (${items.length})</span>
+      <button type="button" class="btn btn-ghost" id="btn-pending-next"${page >= totalPages - 1 ? ' disabled' : ''}>→</button>
+    </div>`;
+    return statusEl + nav + renderPendingTiles(pageItems);
   }
 
   if (state.selectedSubcategoryId === NO_CATEGORY_ID) {

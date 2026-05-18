@@ -47,14 +47,21 @@ export function createOrder(): void {
 
     const hasPkg      = state.cart.some((i) => /пакет/i.test(i.product.name ?? ''));
     const hasDelivery = state.cart.some((i) => /доставка/i.test(i.product.name ?? ''));
+    let autoAdded = false;
 
     if (!hasPkg) {
       const lp = state.localProducts.find((p) => /^пакет$/i.test(p.name));
-      if (lp) state.cart.push({ product: localToProduct(lp), qty: Math.max(1, Math.ceil(nonLocalCount / 7)) });
+      if (lp) { state.cart.push({ product: localToProduct(lp), qty: Math.max(1, Math.ceil(nonLocalCount / 7)) }); autoAdded = true; }
     }
     if (!hasDelivery) {
       const lp = state.localProducts.find((p) => /^доставка$/i.test(p.name));
-      if (lp) state.cart.push({ product: localToProduct(lp), qty: 1 });
+      if (lp) { state.cart.push({ product: localToProduct(lp), qty: 1 }); autoAdded = true; }
+    }
+
+    if (autoAdded) {
+      state.cartTab = 'cart';
+      render();
+      return;
     }
   }
 

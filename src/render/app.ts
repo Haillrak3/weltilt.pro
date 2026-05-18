@@ -16,7 +16,8 @@ import { renderSearchPage, updateSearchDOM } from './search-page';
 import { saveCountries } from '../data/countries';
 
 import { newOrder, createOrder, loadOrderToCart, changeOrderStatus, changeOrderStore,
-  removeOrder, toggleOrderExpand, changeOrderItemQty, setOrderItemQty, removeOrderItem } from '../data/orders';
+  removeOrder, toggleOrderExpand, changeOrderItemQty, setOrderItemQty, removeOrderItem,
+  loadOrdersFromServer } from '../data/orders';
 import { openClientHistoryModal } from '../ui/order-preview-modal';
 import { addToCart, addDraftWithTara, removeDraftWithTara, changeCartQty, removeFromCart, roundQty, getCartSum } from '../data/cart';
 import { loadCategories, toggleCategory, selectSubcategory } from '../data/categories';
@@ -237,7 +238,7 @@ function bindEvents(): void {
     renderApp();
   });
   document.getElementById('tab-products')?.addEventListener('click', () => { state.currentPage = 'products'; newOrder(); });
-  document.getElementById('tab-orders')?.addEventListener('click', () => { state.currentPage = 'orders'; renderApp(); });
+  document.getElementById('tab-orders')?.addEventListener('click', () => { state.currentPage = 'orders'; renderApp(); void loadOrdersFromServer(); });
 
   document.querySelectorAll<HTMLButtonElement>('.mob-nav-btn[data-mob-panel]').forEach((btn) => {
     btn.addEventListener('click', () => {

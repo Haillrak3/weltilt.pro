@@ -23,7 +23,7 @@ export function renderClientHistory(): string {
     const dateObj = new Date(new Date(order.createdAt).getTime() + 3 * 60 * 60 * 1000);
     const dk = dateObj.toISOString().slice(0, 10);
     const dateLabel = `${dk.slice(8)}.${dk.slice(5, 7)} ${dateObj.toISOString().slice(11, 16)}`;
-    const totalStr = order.total.toLocaleString('ru-RU', { minimumFractionDigits: 0 }) + ' ₽';
+    const totalStr = (order.total ?? 0).toLocaleString('ru-RU', { minimumFractionDigits: 0 }) + ' ₽';
     return `
       <div class="ch-row">
         <span class="ch-num">#${num}</span>

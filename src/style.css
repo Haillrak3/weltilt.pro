@@ -1205,6 +1205,67 @@ button {
   width: min(520px, 100%);
 }
 
+.mango-modal { width: min(680px, 100%); }
+
+.mango-hint {
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin: -8px 0 16px;
+}
+
+.mango-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 16px;
+  font-size: 0.88rem;
+}
+
+.mango-table th {
+  text-align: left;
+  padding: 4px 8px;
+  font-size: 0.78rem;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+}
+
+.mango-table td { padding: 5px 6px; }
+
+.mango-input {
+  width: 100%;
+  padding: 5px 8px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font: inherit;
+  font-size: 0.85rem;
+}
+
+.mango-input:focus { outline: 2px solid var(--accent); border-color: transparent; }
+.mango-input--pass { font-family: monospace; letter-spacing: 0.05em; }
+
+.mango-del-btn {
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.mango-del-btn:hover { color: #ef4444; background: rgba(239,68,68,.1); }
+
+.mango-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.mango-status { font-size: 0.85rem; }
+.mango-status--ok  { color: #22c55e; }
+.mango-status--err { color: #ef4444; }
+
 .modal-section {
   margin-bottom: 20px;
   padding-bottom: 16px;
@@ -1632,6 +1693,24 @@ select:disabled {
   gap: 10px 16px;
   flex-wrap: wrap;
   margin-bottom: 16px;
+}
+
+.orders-attention {
+  flex-basis: 100%;
+  font-size: 0.88rem;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: rgba(255, 160, 0, 0.12);
+  color: #f59e0b;
+  border: 1px solid rgba(255, 160, 0, 0.25);
+}
+
+.orders-attention--ok {
+  background: rgba(34, 197, 94, 0.1);
+  color: #22c55e;
+  border-color: rgba(34, 197, 94, 0.2);
+  font-weight: 500;
 }
 
 .orders-filter-row {
@@ -3406,3 +3485,76 @@ select:disabled {
   background: var(--error);
   color: #fff;
 }
+
+/* ── Входящий звонок (Mango) ─────────────────────────────────────────────── */
+.call-popup {
+  position: fixed;
+  bottom: 80px;
+  right: 24px;
+  z-index: 9998;
+  width: 272px;
+  background: var(--surface-2);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.55);
+  padding: 14px 16px 12px;
+  transform: translateX(110%);
+  transition: transform 0.25s ease;
+  pointer-events: all;
+}
+.call-popup--visible {
+  transform: translateX(0);
+}
+.call-popup__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.call-popup__label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+}
+.call-popup__close {
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 0 2px;
+  line-height: 1;
+}
+.call-popup__close:hover { color: var(--text); }
+.call-popup__phone {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 12px;
+  letter-spacing: 0.02em;
+}
+.call-popup__actions {
+  display: flex;
+  gap: 8px;
+}
+.call-popup__btn {
+  flex: 1;
+  padding: 7px 0;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.call-popup__btn:hover { background: var(--surface-2); }
+.call-popup__btn--primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+.call-popup__btn--primary:hover { background: var(--accent-dim); border-color: var(--accent-dim); }

@@ -3,6 +3,11 @@ import { state } from '../state';
 import { saveExtraClients } from '../storage';
 import type { ClientAddress, ClientInfo, DbClient } from '../types';
 
+function normPhone(raw: string): string {
+  const d = raw.replace(/\D/g, '');
+  return d.length === 11 && d[0] === '7' ? '8' + d.slice(1) : d;
+}
+
 function addrKey(a: ClientAddress): string {
   return [a.street, a.house, a.entrance, a.floor, a.apartment, a.intercom]
     .map((s) => s.trim().toLowerCase()).join('|');
@@ -17,20 +22,21 @@ export function getClientAddresses(c: DbClient): ClientAddress[] {
   return (pa.street || pa.house) ? [pa] : [];
 }
 
-export function findClientByPhone(digits: string): DbClient | undefined {
-  return state.extraClients.find((c) => c.phone.replace(/\D/g, '') === digits)
-    ?? (clientsDb as DbClient[]).find((c) => c.phone.replace(/\D/g, '') === digits);
+export function findClientByPhone(raw: string): DbClient | undefined {
+  const d = normPhone(raw);
+  return state.extraClients.find((c) => normPhone(c.phone) === d)
+    ?? (clientsDb as DbClient[]).find((c) => normPhone(c.phone) === d);
 }
 
 export function searchClients(phone: string): DbClient[] {
-  const digits = phone.replace(/\D/g, '');
+  const digits = normPhone(phone);
   if (digits.length < 3) return [];
-  const extraDigits = new Set(state.extraClients.map((c) => c.phone.replace(/\D/g, '')));
+  const extraNorms = new Set(state.extraClients.map((c) => normPhone(c.phone)));
   return [
-    ...state.extraClients.filter((c) => c.phone.replace(/\D/g, '').includes(digits)),
+    ...state.extraClients.filter((c) => normPhone(c.phone).includes(digits)),
     ...(clientsDb as DbClient[]).filter((c) => {
-      const d = c.phone.replace(/\D/g, '');
-      return d.includes(digits) && !extraDigits.has(d);
+      const d = normPhone(c.phone);
+      return d.includes(digits) && !extraNorms.has(d);
     }),
   ].slice(0, 7);
 }

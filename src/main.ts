@@ -16,6 +16,7 @@ import { isConfigured, operatorFromSettings, loadSettings } from './config/setti
 import { state } from './state';
 import { saveOrderMeta } from './storage';
 import { isAuthorized, showAuthScreen, syncOperatorNames } from './auth';
+import { initMangoSse } from './ui/incoming-call';
 
 function boot(): void {
   Object.assign(state.settings, loadSettings());
@@ -42,6 +43,7 @@ function boot(): void {
 
 if (isAuthorized()) {
   boot();
+  initMangoSse();
 } else {
-  showAuthScreen(boot);
+  showAuthScreen(() => { boot(); initMangoSse(); });
 }

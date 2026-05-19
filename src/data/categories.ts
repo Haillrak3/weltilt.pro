@@ -117,9 +117,11 @@ export async function selectSubcategory(categoryId: number): Promise<void> {
     render();
     try {
       const fresh = await getAllProducts(state.activeStoreId, categoryId, state.settings.authToken);
-      const qtyMap = new Map(fresh.map((p) => [p.id, p.available_qty]));
-      cached.forEach((p) => { p.available_qty = qtyMap.get(p.id); });
-      if (state.selectedSubcategoryId === categoryId) render();
+      if (state.selectedSubcategoryId === categoryId) {
+        const qtyMap = new Map(fresh.map((p) => [p.id, p.available_qty]));
+        cached.forEach((p) => { p.available_qty = qtyMap.get(p.id); });
+        render();
+      }
     } catch { /* остатки не обновились */ }
     return;
   }

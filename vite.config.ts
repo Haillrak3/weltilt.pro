@@ -248,6 +248,11 @@ const apiProxy = {
     changeOrigin: true,
     secure: true,
   },
+  '/desk-api/mango': {
+    target: 'http://127.0.0.1:3001',
+    changeOrigin: false,
+    rewrite: (p: string) => p.replace('/desk-api/mango', '/api/mango'),
+  },
 };
 
 export default defineConfig({

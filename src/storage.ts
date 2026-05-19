@@ -117,6 +117,27 @@ export function saveOrders(orders: SavedOrder[]): void {
   }).catch(() => {});
 }
 
+const DELETED_ORDER_IDS_KEY = 'orderdesk_deleted_order_ids';
+
+export function loadDeletedOrderIds(): Set<string> {
+  try {
+    const raw = localStorage.getItem(DELETED_ORDER_IDS_KEY);
+    return new Set(raw ? (JSON.parse(raw) as string[]) : []);
+  } catch { return new Set(); }
+}
+
+export function markOrderDeleted(id: string): void {
+  const ids = loadDeletedOrderIds();
+  ids.add(id);
+  localStorage.setItem(DELETED_ORDER_IDS_KEY, JSON.stringify([...ids]));
+}
+
+export function pruneDeletedOrderIds(serverOrderIds: Set<string>): void {
+  const ids = loadDeletedOrderIds();
+  const stillOnServer = [...ids].filter(id => serverOrderIds.has(id));
+  localStorage.setItem(DELETED_ORDER_IDS_KEY, JSON.stringify(stillOnServer));
+}
+
 // ── Кэш товаров ─────────────────────────────────────────────────────────────
 
 const ALL_STORES_CACHE_KEY = 'orderdesk_allstores_cache';

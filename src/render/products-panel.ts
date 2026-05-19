@@ -8,6 +8,29 @@ import { DELIVERY_ZONES } from '../data/zones';
 import type { Product } from '../types';
 import type { ModeratedProduct } from '../api/types';
 
+// Кэш дедублированного списка всех товаров для поиска.
+// Продукты мутируются in-place при обновлении остатков, поэтому ссылки всегда актуальны.
+// Инвалидируется при изменении числа загруженных категорий или своих товаров.
+let _searchAllCache: Product[] | null = null;
+let _searchAllCacheSize = 0;
+
+function getSearchAllProducts(): Product[] {
+  const cacheSize = state.productsCache.size + state.localProducts.length;
+  if (_searchAllCache && _searchAllCacheSize === cacheSize) return _searchAllCache;
+  const seen = new Set<number>();
+  const all: Product[] = [];
+  state.productsCache.forEach((list) => {
+    list.forEach((p) => { if (!seen.has(p.id)) { seen.add(p.id); all.push(p); } });
+  });
+  state.localProducts.forEach((lp) => {
+    const p = localToProduct(lp);
+    if (!seen.has(p.id)) { seen.add(p.id); all.push(p); }
+  });
+  _searchAllCache = all;
+  _searchAllCacheSize = cacheSize;
+  return all;
+}
+
 // Подстрока из API (адрес или название) → отображаемый номер
 // Поправь подстроки под реальные названия из API
 const PINNED_NUMS = ['2', '4', '5', '6', '7', '9'];
@@ -94,13 +117,17 @@ export function renderStorePicker(): string {
 const DRAFT_VOLUMES = [0.5, 1, 1.5] as const;
 
 export function renderTiles(products: Product[]): string {
-  // Один проход по корзине для всех draft-товаров: Map<productId, Map<volume, qty>>
+  // Один проход по корзине: карты для draft и обычных товаров
   const draftCartMap = new Map<number, Map<number, number>>();
+  const regularCartMap = new Map<number, number>();
   for (const item of state.cart) {
-    if (item.draftVolume === undefined) continue;
-    let volMap = draftCartMap.get(item.product.id);
-    if (!volMap) { volMap = new Map(); draftCartMap.set(item.product.id, volMap); }
-    volMap.set(item.draftVolume, (volMap.get(item.draftVolume) ?? 0) + item.qty);
+    if (item.draftVolume !== undefined) {
+      let volMap = draftCartMap.get(item.product.id);
+      if (!volMap) { volMap = new Map(); draftCartMap.set(item.product.id, volMap); }
+      volMap.set(item.draftVolume, (volMap.get(item.draftVolume) ?? 0) + item.qty);
+    } else {
+      regularCartMap.set(item.product.id, (regularCartMap.get(item.product.id) ?? 0) + item.qty);
+    }
   }
 
   return `<div class="product-grid">${products.map((p) => {
@@ -133,9 +160,7 @@ export function renderTiles(products: Product[]): string {
     const totalDraftL = isDraft && draftVolMap
       ? [...draftVolMap.values()].reduce((s, v) => s + v, 0)
       : 0;
-    const cartQty = isDraft
-      ? totalDraftL
-      : state.cart.filter((item) => item.product.id === p.id).reduce((s, item) => s + item.qty, 0);
+    const cartQty = isDraft ? totalDraftL : (regularCartMap.get(p.id) ?? 0);
     const cartBadge = cartQty > 0 ? `<div class="tile-cart-badge">${escapeHtml(formatQty(cartQty))}${isDraft ? ' л' : ''}</div>` : '';
     const priceStr = escapeHtml(formatPrice(p));
     const priceHtml = oos
@@ -159,6 +184,11 @@ export function renderLocalTiles(): string {
   if (!items.length) {
     return '<p class="panel-status">Нет своих товаров</p>';
   }
+  const cartQtyMap = new Map<number, number>();
+  for (const item of state.cart) {
+    if (item.draftVolume === undefined)
+      cartQtyMap.set(item.product.id, (cartQtyMap.get(item.product.id) ?? 0) + item.qty);
+  }
   return `<div class="product-grid">${items.map((lp) => {
     const priceStr = lp.price
       ? lp.productType === 'WEIGHT'
@@ -166,7 +196,7 @@ export function renderLocalTiles(): string {
         : `${lp.price.toLocaleString('ru-RU')} ₽`
       : '—';
     const lpProduct = localToProduct(lp);
-    const cartQty = state.cart.filter((item) => item.product.id === lpProduct.id).reduce((s, item) => s + item.qty, 0);
+    const cartQty = cartQtyMap.get(lpProduct.id) ?? 0;
     const cartBadge = cartQty > 0 ? `<div class="tile-cart-badge">${escapeHtml(formatQty(cartQty))}</div>` : '';
     return `
       <div class="product-tile tile-local" data-local-id="${escapeHtml(lp.id)}" draggable="true">
@@ -181,14 +211,17 @@ export function renderLocalTiles(): string {
 }
 
 export function renderPendingTiles(items: ModeratedProduct[]): string {
+  const cartQtyMap = new Map<number, number>();
+  for (const item of state.cart) {
+    if (item.draftVolume === undefined)
+      cartQtyMap.set(item.product.id, (cartQtyMap.get(item.product.id) ?? 0) + item.qty);
+  }
   return `<div class="product-grid">${items.map((item) => {
     const product = moderatedToProduct(item);
     const isRejected = item.status === 'REJECTED';
     const statusClass = isRejected ? 'rejected-label' : 'pending-label';
     const statusLabel = isRejected ? 'Отклонён' : 'На модерации';
-    const cartQty = state.cart
-      .filter((ci) => ci.product.id === product.id)
-      .reduce((s, ci) => s + ci.qty, 0);
+    const cartQty = cartQtyMap.get(product.id) ?? 0;
     const cartBadge = cartQty > 0
       ? `<div class="tile-cart-badge">${escapeHtml(formatQty(cartQty))}</div>`
       : '';
@@ -274,15 +307,7 @@ export function renderProducts(): string {
   const q = state.searchQuery.trim();
 
   if (q) {
-    const seen = new Set<number>();
-    const all: Product[] = [];
-    state.productsCache.forEach((list) => {
-      list.forEach((p) => { if (!seen.has(p.id)) { seen.add(p.id); all.push(p); } });
-    });
-    state.localProducts.forEach((lp) => {
-      const p = localToProduct(lp);
-      if (!seen.has(p.id)) { seen.add(p.id); all.push(p); }
-    });
+    const all = getSearchAllProducts();
     const filtered = all.filter((p) => fuzzyMatch(p.name, q));
     const filteredModerated = state.pendingProducts.filter((p) => fuzzyMatch(p.name.trim(), q));
     if (!filtered.length && !filteredModerated.length) {

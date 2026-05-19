@@ -43,6 +43,18 @@ export function buildFilterToolbar(): string {
     { val: 'done', label: 'Произведён' },
   ];
 
+  // Заказы за текущий период (без фильтров магазина/статуса)
+  const periodOrders = state.orders.filter((o) => {
+    const dk = dayKeyGMT3(o.createdAt);
+    return (!from || dk >= from) && (!to || dk <= to);
+  });
+  const needAttention = periodOrders.filter(
+    (o) => !STORE_IDS.includes(o.storeId) || o.status !== 'done',
+  ).length;
+  const attentionHtml = needAttention > 0
+    ? `<div class="orders-attention">Требуют внимания: <strong>${needAttention}</strong></div>`
+    : `<div class="orders-attention orders-attention--ok">Все заказы обработаны</div>`;
+
   return `
     <div class="orders-toolbar">
       <div class="orders-quick-btns">
@@ -54,6 +66,7 @@ export function buildFilterToolbar(): string {
         <label class="orders-date-label">С <input type="date" id="of-from" class="orders-date-input" value="${escapeHtml(from)}" /></label>
         <label class="orders-date-label">По <input type="date" id="of-to" class="orders-date-input" value="${escapeHtml(to)}" /></label>
       </div>
+      ${attentionHtml}
       <div class="orders-filter-row">
         <span class="orders-filter-label">Магазин:</span>
         <button type="button" class="orders-quick-btn${!store ? ' active' : ''}" data-filter-store="">Все</button>
@@ -93,7 +106,7 @@ export function renderOrdersPage(): string {
         const addrBase = [order.client.street, order.client.house].filter(Boolean).join(', ') || '—';
         const preferredStore = clientPreferredStore(order.client.phone);
         const addr = preferredStore ? `${addrBase} · №${preferredStore}` : addrBase;
-        const totalStr = order.total.toLocaleString('ru-RU', { minimumFractionDigits: 0 }) + ' ₽';
+        const totalStr = (order.total ?? 0).toLocaleString('ru-RU', { minimumFractionDigits: 0 }) + ' ₽';
         const methodLabel = (order.orderMethod === 'app' && order.orderAmount !== undefined) ? 'Прилож.' : 'Тел.';
         const payLabel = order.payMethod === 'cash' ? 'Нал' : 'Безнал';
         const changeLabel = order.payMethod === 'cash' && order.change ? ` · сдача ${order.change.toLocaleString('ru-RU')} ₽` : '';
@@ -112,14 +125,14 @@ export function renderOrdersPage(): string {
           ? `<div class="order-expanded">
               ${order.items.length
                 ? order.items.map((item, idx) => {
-                    const lineTotal = (item.price * item.qty).toLocaleString('ru-RU', { minimumFractionDigits: 0 });
+                    const lineTotal = ((item.price ?? 0) * item.qty).toLocaleString('ru-RU', { minimumFractionDigits: 0 });
                     return `<div class="order-item-row">
                       <span class="order-item-name">${escapeHtml(item.name)}</span>
                       <div class="order-item-controls">
                         <button type="button" class="qty-btn" data-oitem-dec data-order-id="${order.id}" data-item-idx="${idx}">−</button>
                         <input type="text" inputmode="decimal" class="qty-input" data-oitem-qty data-order-id="${order.id}" data-item-idx="${idx}" value="${item.qty}" />
                         <button type="button" class="qty-btn" data-oitem-inc data-order-id="${order.id}" data-item-idx="${idx}">+</button>
-                        <span class="order-item-price">${item.price.toLocaleString('ru-RU')} ₽ × ${item.qty} = ${lineTotal} ₽</span>
+                        <span class="order-item-price">${(item.price ?? 0).toLocaleString('ru-RU')} ₽ × ${item.qty} = ${lineTotal} ₽</span>
                         <button type="button" class="cart-del" data-oitem-del data-order-id="${order.id}" data-item-idx="${idx}" title="Удалить позицию">✕</button>
                       </div>
                     </div>`;

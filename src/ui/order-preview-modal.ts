@@ -24,7 +24,7 @@ export function openClientHistoryModal(phone: string): void {
 
   const ordersHtml = orders.map((order) => {
     const num = orderNumbers.get(order.id) ?? '?';
-    const totalStr = order.total.toLocaleString('ru-RU') + ' ₽';
+    const totalStr = (order.total ?? 0).toLocaleString('ru-RU') + ' ₽';
     const payLabel = order.payMethod === 'cash' ? 'Нал' : 'Безнал';
     const STATUS_LABEL: Record<string, string> = { created: 'Создан', in_progress: 'В работе', done: 'Выдан' };
 

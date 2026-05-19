@@ -1,5 +1,5 @@
 import { state } from '../state';
-import { saveClient, saveOrderMeta, saveOrderApp, saveOrders, saveOrderMode, ORDERS_KEY } from '../storage';
+import { saveClient, saveOrderMeta, saveOrderApp, saveOrders, saveOrderMode, ORDERS_KEY, markOrderDeleted, loadDeletedOrderIds, pruneDeletedOrderIds } from '../storage';
 import { render } from '../render/trigger';
 import { upsertClientRecord } from './clients';
 import { buildCartItems, roundQty } from './cart';
@@ -219,6 +219,7 @@ export function changeOrderStore(orderId: string, storeId: string): void {
 }
 
 export function removeOrder(orderId: string): void {
+  markOrderDeleted(orderId);
   state.orders = state.orders.filter((o) => o.id !== orderId);
   if (state.expandedOrderId === orderId) state.expandedOrderId = null;
   saveOrders(state.orders);
@@ -274,12 +275,20 @@ export async function loadOrdersFromServer(): Promise<void> {
     if (!res.ok) return;
     const serverOrders = await res.json() as SavedOrder[];
     if (serverOrders.length > 0) {
-      // Мержим: сервер авторитетен, но сохраняем локальные заказы ещё не дошедшие до сервера
-      const serverIds = new Set(serverOrders.map(o => o.id));
+      const allServerIds = new Set(serverOrders.map(o => o.id));
+      const deletedIds = loadDeletedOrderIds();
+      // Фильтруем заказы, удалённые локально, но ещё не вычищенные с сервера
+      const filteredServer = deletedIds.size > 0
+        ? serverOrders.filter(o => !deletedIds.has(o.id))
+        : serverOrders;
+      // Очищаем deletedIds от ID, которых сервер уже не возвращает
+      pruneDeletedOrderIds(allServerIds);
+
+      const serverIds = new Set(filteredServer.map(o => o.id));
       const localOnly = state.orders.filter(o => !serverIds.has(o.id));
       const merged = localOnly.length > 0
-        ? [...localOnly, ...serverOrders].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-        : serverOrders;
+        ? [...localOnly, ...filteredServer].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+        : filteredServer;
       if (JSON.stringify(merged) !== JSON.stringify(state.orders)) {
         state.orders = merged;
         localStorage.setItem(ORDERS_KEY, JSON.stringify(merged));

@@ -2,7 +2,8 @@ import { state } from '../state';
 import { saveClient, saveOrderMeta, saveActiveStoreId, saveOrderApp, saveOrderMode } from '../storage';
 import { saveSettings } from '../config/settings';
 import { openSettings } from '../ui/settings';
-import { escapeHtml, formatPhone, todayGMT3, yesterdayGMT3 } from '../utils';
+import { openMangoAdmin } from '../ui/mango-admin';
+import { escapeHtml, formatPhone, todayGMT3, yesterdayGMT3, debounce } from '../utils';
 import { NO_CATEGORY_ID, PENDING_ID, LOCAL_CATEGORY_ID } from '../types';
 import type { SavedOrder } from '../types';
 
@@ -108,7 +109,8 @@ export function triggerZoneDetection(debounce = 600): void {
 
 function bindEvents(): void {
   const searchEl = document.getElementById('product-search') as HTMLInputElement | null;
-  searchEl?.addEventListener('input', () => { state.searchQuery = searchEl.value; renderApp(); });
+  const debouncedSearch = debounce(renderApp, 300);
+  searchEl?.addEventListener('input', () => { state.searchQuery = searchEl.value; debouncedSearch(); });
 
 
   document.querySelectorAll<HTMLButtonElement>('.cart-tab').forEach((btn) => {
@@ -199,10 +201,27 @@ function bindEvents(): void {
       if (!key) return;
       if (key === 'phone' && el instanceof HTMLInputElement) el.value = formatPhone(el.value);
       (state.client as unknown as Record<string, string>)[key] = el.value;
-      const persistedKeys = ['phone','name','street','house','entrance','floor','apartment','intercom'];
-      if (persistedKeys.includes(key)) saveClient(state.client);
-      if (key === 'phone') { state.clientSuggestHidden = false; renderApp(); }
-      if (key === 'street' || key === 'house') triggerZoneDetection();
+      if (key === 'phone') {
+        const digits = el.value.replace(/\D/g, '');
+        const found = digits.length === 11 ? findClientByPhone(digits) : null;
+        if (found) {
+          Object.assign(state.client, {
+            name: found.name, street: found.street, house: found.house,
+            entrance: found.entrance, floor: found.floor,
+            apartment: found.apartment, intercom: found.intercom, notes: found.notes ?? '',
+          });
+          state.clientSuggestHidden = true;
+        } else {
+          state.clientSuggestHidden = false;
+        }
+        saveClient(state.client);
+        if (found) triggerZoneDetection();
+        renderApp();
+      } else {
+        const persistedKeys = ['name','street','house','entrance','floor','apartment','intercom'];
+        if (persistedKeys.includes(key)) saveClient(state.client);
+        if (key === 'street' || key === 'house') triggerZoneDetection();
+      }
     });
   });
 
@@ -212,6 +231,8 @@ function bindEvents(): void {
   });
   document.getElementById('btn-stores-expand')?.addEventListener('click', () => { state.storesExpanded = true; renderApp(); });
   document.getElementById('btn-stores-collapse')?.addEventListener('click', () => { state.storesExpanded = false; renderApp(); });
+  document.getElementById('btn-mango-admin')?.addEventListener('click', () => openMangoAdmin());
+
   document.getElementById('btn-logout')?.addEventListener('click', () => {
     saveSettings({ storeId: '', storeLabel: '', authToken: '', countryCode: '+7', phoneNumber: '' });
     state.settings.authToken = '';
@@ -776,6 +797,7 @@ export function renderApp(): void {
             <span class="theme-toggle-thumb"></span>
           </span>
         </label>
+        <button type="button" class="btn btn-ghost" id="btn-mango-admin" title="Mango SIP настройки">Манго</button>
         <button type="button" class="btn btn-ghost btn-logout" id="btn-logout" title="Выйти из аккаунта">Выход</button>
       </header>
 

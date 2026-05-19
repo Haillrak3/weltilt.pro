@@ -1,6 +1,11 @@
 import type { Category, Product } from './types';
 import { lookupCountry } from './data/countries';
 
+export function debounce<T extends unknown[]>(fn: (...args: T) => void, ms: number): (...args: T) => void {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  return (...args: T) => { clearTimeout(timer); timer = setTimeout(() => fn(...args), ms); };
+}
+
 export function escapeHtml(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }

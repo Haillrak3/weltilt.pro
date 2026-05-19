@@ -237,7 +237,7 @@ async function buildReceiptBlob(order: SavedOrder, orderNum: number | string): P
     divider();
     ctx.font = `bold 16px ${F}`; ctx.fillStyle = CT;
     ctx.textAlign = 'left';  ctx.fillText('К ОПЛАТЕ', PAD, cy);
-    ctx.textAlign = 'right'; ctx.fillText(order.total.toLocaleString('ru-RU', { minimumFractionDigits: 0 }) + ' ₽', X_RIGHT, cy);
+    ctx.textAlign = 'right'; ctx.fillText((order.total ?? 0).toLocaleString('ru-RU', { minimumFractionDigits: 0 }) + ' ₽', X_RIGHT, cy);
     cy += 24;
     ctx.font = `bold 16px ${F}`; ctx.fillStyle = CM; ctx.textAlign = 'left';
     ctx.fillText(`Способ оплаты: ${payLabel}`, PAD, cy); cy += 24;
@@ -326,7 +326,7 @@ export function showOrderReceipt(order: SavedOrder): void {
   const dateObj = new Date(new Date(order.createdAt).getTime() + 3 * 60 * 60 * 1000);
   const dateStr = dateObj.toLocaleString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'UTC' });
   const payLabel = order.payMethod === 'cash' ? 'Наличные' : 'Безналичный расчёт';
-  const totalStr = order.total.toLocaleString('ru-RU', { minimumFractionDigits: 0 }) + ' ₽';
+  const totalStr = (order.total ?? 0).toLocaleString('ru-RU', { minimumFractionDigits: 0 }) + ' ₽';
 
   const addrLine = [order.client.street, order.client.house, order.client.apartment ? `кв. ${order.client.apartment}` : ''].filter(Boolean).join(', ');
   const addrExtra = [

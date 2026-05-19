@@ -25,7 +25,7 @@ import { loadCategories, toggleCategory, selectSubcategory } from '../data/categ
 import { selectStore } from '../data/stores';
 import { loadAllStoresProducts } from '../data/all-stores-search';
 import { addLocalProduct, deleteLocalProduct, localToProduct, moderatedToProduct, reorderLocalProduct } from '../data/vendor';
-import { searchClients, allClientsDeduped, findClientByPhone, getClientAddresses, saveClientRecord } from '../data/clients';
+import { searchClients, allClientsDeduped, findClientByPhone, getClientAddresses, getAllClientPhones, saveClientRecord } from '../data/clients';
 import type { ClientAddress } from '../types';
 import { openProductModal, findProductInCache } from '../ui/product-modal';
 import { showOrderReceipt } from '../ui/receipt';
@@ -177,7 +177,36 @@ function bindEvents(): void {
     });
   });
 
-  document.querySelectorAll<HTMLButtonElement>('.addr-chip[data-addr-idx]').forEach((btn) => {
+  document.getElementById('btn-phone-picker')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    state.phonePickerOpen = !state.phonePickerOpen;
+    state.addrPickerOpen = false;
+    renderApp();
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('.addr-dd-item[data-phone-idx]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const digits = state.client.phone.replace(/\D/g, '');
+      const client = findClientByPhone(digits);
+      if (!client) return;
+      const idx = Number(btn.dataset.phoneIdx);
+      const norm = getAllClientPhones(client)[idx];
+      if (!norm) return;
+      state.client.phone = formatPhone(norm) || norm;
+      state.phonePickerOpen = false;
+      saveClient(state.client);
+      renderApp();
+    });
+  });
+
+  document.getElementById('btn-addr-picker')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    state.addrPickerOpen = !state.addrPickerOpen;
+    state.phonePickerOpen = false;
+    renderApp();
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('.addr-dd-item[data-addr-idx]').forEach((btn) => {
     btn.addEventListener('click', () => {
       const digits = state.client.phone.replace(/\D/g, '');
       const client = findClientByPhone(digits);
@@ -189,6 +218,7 @@ function bindEvents(): void {
         const addr = getClientAddresses(client)[idx];
         if (addr) Object.assign(state.client, { street: addr.street, house: addr.house, entrance: addr.entrance, floor: addr.floor, apartment: addr.apartment, intercom: addr.intercom });
       }
+      state.addrPickerOpen = false;
       saveClient(state.client);
       renderApp();
       triggerZoneDetection();
@@ -754,6 +784,20 @@ function bindEvents(): void {
 
   document.getElementById('oa-pkg-inc')
     ?.addEventListener('click', () => updatePackage(state.orderApp.packageQty + 1));
+
+  document.addEventListener('click', (e) => {
+    const t = e.target as Element;
+    let changed = false;
+    if (state.addrPickerOpen && !t.closest('.addr-picker-wrap:not(.phone-picker-wrap)')) {
+      state.addrPickerOpen = false;
+      changed = true;
+    }
+    if (state.phonePickerOpen && !t.closest('.phone-picker-wrap')) {
+      state.phonePickerOpen = false;
+      changed = true;
+    }
+    if (changed) renderApp();
+  }, { once: true });
 }
 
 function updateCartTotal(): void {

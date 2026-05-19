@@ -274,32 +274,32 @@ export async function loadOrdersFromServer(): Promise<void> {
     const res = await fetch('/desk-api/orders');
     if (!res.ok) return;
     const serverOrders = await res.json() as SavedOrder[];
-    if (serverOrders.length > 0) {
-      const allServerIds = new Set(serverOrders.map(o => o.id));
-      const deletedIds = loadDeletedOrderIds();
-      // Фильтруем заказы, удалённые локально, но ещё не вычищенные с сервера
-      const filteredServer = deletedIds.size > 0
-        ? serverOrders.filter(o => !deletedIds.has(o.id))
-        : serverOrders;
-      // Очищаем deletedIds от ID, которых сервер уже не возвращает
-      pruneDeletedOrderIds(allServerIds);
+    const allServerIds = new Set(serverOrders.map(o => o.id));
+    const deletedIds = loadDeletedOrderIds();
+    pruneDeletedOrderIds(allServerIds);
+    const filteredServer = deletedIds.size > 0
+      ? serverOrders.filter(o => !deletedIds.has(o.id))
+      : serverOrders;
 
-      const serverIds = new Set(filteredServer.map(o => o.id));
-      const localOnly = state.orders.filter(o => !serverIds.has(o.id));
-      const merged = localOnly.length > 0
-        ? [...localOnly, ...filteredServer].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-        : filteredServer;
-      if (JSON.stringify(merged) !== JSON.stringify(state.orders)) {
-        state.orders = merged;
-        localStorage.setItem(ORDERS_KEY, JSON.stringify(merged));
-        render();
-      }
-    } else if (state.orders.length > 0) {
-      await fetch('/desk-api/orders', {
+    const serverIds = new Set(filteredServer.map(o => o.id));
+    // Заказы которые есть в памяти но не на сервере — загрузить на сервер
+    const localOnly = state.orders.filter(o => !serverIds.has(o.id));
+    const merged = localOnly.length > 0
+      ? [...localOnly, ...filteredServer].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+      : filteredServer;
+
+    if (localOnly.length > 0) {
+      // Грузим локальные заказы на сервер (не трогаем localStorage — он источник этих данных)
+      fetch('/desk-api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(state.orders),
-      });
+        body: JSON.stringify(merged),
+      }).catch(() => {});
     }
-  } catch { /* сервер недоступен — используем localStorage */ }
+
+    if (JSON.stringify(merged) !== JSON.stringify(state.orders)) {
+      state.orders = merged;
+      render();
+    }
+  } catch { /* сервер недоступен */ }
 }

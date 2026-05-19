@@ -53,6 +53,7 @@ export type DbClient = {
   name: string; phone: string; street: string; house: string;
   entrance: string; floor: string; apartment: string; intercom: string; notes: string;
   addresses?: ClientAddress[];
+  phones?: string[];
 };
 
 export interface OrderMeta {

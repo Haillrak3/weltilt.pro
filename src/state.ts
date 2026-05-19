@@ -63,6 +63,8 @@ export const state = {
   orderApp: loadOrderApp() as OrderApp,
   orderMode: loadOrderMode() as OrderMode,
   appClientExpanded: false,
+  addrPickerOpen: false,
+  phonePickerOpen: false,
   detectedZone: '' as string,
   detectedZoneKm: null as number | null,
   detectedZoneLoading: false,

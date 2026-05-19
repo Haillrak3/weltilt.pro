@@ -22,10 +22,30 @@ export function getClientAddresses(c: DbClient): ClientAddress[] {
   return (pa.street || pa.house) ? [pa] : [];
 }
 
+export function getAllClientPhones(c: DbClient): string[] {
+  const fullNorm = normPhone(c.phone);
+  const parts = c.phone.split(/\s+/).filter(Boolean).map(normPhone);
+  const extra = (c.phones ?? []).map(normPhone);
+  const seen = new Set<string>();
+  const result: string[] = [];
+  for (const p of [fullNorm, ...parts, ...extra]) {
+    if (p.length >= 7 && p.length <= 11 && !seen.has(p)) { seen.add(p); result.push(p); }
+  }
+  return result;
+}
+
+function clientMatchesPhone(c: DbClient, d: string): boolean {
+  return getAllClientPhones(c).some((p) => p === d);
+}
+
+function clientContainsDigits(c: DbClient, digits: string): boolean {
+  return getAllClientPhones(c).some((p) => p.includes(digits));
+}
+
 export function findClientByPhone(raw: string): DbClient | undefined {
   const d = normPhone(raw);
-  return state.extraClients.find((c) => normPhone(c.phone) === d)
-    ?? (clientsDb as DbClient[]).find((c) => normPhone(c.phone) === d);
+  return state.extraClients.find((c) => clientMatchesPhone(c, d))
+    ?? (clientsDb as DbClient[]).find((c) => clientMatchesPhone(c, d));
 }
 
 export function searchClients(phone: string): DbClient[] {
@@ -33,10 +53,9 @@ export function searchClients(phone: string): DbClient[] {
   if (digits.length < 3) return [];
   const extraNorms = new Set(state.extraClients.map((c) => normPhone(c.phone)));
   return [
-    ...state.extraClients.filter((c) => normPhone(c.phone).includes(digits)),
+    ...state.extraClients.filter((c) => clientContainsDigits(c, digits)),
     ...(clientsDb as DbClient[]).filter((c) => {
-      const d = normPhone(c.phone);
-      return d.includes(digits) && !extraNorms.has(d);
+      return clientContainsDigits(c, digits) && !extraNorms.has(normPhone(c.phone));
     }),
   ].slice(0, 7);
 }
@@ -58,13 +77,13 @@ export function upsertClientRecord(client: ClientInfo & { notes: string }): void
     entrance: client.entrance.trim(), floor: client.floor.trim(),
     apartment: client.apartment.trim(), intercom: client.intercom.trim(),
   };
+  const hasAddr = !!(newAddr.street || newAddr.house);
 
   const idx = state.extraClients.findIndex((c) => c.phone.replace(/\D/g, '') === digits);
   if (idx >= 0) {
     const existing = state.extraClients[idx];
     const addresses = getClientAddresses(existing);
-    const key = addrKey(newAddr);
-    if ((newAddr.street || newAddr.house) && !addresses.some((a) => addrKey(a) === key)) {
+    if (hasAddr && !addresses.some((a) => addrKey(a) === addrKey(newAddr))) {
       addresses.push(newAddr);
     }
     state.extraClients[idx] = {
@@ -74,7 +93,12 @@ export function upsertClientRecord(client: ClientInfo & { notes: string }): void
       notes: client.notes.trim(), addresses,
     };
   } else {
-    const addresses: ClientAddress[] = (newAddr.street || newAddr.house) ? [newAddr] : [];
+    // Первый заказ — взять адреса из clientsDb чтобы не потерять их
+    const dbClient = findClientByPhone(digits);
+    const addresses: ClientAddress[] = dbClient ? [...getClientAddresses(dbClient)] : [];
+    if (hasAddr && !addresses.some((a) => addrKey(a) === addrKey(newAddr))) {
+      addresses.push(newAddr);
+    }
     state.extraClients.push({
       phone: client.phone.trim(), name: client.name.trim(), street: client.street.trim(),
       house: client.house.trim(), entrance: client.entrance.trim(), floor: client.floor.trim(),

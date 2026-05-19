@@ -109,7 +109,6 @@ export function saveOrderMode(mode: 'phone' | 'app'): void {
 }
 
 export function saveOrders(orders: SavedOrder[]): void {
-  localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
   fetch('/desk-api/orders', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

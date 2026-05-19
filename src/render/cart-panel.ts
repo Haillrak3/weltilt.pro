@@ -1,7 +1,7 @@
 import { state } from '../state';
 import { escapeHtml, formatPhone, formatProductName, unitPrice } from '../utils';
 import { getCartSum } from '../data/cart';
-import { searchClients, findClientByPhone, getClientAddresses } from '../data/clients';
+import { searchClients, findClientByPhone, getClientAddresses, getAllClientPhones } from '../data/clients';
 import { buildOrderNumbers } from '../ui/receipt';
 
 export function renderClientHistory(): string {
@@ -42,6 +42,32 @@ export function renderClientHistory(): string {
     </div>`;
 }
 
+function renderPhonePicker(): string {
+  const rawDigits = state.client.phone.replace(/\D/g, '');
+  if (rawDigits.length < 7) return '';
+  const client = findClientByPhone(rawDigits);
+  if (!client) return '';
+  const phones = getAllClientPhones(client);
+  if (phones.length < 2) return '';
+
+  const currentNorm = rawDigits.length === 11 && rawDigits[0] === '7' ? '8' + rawDigits.slice(1) : rawDigits;
+  const items = phones.map((norm, i) => {
+    const active = norm === currentNorm;
+    return `<button type="button" class="addr-dd-item${active ? ' active' : ''}" data-phone-idx="${i}">${escapeHtml(formatPhone(norm) || norm)}</button>`;
+  }).join('');
+
+  const dropdown = state.phonePickerOpen
+    ? `<div class="addr-dropdown">${items}</div>`
+    : '';
+
+  return `<div class="addr-picker-wrap phone-picker-wrap">
+    <button type="button" class="addr-picker-btn${state.phonePickerOpen ? ' open' : ''}" id="btn-phone-picker">
+      ${phones.length} тел.
+    </button>
+    ${dropdown}
+  </div>`;
+}
+
 function renderAddressPicker(): string {
   const digits = state.client.phone.replace(/\D/g, '');
   if (digits.length < 7) return '';
@@ -55,15 +81,27 @@ function renderAddressPicker(): string {
     state.client.floor, state.client.apartment, state.client.intercom,
   ].map((s) => s.trim().toLowerCase()).join('|');
 
-  const chips = addresses.map((a, i) => {
+  const items = addresses.map((a, i) => {
     const label = [a.street, a.house, a.apartment ? `кв. ${a.apartment}` : ''].filter(Boolean).join(', ');
     const aKey = [a.street, a.house, a.entrance, a.floor, a.apartment, a.intercom]
       .map((s) => s.trim().toLowerCase()).join('|');
     const active = aKey === currentKey && currentKey !== '|||||';
-    return `<button type="button" class="addr-chip${active ? ' active' : ''}" data-addr-idx="${i}">${escapeHtml(label || `Адрес ${i + 1}`)}</button>`;
+    return `<button type="button" class="addr-dd-item${active ? ' active' : ''}" data-addr-idx="${i}">${escapeHtml(label || `Адрес ${i + 1}`)}</button>`;
   }).join('');
 
-  return `<div class="addr-picker">${chips}<button type="button" class="addr-chip addr-chip-new" data-addr-idx="-1">+ Новый адрес</button></div>`;
+  const dropdown = state.addrPickerOpen
+    ? `<div class="addr-dropdown">
+        ${items}
+        <button type="button" class="addr-dd-item addr-dd-new" data-addr-idx="-1">+ Новый адрес</button>
+       </div>`
+    : '';
+
+  return `<div class="addr-picker-wrap">
+    <button type="button" class="addr-picker-btn${state.addrPickerOpen ? ' open' : ''}" id="btn-addr-picker">
+      ${addresses.length} адр.
+    </button>
+    ${dropdown}
+  </div>`;
 }
 
 export function renderClientForm(): string {
@@ -94,16 +132,21 @@ export function renderClientForm(): string {
 
   return `
     <div class="client-form">
-      <label class="client-field">
-        <span>Телефон</span>
-        <input type="tel" id="cl-phone" class="client-input" data-cl="phone" value="${escapeHtml(formatPhone(c.phone) || c.phone)}" />
-      </label>
+      <div class="phone-field-row">
+        <label class="client-field">
+          <span>Телефон</span>
+          <input type="tel" id="cl-phone" class="client-input" data-cl="phone" value="${escapeHtml(formatPhone(c.phone) || c.phone)}" />
+        </label>
+        ${renderPhonePicker()}
+      </div>
       ${suggestionsHtml}
       <div class="client-name-row">
         ${f('name', 'Имя', c.name)}
-        ${historyBtn}
+        <div class="client-name-right">
+          ${historyBtn}
+          ${renderAddressPicker()}
+        </div>
       </div>
-      ${renderAddressPicker()}
       ${f('street', 'Улица', c.street)}
       ${f('house', 'Дом', c.house)}
       ${f('entrance', 'Подъезд', c.entrance)}

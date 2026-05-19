@@ -182,11 +182,51 @@ function makeJsonEndpoint(file: string, defaultValue = '[]'): Middleware {
       let body = '';
       r.on('data', (chunk: Buffer) => { body += chunk.toString(); });
       r.on('end', () => {
-        try { JSON.parse(body); } catch {
+        let incoming: unknown;
+        try { incoming = JSON.parse(body); } catch {
           s.statusCode = 400; s.end('{"error":"invalid json"}'); return;
         }
         try {
           fs.writeFileSync(file, body, 'utf8');
+          s.end('{"ok":true}');
+        } catch (e) {
+          s.statusCode = 500;
+          s.end(JSON.stringify({ error: String(e) }));
+        }
+        void incoming;
+      });
+    } else {
+      (next as () => void)();
+    }
+  };
+}
+
+function makeOrdersEndpoint(file: string): Middleware {
+  return (req, res, next) => {
+    const r = req as IncomingMessage;
+    const s = res as ServerResponse;
+    s.setHeader('Content-Type', 'application/json');
+    if (r.method === 'GET') {
+      try {
+        s.end(fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : '[]');
+      } catch { s.end('[]'); }
+    } else if (r.method === 'POST') {
+      let body = '';
+      r.on('data', (chunk: Buffer) => { body += chunk.toString(); });
+      r.on('end', () => {
+        let incoming: Array<{ id: string; createdAt: string }>;
+        try { incoming = JSON.parse(body); } catch {
+          s.statusCode = 400; s.end('{"error":"invalid json"}'); return;
+        }
+        try {
+          let existing: Array<{ id: string; createdAt: string }> = [];
+          try { existing = fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')) : []; } catch {}
+          const incomingIds = new Set(incoming.map((o) => o.id));
+          const serverOnly = existing.filter((o) => !incomingIds.has(o.id));
+          const merged = [...incoming, ...serverOnly]
+            .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+          try { if (existing.length > 0) fs.copyFileSync(file, file + '.bak'); } catch {}
+          fs.writeFileSync(file, JSON.stringify(merged, null, 2), 'utf8');
           s.end('{"ok":true}');
         } catch (e) {
           s.statusCode = 500;
@@ -200,7 +240,7 @@ function makeJsonEndpoint(file: string, defaultValue = '[]'): Middleware {
 }
 
 function attachMiddlewares(middlewares: { use: (p: string, h: Middleware) => void }): void {
-  middlewares.use('/desk-api/orders',          makeJsonEndpoint(ORDERS_FILE));
+  middlewares.use('/desk-api/orders',          makeOrdersEndpoint(ORDERS_FILE));
   middlewares.use('/desk-api/local-products',  makeJsonEndpoint(LOCAL_PRODUCTS_FILE));
   middlewares.use('/desk-api/countries',       makeJsonEndpoint(COUNTRIES_FILE));
   middlewares.use('/desk-api/whitelist',       makeJsonEndpoint(WHITELIST_FILE));

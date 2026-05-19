@@ -16,6 +16,7 @@ desk-cache-*.json
 desk-orders.json.bak
 desk-mango-accounts.json
 src/clients.json
+mango-sip.py
 .env
 
 # API server

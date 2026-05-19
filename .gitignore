@@ -13,6 +13,9 @@ dist-ssr
 *.local
 desk-orders.json
 desk-cache-*.json
+desk-orders.json.bak
+desk-mango-accounts.json
+src/clients.json
 .env
 
 # API server

@@ -509,7 +509,70 @@ POST /api/v1/vendor/sign_in
 
 
 ================================================================================
-  5. ПРИМЕРЫ CURL
+  5. НАСТРОЙКА НА ПРОДАКШН-СЕРВЕРЕ (Nginx + Node.js)
+================================================================================
+
+Проблема: Vite-плагин (vite.config.ts) работает только при запущенном Vite
+(npm run dev / npm run preview). В продакшне Nginx раздаёт статику из dist/,
+и /desk-api/* запросы никуда не уходят.
+
+Решение: запустить api-server.mjs как отдельный процесс.
+
+────────────────────────────────────────────────────────────────────────────────
+Шаг 1. Запустить API-сервер на сервере
+
+  cd /путь/до/проекта
+  node api-server.mjs          # по умолчанию порт 3002
+  node api-server.mjs 3003     # или другой порт
+  DESK_API_PORT=3002 node api-server.mjs   # через env
+
+  Для постоянной работы (PM2):
+    npm install -g pm2
+    pm2 start api-server.mjs --name desk-api
+    pm2 save
+    pm2 startup    # автозапуск при перезагрузке
+
+
+────────────────────────────────────────────────────────────────────────────────
+Шаг 2. Настроить Nginx
+
+  Добавить в конфиг сайта (обычно /etc/nginx/sites-available/weltilt.pro):
+
+    server {
+        listen 443 ssl;
+        server_name weltilt.pro www.weltilt.pro;
+
+        # Статика (собранный Vite)
+        root /путь/до/dist;
+        index index.html;
+
+        # API — проксируем на Node.js
+        location /desk-api/ {
+            proxy_pass         http://127.0.0.1:3002;
+            proxy_http_version 1.1;
+            proxy_set_header   Host $host;
+            proxy_set_header   X-Real-IP $remote_addr;
+        }
+
+        # SPA — все остальные пути отдают index.html
+        location / {
+            try_files $uri $uri/ /index.html;
+        }
+    }
+
+  После изменений:
+    nginx -t && systemctl reload nginx
+
+
+────────────────────────────────────────────────────────────────────────────────
+Шаг 3. Проверить
+
+  curl https://weltilt.pro/desk-api/clients?phone=89031296949
+  # Должен вернуть: {"ok":true,"data":{...}} или {"ok":false,"error":"Клиент не найден"}
+
+
+================================================================================
+  6. ПРИМЕРЫ CURL (curl)
 ================================================================================
 
 # Получить клиента по телефону

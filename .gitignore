@@ -21,7 +21,6 @@ mango-sip.py
 
 # API server
 api-server.cjs
-API.txt
 
 # Editor directories and files
 .vscode/*

@@ -18,7 +18,7 @@ const OPERATOR_NAMES_FILE = p('desk-operator-names.json');
 const CATALOG_CACHE_FILE  = p('desk-cache-catalog.json');
 const VENDOR_CACHE_FILE   = p('desk-cache-vendor.json');
 
-const CATALOG_TTL = 60 * 60 * 1000;
+const CATALOG_TTL = 15 * 60 * 1000;
 const VENDOR_TTL  = 4 * 60 * 60 * 1000;
 
 // ── Types ────────────────────────────────────────────────────────────────────

@@ -26,8 +26,8 @@ import { loadCategories, toggleCategory, selectSubcategory } from '../data/categ
 import { selectStore } from '../data/stores';
 import { loadAllStoresProducts } from '../data/all-stores-search';
 import { addLocalProduct, deleteLocalProduct, localToProduct, moderatedToProduct, reorderLocalProduct, updateLocalProduct } from '../data/vendor';
-import { searchClients, allClientsDeduped, findClientByPhone, getClientAddresses, getAllClientPhones, saveClientRecord, addAddressToClient } from '../data/clients';
-import type { ClientAddress } from '../types';
+import { searchClients, findClientByPhone, getClientAddresses, getAllClientPhones, addAddressToClient } from '../data/clients';
+import { openClientModal } from '../ui/client-modal';
 import { openProductModal, findProductInCache } from '../ui/product-modal';
 import { showOrderReceipt } from '../ui/receipt';
 import { showToast } from '../ui/toast';
@@ -368,93 +368,8 @@ function bindEvents(): void {
     });
   });
 
-  document.querySelectorAll<HTMLButtonElement>('.refs-expand-btn').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const phone = btn.dataset.refsPhone ?? '';
-      if (state.refsExpandedPhone === phone) {
-        state.refsExpandedPhone = null;
-        state.refsEditDraft = null;
-      } else {
-        state.refsExpandedPhone = phone;
-        state.refsClientTab = 'orders';
-        const client = allClientsDeduped().find((c) => c.phone.replace(/\D/g, '') === phone);
-        state.refsEditDraft = client ? { ...client } : null;
-      }
-      state.refsAddAddrVisible = false;
-      renderApp();
-    });
-  });
-
-  document.querySelectorAll<HTMLButtonElement>('.refs-ctab').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const tab = btn.dataset.ctab as 'orders' | 'edit';
-      const phone = btn.dataset.refsPhone ?? '';
-      if (tab === 'edit' && state.refsExpandedPhone !== phone) return;
-      if (tab === 'edit' && !state.refsEditDraft) {
-        const client = allClientsDeduped().find((c) => c.phone.replace(/\D/g, '') === phone);
-        state.refsEditDraft = client ? { ...client } : null;
-      }
-      state.refsClientTab = tab;
-      renderApp();
-    });
-  });
-
-  document.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('.refs-edit-input').forEach((el) => {
-    el.addEventListener('input', () => {
-      const key = (el as HTMLElement).dataset.ref;
-      if (!key || !state.refsEditDraft) return;
-      (state.refsEditDraft as unknown as Record<string, string>)[key] = el.value;
-    });
-  });
-
-  document.getElementById('btn-refs-save')?.addEventListener('click', () => {
-    if (!state.refsEditDraft) return;
-    const oldDigits = state.refsExpandedPhone ?? '';
-    const newDigits = state.refsEditDraft.phone.replace(/\D/g, '');
-    if (oldDigits && oldDigits !== newDigits) {
-      state.extraClients = state.extraClients.filter((c) => c.phone.replace(/\D/g, '') !== oldDigits);
-    }
-    saveClientRecord(state.refsEditDraft);
-    state.refsExpandedPhone = newDigits || null;
-    state.refsAddAddrVisible = false;
-    renderApp();
-  });
-
-  document.querySelectorAll<HTMLButtonElement>('.refs-addr-del-btn[data-addr-del-idx]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      if (!state.refsEditDraft) return;
-      const idx = Number(btn.dataset.addrDelIdx);
-      const addresses = getClientAddresses(state.refsEditDraft);
-      addresses.splice(idx, 1);
-      state.refsEditDraft.addresses = addresses;
-      renderApp();
-    });
-  });
-
-  document.getElementById('btn-refs-add-addr')?.addEventListener('click', () => {
-    state.refsAddAddrVisible = true;
-    renderApp();
-  });
-
-  document.getElementById('btn-refs-addr-cancel')?.addEventListener('click', () => {
-    state.refsAddAddrVisible = false;
-    renderApp();
-  });
-
-  document.getElementById('btn-refs-addr-save')?.addEventListener('click', () => {
-    if (!state.refsEditDraft) return;
-    const get = (id: string) => (document.getElementById(id) as HTMLInputElement | null)?.value.trim() ?? '';
-    const addr: ClientAddress = {
-      street: get('raaf-street'), house: get('raaf-house'),
-      entrance: get('raaf-entrance'), floor: get('raaf-floor'),
-      apartment: get('raaf-apartment'), intercom: get('raaf-intercom'),
-    };
-    if (!addr.street && !addr.house) return;
-    const addresses = getClientAddresses(state.refsEditDraft);
-    addresses.push(addr);
-    state.refsEditDraft.addresses = addresses;
-    state.refsAddAddrVisible = false;
-    renderApp();
+  document.querySelectorAll<HTMLButtonElement>('.refs-client-row[data-refs-phone]').forEach((btn) => {
+    btn.addEventListener('click', () => openClientModal(btn.dataset.refsPhone ?? ''));
   });
 
   const renderKeepOrdersScroll = () => {

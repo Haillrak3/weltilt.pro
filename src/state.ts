@@ -6,8 +6,8 @@ import {
 } from './storage';
 import { todayGMT3 } from './utils';
 import type {
-  AnalyticsPeriod, AnalyticsTab, AppPage, CartItem, CartTab, CategoryNode, CountryEntry, DbClient,
-  OrderApp, OrderMode, Product, RefsTab, SavedOrder, Shop,
+  AnalyticsPeriod, AnalyticsTab, AppPage, CartItem, CartTab, CategoryNode, CountryEntry,
+  OrderApp, OrderMode, Product, SavedOrder, Shop,
 } from './types';
 import type { ModeratedProduct } from './api/types';
 
@@ -61,10 +61,6 @@ export const state = {
   localEditPrice: '',
   refsClientSearch: '',
   refsPage: 0,
-  refsExpandedPhone: null as string | null,
-  refsClientTab: 'orders' as RefsTab,
-  refsEditDraft: null as DbClient | null,
-  refsAddAddrVisible: false,
   orderApp: loadOrderApp() as OrderApp,
   orderMode: loadOrderMode() as OrderMode,
   appClientExpanded: false,

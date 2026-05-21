@@ -16,6 +16,7 @@ desk-local-products.json
 desk-cache-*.json
 desk-orders.json.bak
 desk-mango-accounts.json
+desk-mango-c2c.json
 desk-extra-clients.json
 desk-whitelist.json
 desk-operator-names.json

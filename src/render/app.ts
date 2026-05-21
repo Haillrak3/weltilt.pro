@@ -15,6 +15,7 @@ import { renderOrdersPage } from './orders-page';
 import { renderAnalyticsPage } from './analytics-page';
 import { renderRefsPage } from './refs-page';
 import { renderSearchPage, updateSearchDOM } from './search-page';
+import { renderBrowserPage } from './browser-page';
 import { saveCountries } from '../data/countries';
 
 import { newOrder, createOrder, loadOrderToCart, changeOrderStatus, changeOrderStore,
@@ -34,6 +35,11 @@ import { showToast } from '../ui/toast';
 import { geocodeAddress, detectZones, nearestZone } from '../utils/geo';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
+
+// Закрывать попап телефона при клике вне него (один раз, не накапливается)
+document.addEventListener('click', () => {
+  document.querySelectorAll('.order-phone-popup').forEach(p => p.remove());
+});
 
 const THEME_KEY = 'orderdesk_theme';
 function isLightTheme(): boolean { return localStorage.getItem(THEME_KEY) === 'light'; }
@@ -179,10 +185,27 @@ function bindEvents(): void {
     });
   });
 
-  document.getElementById('btn-phone-picker')?.addEventListener('click', (e) => {
+  // ── Единая кнопка инфо о клиенте ──────────────────────────────────────────
+  document.getElementById('btn-client-info')?.addEventListener('click', (e) => {
     e.stopPropagation();
-    state.phonePickerOpen = !state.phonePickerOpen;
-    state.addrPickerOpen = false;
+    state.clientInfoPanel = state.clientInfoPanel ? null : 'menu';
+    renderApp();
+  });
+
+  document.getElementById('btn-ci-phones')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    state.clientInfoPanel = 'phones';
+    renderApp();
+  });
+
+  document.getElementById('btn-ci-history')?.addEventListener('click', () => {
+    state.clientInfoPanel = null;
+    openClientHistoryModal(state.client.phone);
+  });
+
+  document.getElementById('btn-ci-addresses')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    state.clientInfoPanel = 'addresses';
     renderApp();
   });
 
@@ -195,17 +218,10 @@ function bindEvents(): void {
       const norm = getAllClientPhones(client)[idx];
       if (!norm) return;
       state.client.phone = formatPhone(norm) || norm;
-      state.phonePickerOpen = false;
+      state.clientInfoPanel = null;
       saveClient(state.client);
       renderApp();
     });
-  });
-
-  document.getElementById('btn-addr-picker')?.addEventListener('click', (e) => {
-    e.stopPropagation();
-    state.addrPickerOpen = !state.addrPickerOpen;
-    state.phonePickerOpen = false;
-    renderApp();
   });
 
   document.querySelectorAll<HTMLButtonElement>('.addr-dd-item[data-addr-idx]').forEach((btn) => {
@@ -220,7 +236,7 @@ function bindEvents(): void {
         const addr = getClientAddresses(client)[idx];
         if (addr) Object.assign(state.client, { street: addr.street, house: addr.house, entrance: addr.entrance, floor: addr.floor, apartment: addr.apartment, intercom: addr.intercom });
       }
-      state.addrPickerOpen = false;
+      state.clientInfoPanel = null;
       saveClient(state.client);
       renderApp();
       triggerZoneDetection();
@@ -330,6 +346,45 @@ function bindEvents(): void {
     void loadAllStoresProducts();
   });
 
+  document.getElementById('btn-browser')?.addEventListener('click', () => {
+    state.currentPage = 'browser';
+    renderApp();
+  });
+
+  // ── Встроенный браузер ──────────────────────────────────────────────────────
+  const browserNavigate = (url: string) => {
+    let target = url.trim();
+    if (!target) return;
+    if (!/^https?:\/\//i.test(target)) target = 'https://' + target;
+    state.browserUrl = target;
+    renderApp();
+  };
+
+  document.getElementById('btn-browser-go')?.addEventListener('click', () => {
+    const inp = document.getElementById('browser-url-input') as HTMLInputElement | null;
+    if (inp) browserNavigate(inp.value);
+  });
+
+  (document.getElementById('browser-url-input') as HTMLInputElement | null)
+    ?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') browserNavigate((e.target as HTMLInputElement).value);
+    });
+
+  document.getElementById('btn-browser-back')?.addEventListener('click', () => {
+    const frame = document.getElementById('browser-iframe') as HTMLIFrameElement | null;
+    try { frame?.contentWindow?.history.back(); } catch { /* cross-origin */ }
+  });
+
+  document.getElementById('btn-browser-forward')?.addEventListener('click', () => {
+    const frame = document.getElementById('browser-iframe') as HTMLIFrameElement | null;
+    try { frame?.contentWindow?.history.forward(); } catch { /* cross-origin */ }
+  });
+
+  document.getElementById('btn-browser-reload')?.addEventListener('click', () => {
+    const frame = document.getElementById('browser-iframe') as HTMLIFrameElement | null;
+    if (frame) { const src = frame.src; frame.src = ''; frame.src = src; }
+  });
+
   (document.getElementById('search-all-input') as HTMLInputElement | null)?.addEventListener('input', (e) => {
     state.searchAllQuery = (e.target as HTMLInputElement).value;
     updateSearchDOM();
@@ -428,8 +483,66 @@ function bindEvents(): void {
     btn.addEventListener('click', () => { if (btn.dataset.orderId) toggleOrderExpand(btn.dataset.orderId); });
   });
 
-  document.getElementById('btn-client-history')?.addEventListener('click', () => {
-    openClientHistoryModal(state.client.phone);
+  // Телефон в заказе — показать инлайн-попап с кнопкой обратного звонка
+  document.querySelectorAll<HTMLButtonElement>('.order-phone-btn').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const existing = btn.parentElement?.querySelector('.order-phone-popup');
+      document.querySelectorAll('.order-phone-popup').forEach(p => p.remove());
+      if (existing) return; // второй клик по тому же — закрыть
+
+      const phone = btn.dataset.phone ?? '';
+      const popup = document.createElement('span');
+      popup.className = 'order-phone-popup';
+      popup.innerHTML = `<button type="button" class="order-callback-btn" data-phone="${phone.replace(/"/g, '&quot;')}">&#128222; Обратный звонок</button>`;
+      btn.after(popup);
+
+      popup.querySelector('.order-callback-btn')?.addEventListener('click', async (ev) => {
+        ev.stopPropagation();
+        const cbBtn = popup.querySelector('.order-callback-btn') as HTMLButtonElement;
+        cbBtn.disabled = true;
+        cbBtn.textContent = '…';
+        try {
+          const digits = phone.replace(/\D/g, '');
+          const operatorPhone = state.orderMeta.operator.replace(/\D/g, '');
+          const res = await fetch('/desk-api/mango/callback', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phone: digits, operatorPhone }),
+          });
+          const data = await res.json() as { ok?: boolean; error?: string };
+          popup.remove();
+          if (res.ok) showToast('Звонок инициирован');
+          else showToast(`Ошибка: ${data.error ?? res.status}`);
+        } catch {
+          popup.remove();
+          showToast('Ошибка соединения с сервером');
+        }
+      });
+    });
+  });
+
+
+  document.getElementById('btn-mango-callback')?.addEventListener('click', async () => {
+    const phone = state.client.phone.replace(/\D/g, '');
+    if (phone.length < 7) return;
+    const btn = document.getElementById('btn-mango-callback') as HTMLButtonElement | null;
+    if (btn) { btn.disabled = true; btn.textContent = '…'; }
+    try {
+      const operatorPhone = state.orderMeta.operator.replace(/\D/g, '');
+      const res = await fetch('/desk-api/mango/callback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, operatorPhone }),
+      });
+      const data = await res.json() as { ok?: boolean; error?: string };
+      if (res.ok) showToast('Звонок инициирован');
+      else showToast(`Ошибка: ${data.error ?? res.status}`);
+    } catch {
+      showToast('Ошибка соединения с сервером');
+    } finally {
+      if (btn) { btn.disabled = false; btn.textContent = '📞'; }
+    }
   });
 
   document.querySelectorAll<HTMLButtonElement>('.order-edit-btn').forEach((btn) => {
@@ -786,17 +899,10 @@ function bindEvents(): void {
     ?.addEventListener('click', () => updatePackage(state.orderApp.packageQty + 1));
 
   document.addEventListener('click', (e) => {
-    const t = e.target as Element;
-    let changed = false;
-    if (state.addrPickerOpen && !t.closest('.addr-picker-wrap:not(.phone-picker-wrap)')) {
-      state.addrPickerOpen = false;
-      changed = true;
+    if (state.clientInfoPanel && !(e.target as Element).closest('.ci-wrap')) {
+      state.clientInfoPanel = null;
+      renderApp();
     }
-    if (state.phonePickerOpen && !t.closest('.phone-picker-wrap')) {
-      state.phonePickerOpen = false;
-      changed = true;
-    }
-    if (changed) renderApp();
   }, { once: true });
 }
 
@@ -838,6 +944,7 @@ export function renderApp(): void {
         <button type="button" class="tab${state.currentPage === 'refs' ? ' active' : ''}" id="tab-refs">Справочники</button>
         <button type="button" class="tab${state.currentPage === 'search' ? ' active' : ''}" id="tab-search">Поиск</button>
         <div class="tabs-actions">
+          <button type="button" class="btn btn-ghost${state.currentPage === 'browser' ? ' active' : ''}" id="btn-browser" title="Встроенный браузер">&#127760;</button>
           <button type="button" class="btn btn-ghost" id="btn-reload">Обновить</button>
           <label class="theme-toggle" title="Светлая / тёмная тема">
             <input type="checkbox" class="theme-toggle-input" id="theme-toggle"${isLightTheme() ? ' checked' : ''}>
@@ -856,6 +963,7 @@ export function renderApp(): void {
       : state.currentPage === 'analytics' ? `<main class="orders-main scroll">${renderAnalyticsPage()}</main>`
       : state.currentPage === 'refs' ? `<main class="orders-main scroll">${renderRefsPage()}</main>`
       : state.currentPage === 'search' ? `<main class="orders-main scroll">${renderSearchPage()}</main>`
+      : state.currentPage === 'browser' ? `<main class="browser-main">${renderBrowserPage()}</main>`
       : `
       <main class="workspace mob-${state.mobilePanel}">
         <aside class="panel cart-panel">

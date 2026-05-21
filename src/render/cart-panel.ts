@@ -48,65 +48,66 @@ export function renderClientHistory(): string {
     </div>`;
 }
 
-function renderPhonePicker(): string {
-  const rawDigits = state.client.phone.replace(/\D/g, '');
-  if (rawDigits.length < 7) return '';
-  const client = findClientByPhone(rawDigits);
-  if (!client) return '';
-  const phones = getAllClientPhones(client);
-  if (phones.length < 2) return '';
-
-  const currentNorm = rawDigits.length === 11 && rawDigits[0] === '7' ? '8' + rawDigits.slice(1) : rawDigits;
-  const items = phones.map((norm, i) => {
-    const active = norm === currentNorm;
-    return `<button type="button" class="addr-dd-item${active ? ' active' : ''}" data-phone-idx="${i}">${escapeHtml(formatPhone(norm) || norm)}</button>`;
-  }).join('');
-
-  const dropdown = state.phonePickerOpen
-    ? `<div class="addr-dropdown">${items}</div>`
-    : '';
-
-  return `<div class="addr-picker-wrap phone-picker-wrap">
-    <button type="button" class="addr-picker-btn${state.phonePickerOpen ? ' open' : ''}" id="btn-phone-picker">
-      ${phones.length} тел.
-    </button>
-    ${dropdown}
-  </div>`;
-}
-
-function renderAddressPicker(): string {
-  const digits = state.client.phone.replace(/\D/g, '');
+function renderClientInfoBtn(digits: string, pastCount: number): string {
   if (digits.length < 7) return '';
+
   const client = findClientByPhone(digits);
-  if (!client) return '';
-  const addresses = getClientAddresses(client);
-  if (!addresses.length) return '';
+  const phones = client ? getAllClientPhones(client) : [];
+  const addresses = client ? getClientAddresses(client) : [];
 
-  const currentKey = [
-    state.client.street, state.client.house, state.client.entrance,
-    state.client.floor, state.client.apartment, state.client.intercom,
-  ].map((s) => s.trim().toLowerCase()).join('|');
+  // Ничего нет — кнопку не показываем
+  if (!pastCount && addresses.length === 0 && phones.length < 2) return '';
 
-  const items = addresses.map((a, i) => {
-    const label = [a.street, a.house, a.apartment ? `кв. ${a.apartment}` : ''].filter(Boolean).join(', ');
-    const aKey = [a.street, a.house, a.entrance, a.floor, a.apartment, a.intercom]
-      .map((s) => s.trim().toLowerCase()).join('|');
-    const active = aKey === currentKey && currentKey !== '|||||';
-    return `<button type="button" class="addr-dd-item${active ? ' active' : ''}" data-addr-idx="${i}">${escapeHtml(label || `Адрес ${i + 1}`)}</button>`;
-  }).join('');
+  const panel = state.clientInfoPanel;
 
-  const dropdown = state.addrPickerOpen
-    ? `<div class="addr-dropdown">
-        ${items}
-        <button type="button" class="addr-dd-item addr-dd-new" data-addr-idx="-1">+ Новый адрес</button>
-       </div>`
-    : '';
+  // Лейбл кнопки — перечисление того, что есть
+  const parts: string[] = [];
+  if (pastCount)          parts.push(`${pastCount} зак.`);
+  if (addresses.length)   parts.push(`${addresses.length} адр.`);
+  if (phones.length >= 2) parts.push(`${phones.length} тел.`);
+  const btnLabel = parts.join(' · ');
 
-  return `<div class="addr-picker-wrap">
-    <button type="button" class="addr-picker-btn${state.addrPickerOpen ? ' open' : ''}" id="btn-addr-picker">
-      ${addresses.length} адр.
-    </button>
-    ${dropdown}
+  let dropdownHtml = '';
+
+  if (panel === 'menu') {
+    const items: string[] = [];
+    if (phones.length >= 2)
+      items.push(`<button type="button" class="ci-menu-item" id="btn-ci-phones">&#128241; ${phones.length} тел.</button>`);
+    if (pastCount)
+      items.push(`<button type="button" class="ci-menu-item" id="btn-ci-history">&#128203; ${pastCount} зак.</button>`);
+    if (addresses.length)
+      items.push(`<button type="button" class="ci-menu-item" id="btn-ci-addresses">&#128205; ${addresses.length} адр.</button>`);
+    dropdownHtml = `<div class="ci-dropdown">${items.join('')}</div>`;
+
+  } else if (panel === 'phones') {
+    const currentNorm = digits.length === 11 && digits[0] === '7' ? '8' + digits.slice(1) : digits;
+    const phoneItems = phones.map((norm, i) => {
+      const active = norm === currentNorm;
+      return `<button type="button" class="addr-dd-item${active ? ' active' : ''}" data-phone-idx="${i}">${escapeHtml(formatPhone(norm) || norm)}</button>`;
+    }).join('');
+    dropdownHtml = `<div class="ci-dropdown">${phoneItems}</div>`;
+
+  } else if (panel === 'addresses') {
+    const currentKey = [
+      state.client.street, state.client.house, state.client.entrance,
+      state.client.floor, state.client.apartment, state.client.intercom,
+    ].map((s) => s.trim().toLowerCase()).join('|');
+    const addrItems = addresses.map((a, i) => {
+      const label = [a.street, a.house, a.apartment ? `кв. ${a.apartment}` : ''].filter(Boolean).join(', ');
+      const aKey = [a.street, a.house, a.entrance, a.floor, a.apartment, a.intercom]
+        .map((s) => s.trim().toLowerCase()).join('|');
+      const active = aKey === currentKey && currentKey !== '|||||';
+      return `<button type="button" class="addr-dd-item${active ? ' active' : ''}" data-addr-idx="${i}">${escapeHtml(label || `Адрес ${i + 1}`)}</button>`;
+    }).join('');
+    dropdownHtml = `<div class="ci-dropdown">
+      ${addrItems}
+      <button type="button" class="addr-dd-item addr-dd-new" data-addr-idx="-1">+ Новый адрес</button>
+    </div>`;
+  }
+
+  return `<div class="ci-wrap">
+    <button type="button" class="ci-btn${panel ? ' open' : ''}" id="btn-client-info">${escapeHtml(btnLabel)}</button>
+    ${dropdownHtml}
   </div>`;
 }
 
@@ -122,8 +123,8 @@ export function renderClientForm(): string {
   const pastCount = digits.length >= 7
     ? state.orders.filter((o) => !o.deletedAt && normPhone(o.client.phone) === normPhone(digits)).length
     : 0;
-  const historyBtn = pastCount > 0
-    ? `<button type="button" class="btn-client-history" id="btn-client-history">${pastCount} зак.</button>`
+  const callbackBtn = digits.length >= 7
+    ? `<button type="button" class="btn-mango-callback" id="btn-mango-callback" title="Заказать обратный звонок через Mango">&#128222;</button>`
     : '';
 
   const currentAddr = { street: c.street.trim(), house: c.house.trim(), entrance: c.entrance.trim(),
@@ -153,15 +154,12 @@ export function renderClientForm(): string {
           <span>Телефон</span>
           <input type="tel" id="cl-phone" class="client-input" data-cl="phone" value="${escapeHtml(formatPhone(c.phone) || c.phone)}" />
         </label>
-        ${renderPhonePicker()}
+        ${callbackBtn}
       </div>
       ${suggestionsHtml}
       <div class="client-name-row">
         ${f('name', 'Имя', c.name)}
-        <div class="client-name-right">
-          ${historyBtn}
-          ${renderAddressPicker()}
-        </div>
+        ${renderClientInfoBtn(digits, pastCount)}
       </div>
       ${f('street', 'Улица', c.street)}
       ${f('house', 'Дом', c.house)}

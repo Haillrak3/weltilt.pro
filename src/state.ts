@@ -66,6 +66,7 @@ export const state = {
   appClientExpanded: false,
   addrPickerOpen: false,
   phonePickerOpen: false,
+  clientInfoPanel: null as null | 'menu' | 'phones' | 'addresses',
   detectedZone: '' as string,
   detectedZoneKm: null as number | null,
   detectedZoneLoading: false,
@@ -77,5 +78,6 @@ export const state = {
   mobilePanel: 'products' as 'products' | 'cart' | 'cats',
   analyticsTab: 'overview' as AnalyticsTab,
   analyticsPeriod: 'day' as AnalyticsPeriod,
+  browserUrl: '',
   zoneGeoKey: '',
 };

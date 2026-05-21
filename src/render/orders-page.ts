@@ -210,7 +210,7 @@ export function renderOrdersPage(): string {
             ${storeNumBadge}
             <span class="order-date">${escapeHtml(dateLabel)}</span>
             <span class="order-client">${escapeHtml(clientName)}</span>
-            <span class="order-phone">${escapeHtml(clientPhone)}</span>
+            <button type="button" class="order-phone-btn" data-phone="${escapeHtml(order.client.phone)}">${escapeHtml(clientPhone)}</button>
             <span class="order-addr">${escapeHtml(addr)}</span>
             <span class="order-items">${order.items.length} поз. · ${escapeHtml(totalStr)}</span>
             <span class="order-method">${escapeHtml(methodLabel)} · ${escapeHtml(payLabel)}${escapeHtml(changeLabel)}${order.orderNumber ? ` <span class="order-app-num">№${escapeHtml(order.orderNumber)}</span>` : ''}</span>

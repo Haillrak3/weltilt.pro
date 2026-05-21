@@ -1213,13 +1213,48 @@ button {
   width: min(520px, 100%);
 }
 
-.mango-modal { width: min(680px, 100%); }
+.mango-modal { width: min(720px, 100%); }
 
 .mango-hint {
   font-size: 0.82rem;
   color: var(--muted);
-  margin: -8px 0 16px;
+  margin: -4px 0 14px;
 }
+
+.mango-section-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  padding: 2px 7px;
+  border-radius: 10px;
+  white-space: nowrap;
+}
+.mango-badge-sip { background: #1d4ed8; color: #fff; }
+.mango-badge-c2c { background: #059669; color: #fff; }
+
+.mango-col-legend {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+.mango-legend-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.mango-table-wrap { overflow-x: auto; margin-bottom: 12px; }
+
+.mango-th-group { text-align: center; padding-bottom: 2px !important; }
+.mango-th-sip { border-bottom: 2px solid #1d4ed8; }
+.mango-th-c2c { border-bottom: 2px solid #059669; }
+
+.mango-col-divider-th { width: 10px; background: none; border: none !important; }
+.mango-col-divider { border-left: 2px solid var(--border); padding: 0 !important; width: 10px; }
+
+.mango-opt { font-weight: 400; font-size: 0.72rem; color: var(--muted); }
 
 .mango-table {
   width: 100%;
@@ -1770,6 +1805,80 @@ select:disabled {
   padding: 20px 24px;
 }
 
+/* ── Встроенный браузер ─────────────────────────────────────────── */
+.browser-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.browser-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.browser-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  flex-shrink: 0;
+}
+
+.browser-nav-btn {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 4px 8px;
+  flex-shrink: 0;
+  transition: color 0.12s, border-color 0.12s;
+}
+.browser-nav-btn:hover { color: var(--text); border-color: var(--accent); }
+
+.browser-url-input {
+  flex: 1;
+  padding: 5px 10px;
+  font: inherit;
+  font-size: 0.88rem;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  min-width: 0;
+}
+.browser-url-input:focus { outline: 2px solid var(--accent); border-color: transparent; }
+
+.browser-go-btn { flex-shrink: 0; }
+
+.browser-frame {
+  flex: 1;
+  border: none;
+  width: 100%;
+  min-height: 0;
+  background: #fff;
+}
+
+.browser-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.browser-empty span { font-size: 3rem; opacity: 0.4; }
+
 .orders-page {
   max-width: 1100px;
 }
@@ -1971,6 +2080,39 @@ select:disabled {
   font-size: 0.85rem;
   white-space: nowrap;
 }
+
+.order-phone-btn {
+  color: var(--muted);
+  font-size: 0.85rem;
+  white-space: nowrap;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+}
+.order-phone-btn:hover { color: var(--text); text-decoration: underline dotted; }
+
+.order-phone-popup {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 4px;
+  animation: fade-in 0.1s ease;
+}
+.order-callback-btn {
+  background: rgba(5, 150, 105, 0.12);
+  border: 1px solid #059669;
+  border-radius: 5px;
+  color: #059669;
+  cursor: pointer;
+  font-size: 0.78rem;
+  padding: 2px 8px;
+  white-space: nowrap;
+}
+.order-callback-btn:hover:not(:disabled) { background: rgba(5, 150, 105, 0.22); }
+.order-callback-btn:disabled { opacity: 0.5; cursor: default; }
+
+@keyframes fade-in { from { opacity: 0; transform: translateX(-4px); } to { opacity: 1; transform: none; } }
 
 .order-addr {
   flex: 1;
@@ -3170,6 +3312,83 @@ select:disabled {
 .phone-field-row .client-field { flex: 1; }
 .phone-picker-wrap { flex-shrink: 0; }
 
+.btn-mango-callback {
+  flex-shrink: 0;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: #059669;
+  cursor: pointer;
+  font-size: 1.1rem;
+  line-height: 1;
+  padding: 5px 8px;
+  margin-bottom: 2px;
+  transition: background 0.15s, border-color 0.15s;
+}
+.btn-mango-callback:hover:not(:disabled) {
+  background: rgba(5, 150, 105, 0.12);
+  border-color: #059669;
+}
+.btn-mango-callback:disabled { opacity: 0.45; cursor: default; }
+
+/* ── Client info unified button ─────────────────────────────────── */
+.ci-wrap {
+  position: relative;
+  flex-shrink: 0;
+  align-self: flex-end;
+}
+
+.ci-btn {
+  font: inherit;
+  font-size: 0.76rem;
+  padding: 3px 9px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  color: var(--muted);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.12s, color 0.12s;
+}
+.ci-btn:hover, .ci-btn.open {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.ci-dropdown {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  z-index: 200;
+  min-width: 180px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.ci-menu-item {
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 9px 14px;
+  text-align: left;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  cursor: pointer;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.ci-menu-item:last-child { border-bottom: none; }
+.ci-menu-item:hover { background: var(--surface-2); }
+
+/* ── Legacy addr-picker (used only in app-mode and order refs) ─── */
 .addr-picker-wrap {
   position: relative;
 }

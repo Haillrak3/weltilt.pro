@@ -648,17 +648,22 @@ function makeClientsEndpoint(): Middleware {
         try { input = JSON.parse(body); } catch { err('Невалидный JSON'); return; }
         const d = normPhone(String(input['phone'] ?? ''));
         if (d.length < 7) { err('Некорректный номер телефона (минимум 7 цифр)'); return; }
+        const addresses_json = Array.isArray(input['addresses']) && (input['addresses'] as unknown[]).length
+          ? JSON.stringify(input['addresses']) : null;
+        const phones_json = Array.isArray(input['phones']) && (input['phones'] as unknown[]).length
+          ? JSON.stringify(input['phones']) : null;
         const entry = { phone:d, name:input['name']??'', street:input['street']??'', house:input['house']??'',
           entrance:input['entrance']??'', floor:input['floor']??'', apartment:input['apartment']??'',
-          intercom:input['intercom']??'', notes:input['notes']??'' };
+          intercom:input['intercom']??'', notes:input['notes']??'', addresses_json, phones_json };
         const exists = _db.prepare('SELECT phone FROM clients WHERE phone = ?').get(d);
         if (exists) {
           _db.prepare(`UPDATE clients SET name=@name,street=@street,house=@house,entrance=@entrance,
-            floor=@floor,apartment=@apartment,intercom=@intercom,notes=@notes WHERE phone=@phone`).run(entry);
+            floor=@floor,apartment=@apartment,intercom=@intercom,notes=@notes,
+            addresses_json=@addresses_json,phones_json=@phones_json WHERE phone=@phone`).run(entry);
           return ok(rowToClient(_db.prepare('SELECT * FROM clients WHERE phone = ?').get(d) as Record<string, unknown>));
         }
-        _db.prepare(`INSERT INTO clients (phone,name,street,house,entrance,floor,apartment,intercom,notes)
-          VALUES (@phone,@name,@street,@house,@entrance,@floor,@apartment,@intercom,@notes)`).run(entry);
+        _db.prepare(`INSERT INTO clients (phone,name,street,house,entrance,floor,apartment,intercom,notes,addresses_json,phones_json)
+          VALUES (@phone,@name,@street,@house,@entrance,@floor,@apartment,@intercom,@notes,@addresses_json,@phones_json)`).run(entry);
         return ok(rowToClient(_db.prepare('SELECT * FROM clients WHERE phone = ?').get(d) as Record<string, unknown>), 201);
       });
       return;

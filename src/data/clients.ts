@@ -1,11 +1,73 @@
 import clientsDb from '../clients.json';
 import { state } from '../state';
 import { saveExtraClients } from '../storage';
+import { render } from '../render/trigger';
 import type { ClientAddress, ClientInfo, DbClient } from '../types';
 
 function normPhone(raw: string): string {
   const d = raw.replace(/\D/g, '');
   return d.length === 11 && d[0] === '7' ? '8' + d.slice(1) : d;
+}
+
+// ── Серверный синк ────────────────────────────────────────────────────────────
+
+function syncClientToServer(client: DbClient): void {
+  fetch('/desk-api/clients', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(client),
+  }).catch(() => {});
+}
+
+function mergeServerClient(c: DbClient): boolean {
+  const norm = normPhone(c.phone);
+  const idx = state.extraClients.findIndex((e) => normPhone(e.phone) === norm);
+  if (idx >= 0) {
+    const local = state.extraClients[idx];
+    // Берём адреса с максимальным количеством
+    const localAddrs = local.addresses ?? [];
+    const serverAddrs = c.addresses ?? [];
+    const merged: DbClient = { ...c, addresses: serverAddrs.length >= localAddrs.length ? serverAddrs : localAddrs };
+    if (JSON.stringify(local) === JSON.stringify(merged)) return false;
+    state.extraClients[idx] = merged;
+  } else {
+    state.extraClients.push(c);
+  }
+  return true;
+}
+
+let _searchTimer: ReturnType<typeof setTimeout> | null = null;
+let _lastSearchDigits = '';
+
+function scheduleServerSearch(phone: string): void {
+  const digits = normPhone(phone);
+  if (digits.length < 3) return;
+  if (_searchTimer) clearTimeout(_searchTimer);
+  _searchTimer = setTimeout(() => {
+    if (digits === _lastSearchDigits) return;
+    _lastSearchDigits = digits;
+    fetch(`/desk-api/clients?phone=${digits}&exact=false`)
+      .then((r) => r.json() as Promise<{ ok: boolean; data?: DbClient[] }>)
+      .then(({ ok: ok_, data }) => {
+        if (!ok_ || !Array.isArray(data)) return;
+        let changed = false;
+        for (const c of data) if (mergeServerClient(c)) changed = true;
+        if (changed) { saveExtraClients(state.extraClients); render(); }
+      })
+      .catch(() => {});
+  }, 250);
+}
+
+function fetchClientFromServer(phone: string): void {
+  const d = normPhone(phone);
+  if (d.length < 7) return;
+  fetch(`/desk-api/clients?phone=${d}`)
+    .then((r) => r.json() as Promise<{ ok: boolean; data?: DbClient }>)
+    .then(({ ok: ok_, data }) => {
+      if (!ok_ || !data) return;
+      if (mergeServerClient(data)) { saveExtraClients(state.extraClients); render(); }
+    })
+    .catch(() => {});
 }
 
 function addrKey(a: ClientAddress): string {
@@ -44,13 +106,16 @@ function clientContainsDigits(c: DbClient, digits: string): boolean {
 
 export function findClientByPhone(raw: string): DbClient | undefined {
   const d = normPhone(raw);
-  return state.extraClients.find((c) => clientMatchesPhone(c, d))
+  const found = state.extraClients.find((c) => clientMatchesPhone(c, d))
     ?? (clientsDb as DbClient[]).find((c) => clientMatchesPhone(c, d));
+  if (!found) fetchClientFromServer(raw);
+  return found;
 }
 
 export function searchClients(phone: string): DbClient[] {
   const digits = normPhone(phone);
   if (digits.length < 3) return [];
+  scheduleServerSearch(phone);
   const extraNorms = new Set(state.extraClients.map((c) => normPhone(c.phone)));
   return [
     ...state.extraClients.filter((c) => clientContainsDigits(c, digits)),
@@ -107,6 +172,7 @@ export function upsertClientRecord(client: ClientInfo & { notes: string }): void
     });
   }
   saveExtraClients(state.extraClients);
+  syncClientToServer(state.extraClients.find((c) => c.phone.replace(/\D/g, '') === digits)!);
 }
 
 export function saveClientRecord(client: DbClient): void {
@@ -116,4 +182,5 @@ export function saveClientRecord(client: DbClient): void {
   if (idx >= 0) state.extraClients[idx] = { ...client };
   else state.extraClients.push({ ...client });
   saveExtraClients(state.extraClients);
+  syncClientToServer(client);
 }

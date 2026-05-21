@@ -101,9 +101,11 @@ export function buildFilterToolbar(): string {
     return (!from || dk >= from) && (!to || dk <= to);
   });
   const needAttentionCount = periodOrders.filter(needsAttention).length;
+  if (needAttentionCount === 0) state.ordersFilterAttention = false;
+  const activeAttention = state.ordersFilterAttention;
   const attentionHtml = needAttentionCount > 0
-    ? `<button type="button" class="orders-attention${attention ? ' orders-attention--active' : ''}" id="btn-filter-attention">
-        Требуют внимания: <strong>${needAttentionCount}</strong>${attention ? ' · <span class="attention-reset">Все</span>' : ''}
+    ? `<button type="button" class="orders-attention${activeAttention ? ' orders-attention--active' : ''}" id="btn-filter-attention">
+        Требуют внимания: <strong>${needAttentionCount}</strong>${activeAttention ? ' · <span class="attention-reset">Все</span>' : ''}
        </button>`
     : `<div class="orders-attention orders-attention--ok">Все заказы обработаны</div>`;
 

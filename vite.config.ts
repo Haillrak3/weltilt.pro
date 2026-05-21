@@ -186,6 +186,7 @@ const _syncOrders = _db.transaction((orders: unknown[]) => {
 // ── Auth / Session ────────────────────────────────────────────────────────────
 
 const _ADMIN_PASS   = process.env['DESK_ADMIN_PASSWORD'] ?? 'Nikifor1';
+const _API_TOKEN    = process.env['DESK_API_TOKEN'] ?? '';   // static bearer token for scripts
 const _SESSION_TTL  = 12 * 60 * 60 * 1000; // 12 h
 const _sessions     = new Map<string, { phone: string; expires: number }>();
 
@@ -229,9 +230,19 @@ function _sidCookie(sid: string): string {
   return `desk_sid=${sid}; Max-Age=${_SESSION_TTL / 1000}; Path=/; HttpOnly; SameSite=Strict`;
 }
 
+function _checkBearer(r: IncomingMessage): boolean {
+  const auth = (r.headers['authorization'] as string | undefined) ?? '';
+  if (!auth.startsWith('Bearer ')) return false;
+  const tok = auth.slice(7).trim();
+  if (!tok) return false;
+  if (_API_TOKEN && tok === _API_TOKEN) return true;
+  return tok === _ADMIN_PASS;
+}
+
 function requireAuth(handler: Middleware): Middleware {
   return (req, res, next) => {
-    if (_validSession(req as IncomingMessage)) return handler(req, res, next);
+    const r = req as IncomingMessage;
+    if (_validSession(r) || _checkBearer(r)) return handler(req, res, next);
     const s = res as ServerResponse;
     s.statusCode = 401;
     s.setHeader('Content-Type', 'application/json');

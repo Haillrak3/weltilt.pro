@@ -81,7 +81,7 @@ function renderTrashView(): string {
 }
 
 export function buildFilterToolbar(): string {
-  const { ordersFilterFrom: from, ordersFilterTo: to, ordersFilterStore: store, ordersFilterStatus: status, ordersFilterAttention: attention } = state;
+  const { ordersFilterFrom: from, ordersFilterTo: to, ordersFilterStore: store, ordersFilterStatus: status } = state;
   const today = todayGMT3();
   const yesterday = yesterdayGMT3();
   const isToday = from === today && to === today;

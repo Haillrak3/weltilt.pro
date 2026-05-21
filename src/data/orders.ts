@@ -7,7 +7,7 @@ import { dayKeyGMT3, unitPrice } from '../utils';
 import { showChangeCalculator, showOrderReceipt } from '../ui/receipt';
 import { storeDisplayNum } from '../render/products-panel';
 import { formatShopOptionLabel } from '../utils/shop';
-import type { Product, SavedOrder, SavedOrderItem } from '../types';
+import type { Product, SavedOrder, SavedOrderItem, CartItem } from '../types';
 
 function resolveStoreId(apiId: string): string {
   const shop = state.storesList.find((s) => String(s.id) === apiId);
@@ -140,26 +140,34 @@ export function createOrder(): void {
   }
 }
 
+function itemsToCart(items: SavedOrderItem[]): CartItem[] {
+  return items.map((item) => {
+    const product: Product = (() => {
+      if (item.id) {
+        for (const list of state.productsCache.values()) {
+          const found = list.find((p) => p.id === item.id);
+          if (found) return found;
+        }
+      }
+      return {
+        id: item.id ?? 0,
+        name: item.name,
+        price: item.productType === 'WEIGHT' ? item.price / 10 : item.price,
+        product_type: (item.productType as Product['product_type']) || undefined,
+      };
+    })();
+    const draftVol = item.productType === 'DRAFT' && /^\d+(\.\d+)?\s*л$/i.test(item.details ?? '')
+      ? parseFloat(item.details!)
+      : undefined;
+    return { product, qty: item.qty, ...(draftVol !== undefined && { draftVolume: draftVol }) };
+  });
+}
+
 export function repeatOrder(orderId: string): void {
   const order = state.orders.find((o) => o.id === orderId);
   if (!order) return;
 
-  const findOrBuild = (item: SavedOrderItem): Product => {
-    if (item.id) {
-      for (const list of state.productsCache.values()) {
-        const found = list.find((p) => p.id === item.id);
-        if (found) return found;
-      }
-    }
-    return {
-      id: item.id ?? 0,
-      name: item.name,
-      price: item.productType === 'WEIGHT' ? item.price / 10 : item.price,
-      product_type: (item.productType as Product['product_type']) || undefined,
-    };
-  };
-
-  state.cart = order.items.map((item) => ({ product: findOrBuild(item), qty: item.qty }));
+  state.cart = itemsToCart(order.items);
   Object.assign(state.client, order.client);
   saveClient(state.client);
   state.orderMeta = { orderMethod: order.orderMethod, payMethod: order.payMethod, operator: order.operator ?? '' };
@@ -181,22 +189,7 @@ export function loadOrderToCart(orderId: string): void {
   const order = state.orders.find((o) => o.id === orderId);
   if (!order) return;
 
-  const findOrBuild = (item: SavedOrderItem): Product => {
-    if (item.id) {
-      for (const list of state.productsCache.values()) {
-        const found = list.find((p) => p.id === item.id);
-        if (found) return found;
-      }
-    }
-    return {
-      id: item.id ?? 0,
-      name: item.name,
-      price: item.productType === 'WEIGHT' ? item.price / 10 : item.price,
-      product_type: (item.productType as Product['product_type']) || undefined,
-    };
-  };
-
-  state.cart = order.items.map((item) => ({ product: findOrBuild(item), qty: item.qty }));
+  state.cart = itemsToCart(order.items);
   Object.assign(state.client, order.client);
   saveClient(state.client);
   state.orderMeta = { orderMethod: order.orderMethod, payMethod: order.payMethod, operator: order.operator ?? '' };

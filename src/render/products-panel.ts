@@ -15,13 +15,16 @@ let _searchAllCache: Product[] | null = null;
 let _searchAllCacheSize = 0;
 
 function getSearchAllProducts(): Product[] {
-  const cacheSize = state.productsCache.size + state.localProducts.length;
+  const cacheSize = state.productsCache.size + state.localProducts.length + state.vendorProducts.length;
   if (_searchAllCache && _searchAllCacheSize === cacheSize) return _searchAllCache;
   const seen = new Set<number>();
   const all: Product[] = [];
   state.productsCache.forEach((list) => {
     list.forEach((p) => { if (!seen.has(p.id)) { seen.add(p.id); all.push(p); } });
   });
+  for (const p of state.vendorProducts) {
+    if (p.is_blocked && !seen.has(p.id)) { seen.add(p.id); all.push(p); }
+  }
   state.localProducts.forEach((lp) => {
     const p = localToProduct(lp);
     if (!seen.has(p.id)) { seen.add(p.id); all.push(p); }
@@ -132,6 +135,7 @@ export function renderTiles(products: Product[]): string {
 
   return `<div class="product-grid">${products.map((p) => {
     const oos = isOutOfStock(p);
+    const isStopped = !!p.is_blocked;
     const isDraft = p.product_type === 'DRAFT';
     const isBeerType = isDraft || p.product_type === 'BOTTLED';
     const stil = isBeerType ? p.properties?.find((pr) => pr.code === 'STIL')?.value : undefined;
@@ -167,7 +171,8 @@ export function renderTiles(products: Product[]): string {
       ? `<span class="oos-label">Нет в наличии</span><span class="oos-price">${priceStr}</span>`
       : priceStr;
     return `
-    <div class="product-tile${oos ? ' tile-oos' : ''}${isDraft ? ' tile-draft' : ''}" data-add-id="${p.id}">
+    <div class="product-tile${isStopped ? ' tile-stopped' : ''}${oos ? ' tile-oos' : ''}${isDraft ? ' tile-draft' : ''}" data-add-id="${p.id}">
+      ${isStopped ? '<div class="stopped-badge">НЕ НА КРАНЕ</div>' : ''}
       <button type="button" class="tile-info-btn" data-info-id="${p.id}">?</button>
       ${cartBadge}
       <div class="tile-name">${formatProductName(p)}</div>
@@ -379,11 +384,16 @@ export function renderProducts(): string {
 
   const catId = state.selectedSubcategoryId;
   const inStockIds = new Set(state.products.map((p) => p.id));
-  const oosExtra = state.vendorProducts.filter(
-    (p) => p.subcategory?.id === catId && isOutOfStock(p) && !inStockIds.has(p.id),
-  );
+  const extraSeen = new Set<number>();
+  const extra = state.vendorProducts.filter((p) => {
+    if (p.subcategory?.id !== catId) return false;
+    if (inStockIds.has(p.id) || extraSeen.has(p.id)) return false;
+    if (!isOutOfStock(p) && !p.is_blocked) return false;
+    extraSeen.add(p.id);
+    return true;
+  });
 
-  let products = [...state.products, ...oosExtra];
+  let products = [...state.products, ...extra];
 
   if (!products.length) {
     return statusEl + '<p class="panel-status">В этой подкатегории нет товаров</p>';

@@ -26,7 +26,12 @@ async function boot(): Promise<void> {
   }
 
   migrateOrderSeqNums();
-  setRender(renderApp);
+  setRender(() => {
+    const el = document.querySelector<HTMLElement>('.orders-main');
+    const top = el?.scrollTop ?? 0;
+    renderApp();
+    if (top > 0) document.querySelector<HTMLElement>('.orders-main')?.scrollTo({ top, behavior: 'instant' });
+  });
   renderApp();
   triggerZoneDetection(0);
 

@@ -46,6 +46,7 @@ export const state = {
   ordersFilterTo: todayGMT3(),
   ordersFilterStore: '',
   ordersFilterStatus: '' as SavedOrder['status'] | '',
+  ordersFilterAttention: false,
   ordersShowTrash: false,
   editingOrderId: null as string | null,
   vendorProducts: [] as Product[],

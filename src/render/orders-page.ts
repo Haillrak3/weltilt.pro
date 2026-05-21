@@ -3,6 +3,12 @@ import { escapeHtml, dayKeyGMT3, todayGMT3, yesterdayGMT3 } from '../utils';
 import { buildOrderNumbers } from '../ui/receipt';
 import type { SavedOrder } from '../types';
 
+const STORE_IDS = ['2', '4', '5', '6', '7', '9'];
+
+export function needsAttention(o: SavedOrder): boolean {
+  return !STORE_IDS.includes(o.storeId) || o.status !== 'done';
+}
+
 function clientPreferredStore(phone: string): string | null {
   const digits = phone.replace(/\D/g, '');
   if (digits.length < 7) return null;
@@ -19,13 +25,14 @@ function clientPreferredStore(phone: string): string | null {
 }
 
 export function filteredOrders(): SavedOrder[] {
-  const { ordersFilterFrom: from, ordersFilterTo: to, ordersFilterStore: store, ordersFilterStatus: status } = state;
+  const { ordersFilterFrom: from, ordersFilterTo: to, ordersFilterStore: store, ordersFilterStatus: status, ordersFilterAttention: attention } = state;
   return state.orders.filter((o) => {
     if (o.deletedAt) return false;
     const dk = dayKeyGMT3(o.createdAt);
     return (!from || dk >= from) && (!to || dk <= to)
       && (!store || o.storeId === store)
-      && (!status || o.status === status);
+      && (!status || o.status === status)
+      && (!attention || needsAttention(o));
   });
 }
 
@@ -74,14 +81,13 @@ function renderTrashView(): string {
 }
 
 export function buildFilterToolbar(): string {
-  const { ordersFilterFrom: from, ordersFilterTo: to, ordersFilterStore: store, ordersFilterStatus: status } = state;
+  const { ordersFilterFrom: from, ordersFilterTo: to, ordersFilterStore: store, ordersFilterStatus: status, ordersFilterAttention: attention } = state;
   const today = todayGMT3();
   const yesterday = yesterdayGMT3();
   const isToday = from === today && to === today;
   const isYesterday = from === yesterday && to === yesterday;
   const isAll = !from && !to;
 
-  const STORE_IDS = ['2', '4', '5', '6', '7', '9'];
   const STATUSES: Array<{ val: SavedOrder['status']; label: string }> = [
     { val: 'created', label: 'Создан' },
     { val: 'in_progress', label: 'В работе' },
@@ -90,14 +96,15 @@ export function buildFilterToolbar(): string {
 
   // Заказы за текущий период (без фильтров магазина/статуса)
   const periodOrders = state.orders.filter((o) => {
+    if (o.deletedAt) return false;
     const dk = dayKeyGMT3(o.createdAt);
     return (!from || dk >= from) && (!to || dk <= to);
   });
-  const needAttention = periodOrders.filter(
-    (o) => !STORE_IDS.includes(o.storeId) || o.status !== 'done',
-  ).length;
-  const attentionHtml = needAttention > 0
-    ? `<div class="orders-attention">Требуют внимания: <strong>${needAttention}</strong></div>`
+  const needAttentionCount = periodOrders.filter(needsAttention).length;
+  const attentionHtml = needAttentionCount > 0
+    ? `<button type="button" class="orders-attention${attention ? ' orders-attention--active' : ''}" id="btn-filter-attention">
+        Требуют внимания: <strong>${needAttentionCount}</strong>${attention ? ' · <span class="attention-reset">Все</span>' : ''}
+       </button>`
     : `<div class="orders-attention orders-attention--ok">Все заказы обработаны</div>`;
 
   const trashCount = state.orders.filter(o => o.deletedAt).length;
@@ -130,7 +137,6 @@ export function buildFilterToolbar(): string {
 
 export function renderOrdersPage(): string {
   if (state.ordersShowTrash) return renderTrashView();
-  const STORE_IDS = ['2', '4', '5', '6', '7', '9'];
   const STATUSES: Array<{ val: SavedOrder['status']; label: string }> = [
     { val: 'created', label: 'Создан' },
     { val: 'in_progress', label: 'В работе' },
@@ -140,7 +146,7 @@ export function renderOrdersPage(): string {
 
   const orderNumbers = buildOrderNumbers();
   const visible = filteredOrders();
-  const isAll = !state.ordersFilterFrom && !state.ordersFilterTo && !state.ordersFilterStore && !state.ordersFilterStatus;
+  const isAll = !state.ordersFilterFrom && !state.ordersFilterTo && !state.ordersFilterStore && !state.ordersFilterStatus && !state.ordersFilterAttention;
   const toolbar = buildFilterToolbar();
 
   const ordersHtml = visible.length
@@ -195,8 +201,8 @@ export function renderOrdersPage(): string {
           ? `<span class="order-store-badge">№${order.storeId}</span>`
           : '';
 
-        const needsAttention = !STORE_IDS.includes(order.storeId) || order.status !== 'done';
-        return `<div class="order-row${isExpanded ? ' expanded' : ''}${needsAttention ? ' order-row--attention' : ''}">
+        const attention = needsAttention(order);
+        return `<div class="order-row${isExpanded ? ' expanded' : ''}${attention ? ' order-row--attention' : ''}">
           <div class="order-row-info">
             <span class="order-num">#${orderNum}</span>
             ${storeNumBadge}

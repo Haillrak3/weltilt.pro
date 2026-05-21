@@ -490,6 +490,11 @@ function bindEvents(): void {
     });
   });
 
+  document.getElementById('btn-filter-attention')?.addEventListener('click', () => {
+    state.ordersFilterAttention = !state.ordersFilterAttention;
+    renderKeepOrdersScroll();
+  });
+
   document.querySelectorAll<HTMLButtonElement>('.order-store-btn').forEach((btn) => {
     btn.addEventListener('click', () => {
       const { orderId, storeId } = btn.dataset;

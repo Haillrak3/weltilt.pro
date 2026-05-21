@@ -274,7 +274,9 @@ export function changeOrderItemQty(orderId: string, itemIndex: number, delta: nu
   if (!order) return;
   const item = order.items[itemIndex];
   if (!item) return;
-  item.qty = Math.max(0.001, roundQty(item.qty + delta));
+  const newQty = roundQty(item.qty + delta);
+  if (newQty <= 0) order.items.splice(itemIndex, 1);
+  else item.qty = newQty;
   recalcOrderTotal(order);
   saveOrders(state.orders);
   render();

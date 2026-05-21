@@ -108,6 +108,11 @@ export function openClientModal(phoneDigits: string): void {
     floor: '', apartment: '', intercom: '', notes: '', addresses: [],
   };
   let draft: DbClient = found ? { ...found, addresses: [...(found.addresses ?? [])] } : emptyClient;
+  if (!draft.street && !draft.house && draft.addresses && draft.addresses.length > 0) {
+    const a = draft.addresses[0];
+    draft.street = a.street; draft.house = a.house; draft.entrance = a.entrance;
+    draft.floor = a.floor; draft.apartment = a.apartment; draft.intercom = a.intercom;
+  }
   let tab: ModalTab = 'edit';
   let addAddrVisible = false;
   let savedPhone = phoneDigits;

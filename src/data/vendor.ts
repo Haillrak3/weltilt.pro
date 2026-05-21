@@ -87,7 +87,11 @@ export async function loadVendorProducts(): Promise<void> {
     let page = 1;
     while (true) {
       const result = await getVendorCatalogProducts(storeId, page, 100, authToken);
-      all.push(...(result.list ?? []));
+      // Vendor API returns "type" instead of "product_type" — normalize here
+      all.push(...(result.list ?? []).map(p => ({
+        ...p,
+        product_type: p.product_type ?? (p as unknown as Record<string, string>)['type'],
+      })));
       if (!result.has_more) break;
       if (++page > 20) break;
     }

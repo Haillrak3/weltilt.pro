@@ -7,6 +7,27 @@ const OPERATOR_NAMES_KEY = 'orderdesk_operator_names';
 const SESSION_KEY = 'orderdesk_auth';
 const ADMIN_LOGIN = 'hiko';
 const ADMIN_PASSWORD = 'Nikifor1';
+
+async function createServerSession(opts: { phone?: string; adminPassword?: string; authToken?: string }): Promise<void> {
+  try {
+    await fetch('/desk-api/auth/session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(opts),
+    });
+  } catch { /* offline */ }
+}
+
+export async function ensureServerSession(): Promise<void> {
+  try {
+    const check = await fetch('/desk-api/auth/session');
+    if (check.ok) return;
+    const settings = loadSettings();
+    if (settings.authToken) { await createServerSession({ authToken: settings.authToken }); return; }
+    const phone = sessionStorage.getItem(SESSION_KEY);
+    if (phone) await createServerSession({ phone });
+  } catch { /* offline */ }
+}
 const DEFAULTS = ['79784521921', '79651015841', '79639712635'];
 
 function loadWhitelist(): Set<string> {
@@ -215,6 +236,7 @@ function showAdminLogin(overlay: HTMLElement): void {
 
   function attempt(): void {
     if (loginInput.value.trim() === ADMIN_LOGIN && passInput.value.trim() === ADMIN_PASSWORD) {
+      void createServerSession({ adminPassword: passInput.value.trim() });
       void showAdminPanel(overlay);
     } else {
       errorEl.textContent = 'Неверный логин или пароль';
@@ -261,6 +283,7 @@ function showCodeStep(overlay: HTMLElement, normalized: string): void {
         const token = data.user?.access_token ?? data.access_token;
         await completeSignIn('+7', digits, token);
         sessionStorage.setItem(SESSION_KEY, normalized);
+        void createServerSession({ phone: normalized });
         overlay.remove();
         (overlay as HTMLElement & { _onSuccess?: () => void })._onSuccess?.();
       } catch (e) {

@@ -15,10 +15,10 @@ import { openSettings } from './ui/settings';
 import { isConfigured, operatorFromSettings, loadSettings } from './config/settings';
 import { state } from './state';
 import { saveOrderMeta } from './storage';
-import { isAuthorized, showAuthScreen, syncOperatorNames } from './auth';
+import { isAuthorized, showAuthScreen, syncOperatorNames, ensureServerSession } from './auth';
 import { initMangoSse } from './ui/incoming-call';
 
-function boot(): void {
+async function boot(): Promise<void> {
   Object.assign(state.settings, loadSettings());
   if (!state.orderMeta.operator && state.settings.phoneNumber) {
     state.orderMeta.operator = operatorFromSettings(state.settings);
@@ -36,6 +36,9 @@ function boot(): void {
     void loadCategories();
     void loadStoresList();
   }
+
+  await ensureServerSession();
+
   void loadOrdersFromServer();
   void loadLocalProductsFromServer();
   void loadCountries();
@@ -43,8 +46,8 @@ function boot(): void {
 }
 
 if (isAuthorized()) {
-  boot();
+  void boot();
   initMangoSse();
 } else {
-  showAuthScreen(() => { boot(); initMangoSse(); });
+  showAuthScreen(() => { void boot(); initMangoSse(); });
 }

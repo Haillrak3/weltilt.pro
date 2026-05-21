@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { IncomingMessage, ServerResponse } from 'node:http';
+import { randomBytes } from 'node:crypto';
 import Database from 'better-sqlite3';
 
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
@@ -181,6 +182,62 @@ const _syncOrders = _db.transaction((orders: unknown[]) => {
     });
   }
 });
+
+// ── Auth / Session ────────────────────────────────────────────────────────────
+
+const _ADMIN_PASS   = process.env['DESK_ADMIN_PASSWORD'] ?? 'Nikifor1';
+const _SESSION_TTL  = 12 * 60 * 60 * 1000; // 12 h
+const _sessions     = new Map<string, { phone: string; expires: number }>();
+
+function _getSid(r: IncomingMessage): string | null {
+  const m = (r.headers.cookie ?? '').match(/(?:^|;)\s*desk_sid=([0-9a-f]{64})/);
+  return m?.[1] ?? null;
+}
+
+function _validSession(r: IncomingMessage): boolean {
+  const sid = _getSid(r);
+  if (!sid) return false;
+  const s = _sessions.get(sid);
+  if (!s) return false;
+  if (Date.now() > s.expires) { _sessions.delete(sid); return false; }
+  return true;
+}
+
+function _normWL(raw: string): string {
+  const d = raw.replace(/\D/g, '');
+  if (d.length === 11 && d[0] === '8') return '7' + d.slice(1);
+  if (d.length === 10) return '7' + d;
+  return d;
+}
+
+function _readWhitelist(): Set<string> {
+  try {
+    const raw = fs.existsSync(WHITELIST_FILE)
+      ? JSON.parse(fs.readFileSync(WHITELIST_FILE, 'utf8')) as string[]
+      : [];
+    return new Set(Array.isArray(raw) ? raw : []);
+  } catch { return new Set(); }
+}
+
+function _makeSession(phone: string): string {
+  const sid = randomBytes(32).toString('hex');
+  _sessions.set(sid, { phone, expires: Date.now() + _SESSION_TTL });
+  return sid;
+}
+
+function _sidCookie(sid: string): string {
+  return `desk_sid=${sid}; Max-Age=${_SESSION_TTL / 1000}; Path=/; HttpOnly; SameSite=Strict`;
+}
+
+function requireAuth(handler: Middleware): Middleware {
+  return (req, res, next) => {
+    if (_validSession(req as IncomingMessage)) return handler(req, res, next);
+    const s = res as ServerResponse;
+    s.statusCode = 401;
+    s.setHeader('Content-Type', 'application/json');
+    s.end('{"ok":false,"error":"Не авторизован"}');
+  };
+}
 
 // ── Cache helpers ────────────────────────────────────────────────────────────
 
@@ -609,9 +666,94 @@ function makeClientsEndpoint(): Middleware {
 // ── Attach all middlewares ───────────────────────────────────────────────────
 
 function attachMiddlewares(middlewares: { use: (p: string, h: Middleware) => void }): void {
-  middlewares.use('/desk-api/orders',   makeOrdersEndpoint());
-  middlewares.use('/desk-api/clients',  makeClientsEndpoint());
-  middlewares.use('/desk-api/local-products', ((req, res, next) => {
+
+  // ── Auth session endpoint (always open) ────────────────────────────────────
+  middlewares.use('/desk-api/auth/session', ((req, res, _next) => {
+    const r = req as IncomingMessage;
+    const s = res as ServerResponse;
+    s.setHeader('Content-Type', 'application/json');
+
+    if (r.method === 'GET') {
+      const sid  = _getSid(r);
+      const sess = sid ? _sessions.get(sid) : null;
+      if (!sess || Date.now() > sess.expires) { s.statusCode = 401; s.end('{"ok":false}'); return; }
+      s.end(JSON.stringify({ ok: true, phone: sess.phone }));
+      return;
+    }
+
+    if (r.method === 'DELETE') {
+      const sid = _getSid(r);
+      if (sid) _sessions.delete(sid);
+      s.setHeader('Set-Cookie', 'desk_sid=; Max-Age=0; Path=/; HttpOnly; SameSite=Strict');
+      s.end('{"ok":true}');
+      return;
+    }
+
+    if (r.method !== 'POST') { s.statusCode = 405; s.end('{"ok":false}'); return; }
+
+    let body = '';
+    r.on('data', (c: Buffer) => { body += c.toString(); });
+    r.on('end', () => {
+      let input: Record<string, unknown>;
+      try { input = JSON.parse(body); } catch { s.statusCode = 400; s.end('{"ok":false}'); return; }
+
+      const phone     = String(input['phone']         ?? '');
+      const adminPass = String(input['adminPassword'] ?? '');
+      const authToken = String(input['authToken']     ?? '');
+
+      if (adminPass === _ADMIN_PASS) {
+        const sid = _makeSession('admin');
+        s.setHeader('Set-Cookie', _sidCookie(sid));
+        s.end('{"ok":true}');
+        return;
+      }
+
+      if (phone) {
+        const norm = _normWL(phone);
+        if (_readWhitelist().has(norm)) {
+          const sid = _makeSession(norm);
+          s.setHeader('Set-Cookie', _sidCookie(sid));
+          s.end('{"ok":true}');
+          return;
+        }
+        s.statusCode = 403;
+        s.end('{"ok":false,"error":"Не авторизован"}');
+        return;
+      }
+
+      if (authToken) {
+        fetch('https://api.0-5.ru/api/v1/catalog/categories?per_page=1', {
+          headers: { 'X-Auth-Token': authToken, 'X-App': '2po2', Accept: 'application/json' },
+        })
+          .then(resp => {
+            if (resp.status !== 401 && resp.status !== 403) {
+              const sid = _makeSession('authtoken');
+              s.setHeader('Set-Cookie', _sidCookie(sid));
+              s.end('{"ok":true}');
+            } else {
+              s.statusCode = 403;
+              s.end('{"ok":false,"error":"Не авторизован"}');
+            }
+          })
+          .catch(() => { s.statusCode = 403; s.end('{"ok":false}'); });
+        return;
+      }
+
+      s.statusCode = 403;
+      s.end('{"ok":false,"error":"Не авторизован"}');
+    });
+  }) as Middleware);
+
+  // ── Whitelist (GET open for auth flow, POST requires session) ──────────────
+  const _whitelistMw = makeJsonEndpoint(WHITELIST_FILE);
+  middlewares.use('/desk-api/whitelist', ((req, res, next) => {
+    if ((req as IncomingMessage).method === 'GET') return _whitelistMw(req, res, next);
+    return requireAuth(_whitelistMw)(req, res, next);
+  }) as Middleware);
+
+  middlewares.use('/desk-api/orders',   requireAuth(makeOrdersEndpoint()));
+  middlewares.use('/desk-api/clients',  requireAuth(makeClientsEndpoint()));
+  middlewares.use('/desk-api/local-products', requireAuth(((req, res, next) => {
     const r = req as IncomingMessage;
     const s = res as ServerResponse;
     s.setHeader('Content-Type', 'application/json');
@@ -640,12 +782,10 @@ function attachMiddlewares(middlewares: { use: (p: string, h: Middleware) => voi
       return;
     }
     (next as () => void)();
-  }) as Middleware);
+  }) as Middleware));
   middlewares.use('/desk-api/countries',      makeJsonEndpoint(COUNTRIES_FILE));
-  middlewares.use('/desk-api/whitelist',      makeJsonEndpoint(WHITELIST_FILE));
-  middlewares.use('/desk-api/operator-names', makeJsonEndpoint(OPERATOR_NAMES_FILE, '{}'));
-
-  middlewares.use('/desk-api/warm-cache', (req, res, next) => {
+  middlewares.use('/desk-api/operator-names', requireAuth(makeJsonEndpoint(OPERATOR_NAMES_FILE, '{}')));
+  middlewares.use('/desk-api/warm-cache',     requireAuth(((req, res, next) => {
     const r = req as IncomingMessage;
     const s = res as ServerResponse;
     s.setHeader('Content-Type', 'application/json');
@@ -660,7 +800,7 @@ function attachMiddlewares(middlewares: { use: (p: string, h: Middleware) => voi
         s.end('{"ok":true}');
       } catch { s.statusCode = 400; s.end('{"ok":false}'); }
     });
-  });
+  }) as Middleware));
 
   middlewares.use('/desk-api/catalog', makeProxyHandler(
     (qs) => `https://api.0-5.ru/api/v1/catalog/products?store_id=${qs.get('store_id')}&category_id=${qs.get('category_id')}`,

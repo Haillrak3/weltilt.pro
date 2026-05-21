@@ -235,7 +235,9 @@ function _checkBearer(r: IncomingMessage): boolean {
   if (!auth.startsWith('Bearer ')) return false;
   const tok = auth.slice(7).trim();
   if (!tok) return false;
-  if (_API_TOKEN && tok === _API_TOKEN) return true;
+  // When a dedicated API token is configured, only it is accepted
+  if (_API_TOKEN) return tok === _API_TOKEN;
+  // Fallback: accept admin password (useful during initial setup before token is configured)
   return tok === _ADMIN_PASS;
 }
 

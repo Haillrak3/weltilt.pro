@@ -2,6 +2,35 @@ import { state } from '../state';
 import { escapeHtml, dayKeyGMT3 } from '../utils';
 import type { SavedOrder, SavedOrderItem } from '../types';
 
+function isDraftVolumeDetail(d?: string): boolean {
+  return /^\d+(\.\d+)?\s*л$/i.test(d ?? '');
+}
+
+export function groupDraftItems(items: SavedOrderItem[]): SavedOrderItem[] {
+  const seen = new Set<string>();
+  const out: SavedOrderItem[] = [];
+
+  for (const item of items) {
+    const isOldDraft = item.productType === 'DRAFT' && isDraftVolumeDetail(item.details);
+    if (!isOldDraft) { out.push(item); continue; }
+    if (seen.has(item.name)) continue;
+    seen.add(item.name);
+
+    const siblings = items.filter(
+      (i) => i.name === item.name && i.productType === 'DRAFT' && isDraftVolumeDetail(i.details),
+    );
+    const totalQty = Math.round(siblings.reduce((s, i) => s + i.qty, 0) * 1000) / 1000;
+    const entries = siblings
+      .map((i) => ({ vol: parseFloat(i.details!), count: Math.round(i.qty / parseFloat(i.details!)) }))
+      .sort((a, b) => b.vol - a.vol);
+    const details = 'Тара ' + entries.map((e) => `${e.vol}л — ${e.count} шт`).join(', ');
+
+    out.push({ ...item, qty: totalQty, details });
+  }
+
+  return out;
+}
+
 function sortReceiptItems(items: SavedOrderItem[]): SavedOrderItem[] {
   const rank = (item: SavedOrderItem): number => {
     const isDraft = item.productType === 'DRAFT' || /^\d+(\.\d+)?\s*л$/i.test(item.details ?? '');
@@ -14,14 +43,18 @@ function sortReceiptItems(items: SavedOrderItem[]): SavedOrderItem[] {
 }
 
 export function buildOrderNumbers(): Map<string, number> {
+  const result = new Map<string, number>();
   const sorted = [...state.orders].sort((a, b) => a.createdAt.localeCompare(b.createdAt));
   const dayCounts = new Map<string, number>();
-  const result = new Map<string, number>();
   sorted.forEach((o) => {
-    const dk = dayKeyGMT3(o.createdAt);
-    const n = (dayCounts.get(dk) ?? 0) + 1;
-    dayCounts.set(dk, n);
-    result.set(o.id, n);
+    if (o.seqNum != null) {
+      result.set(o.id, o.seqNum);
+    } else {
+      const dk = dayKeyGMT3(o.createdAt);
+      const n = (dayCounts.get(dk) ?? 0) + 1;
+      dayCounts.set(dk, n);
+      result.set(o.id, n);
+    }
   });
   return result;
 }
@@ -89,7 +122,7 @@ async function buildReceiptBlob(order: SavedOrder, orderNum: number | string): P
   const X_RIGHT = W - PAD;
 
   // Pre-measure item name wrapping (17px font, same as drawing)
-  const sortedItems = sortReceiptItems(order.items);
+  const sortedItems = sortReceiptItems(groupDraftItems(order.items));
   const _mCtx = document.createElement('canvas').getContext('2d')!;
   _mCtx.font = `17px ${F}`;
   const itemLines = sortedItems.map((item) => {
@@ -352,7 +385,7 @@ export function showOrderReceipt(order: SavedOrder): void {
       <div class="receipt-divider"></div>
       ${clientBlock ? `<div class="receipt-client">${clientBlock}</div>` : ''}`;
   } else {
-    const itemsHtml = sortReceiptItems(order.items).map((item) => {
+    const itemsHtml = sortReceiptItems(groupDraftItems(order.items)).map((item) => {
       const qtyStr = Number.isInteger(item.qty) ? String(item.qty) : item.qty.toFixed(3).replace(/\.?0+$/, '');
       const lineTotal = (item.price * item.qty).toLocaleString('ru-RU', { minimumFractionDigits: 0 });
       return `<tr>

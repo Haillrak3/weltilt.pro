@@ -12,10 +12,15 @@ function formatDate(iso: string): string {
   return `${dd}.${mm} ${hh}:${min}`;
 }
 
+function normPhone(raw: string): string {
+  const d = raw.replace(/\D/g, '');
+  return d.length === 11 && d[0] === '7' ? '8' + d.slice(1) : d;
+}
+
 export function openClientHistoryModal(phone: string): void {
-  const digits = phone.replace(/\D/g, '');
+  const digits = normPhone(phone);
   const orders = state.orders
-    .filter((o) => o.client.phone.replace(/\D/g, '') === digits)
+    .filter((o) => !o.deletedAt && normPhone(o.client.phone) === digits)
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   if (!orders.length) return;
 
@@ -29,13 +34,15 @@ export function openClientHistoryModal(phone: string): void {
     const STATUS_LABEL: Record<string, string> = { created: 'Создан', in_progress: 'В работе', done: 'Выдан' };
 
     const itemsHtml = order.items.map((item) => {
-      const lineTotal = (item.price * item.qty).toLocaleString('ru-RU');
+      const price = item.price ?? 0;
+      const qty = item.qty ?? 0;
+      const lineTotal = (price * qty).toLocaleString('ru-RU');
       const unitStr = item.productType === 'WEIGHT'
-        ? `${item.price * 10} ₽/кг`
-        : `${item.price.toLocaleString('ru-RU')} ₽`;
+        ? `${price * 10} ₽/кг`
+        : `${price.toLocaleString('ru-RU')} ₽`;
       return `<div class="op-row">
-        <span class="op-name">${escapeHtml(item.name)}</span>
-        <span class="op-qty-price">${item.qty} × ${escapeHtml(unitStr)} = <b>${escapeHtml(lineTotal)} ₽</b></span>
+        <span class="op-name">${escapeHtml(item.name ?? '')}</span>
+        <span class="op-qty-price">${qty} × ${escapeHtml(unitStr)} = <b>${escapeHtml(lineTotal)} ₽</b></span>
       </div>`;
     }).join('');
 
@@ -43,6 +50,7 @@ export function openClientHistoryModal(phone: string): void {
       <div class="op-hist-header">
         <span class="op-num">#${num}</span>
         <span class="op-date">${escapeHtml(formatDate(order.createdAt))}</span>
+        ${order.orderNumber ? `<span class="op-badge op-app-num">Прил. №${escapeHtml(order.orderNumber)}</span>` : ''}
         ${order.storeId ? `<span class="op-badge">№${escapeHtml(order.storeId)}</span>` : ''}
         <span class="op-badge">${escapeHtml(payLabel)}</span>
         <span class="op-hist-status">${escapeHtml(STATUS_LABEL[order.status] ?? order.status)}</span>

@@ -7,7 +7,7 @@ if (localStorage.getItem('orderdesk_theme') === 'light') {
 import { setRender } from './render/trigger';
 import { renderApp, triggerZoneDetection } from './render/app';
 import { loadCategories } from './data/categories';
-import { loadOrdersFromServer } from './data/orders';
+import { loadOrdersFromServer, migrateOrderSeqNums } from './data/orders';
 import { loadLocalProductsFromServer } from './data/vendor';
 import { loadCountries } from './data/countries';
 import { loadStoresList } from './data/stores';
@@ -25,6 +25,7 @@ function boot(): void {
     saveOrderMeta(state.orderMeta);
   }
 
+  migrateOrderSeqNums();
   setRender(renderApp);
   renderApp();
   triggerZoneDetection(0);

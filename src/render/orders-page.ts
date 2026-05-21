@@ -21,11 +21,56 @@ function clientPreferredStore(phone: string): string | null {
 export function filteredOrders(): SavedOrder[] {
   const { ordersFilterFrom: from, ordersFilterTo: to, ordersFilterStore: store, ordersFilterStatus: status } = state;
   return state.orders.filter((o) => {
+    if (o.deletedAt) return false;
     const dk = dayKeyGMT3(o.createdAt);
     return (!from || dk >= from) && (!to || dk <= to)
       && (!store || o.storeId === store)
       && (!status || o.status === status);
   });
+}
+
+function renderTrashView(): string {
+  const deleted = state.orders.filter(o => o.deletedAt)
+    .sort((a, b) => (b.deletedAt ?? '').localeCompare(a.deletedAt ?? ''));
+
+  const orderNumbers = buildOrderNumbers();
+
+  const rows = deleted.length
+    ? deleted.map((order) => {
+        const orderNum = orderNumbers.get(order.id) ?? '?';
+        const dk = dayKeyGMT3(order.createdAt);
+        const dateObj = new Date(new Date(order.createdAt).getTime() + 3 * 60 * 60 * 1000);
+        const timeStr = dateObj.toISOString().slice(11, 16);
+        const dateLabel = `${dk.slice(8)}.${dk.slice(5, 7)} ${timeStr}`;
+        const delDateObj = new Date(new Date(order.deletedAt!).getTime() + 3 * 60 * 60 * 1000);
+        const delLabel = `${String(delDateObj.getUTCDate()).padStart(2, '0')}.${String(delDateObj.getUTCMonth() + 1).padStart(2, '0')} ${delDateObj.toISOString().slice(11, 16)}`;
+        const clientName = order.client.name || '—';
+        const clientPhone = order.client.phone || '—';
+        const totalStr = (order.total ?? 0).toLocaleString('ru-RU') + ' ₽';
+        return `<div class="order-row trash-row">
+          <div class="order-row-info">
+            <span class="order-num">#${orderNum}</span>
+            <span class="order-date">${escapeHtml(dateLabel)}</span>
+            <span class="order-client">${escapeHtml(clientName)}</span>
+            <span class="order-phone">${escapeHtml(clientPhone)}</span>
+            <span class="order-items">${order.items.length} поз. · ${escapeHtml(totalStr)}</span>
+            <span class="trash-del-date">удалён ${escapeHtml(delLabel)}</span>
+            <button type="button" class="order-restore-btn" data-order-id="${order.id}">Восстановить</button>
+            <button type="button" class="order-del-btn order-perm-del-btn" data-order-id="${order.id}" title="Удалить навсегда">✕ навсегда</button>
+          </div>
+        </div>`;
+      }).join('')
+    : `<p class="panel-status">Корзина пуста</p>`;
+
+  return `<div class="orders-page">
+    <div class="orders-toolbar">
+      <div class="orders-quick-btns">
+        <button type="button" class="orders-quick-btn" id="btn-trash-back">← Назад</button>
+        <span style="font-size:0.82rem;color:var(--muted);align-self:center">Корзина · ${deleted.length} заказ${deleted.length === 1 ? '' : deleted.length >= 2 && deleted.length <= 4 ? 'а' : 'ов'}</span>
+      </div>
+    </div>
+    <div class="orders-list">${rows}</div>
+  </div>`;
 }
 
 export function buildFilterToolbar(): string {
@@ -55,12 +100,15 @@ export function buildFilterToolbar(): string {
     ? `<div class="orders-attention">Требуют внимания: <strong>${needAttention}</strong></div>`
     : `<div class="orders-attention orders-attention--ok">Все заказы обработаны</div>`;
 
+  const trashCount = state.orders.filter(o => o.deletedAt).length;
+
   return `
     <div class="orders-toolbar">
       <div class="orders-quick-btns">
         <button type="button" class="orders-quick-btn${isAll ? ' active' : ''}" id="of-all">Все</button>
         <button type="button" class="orders-quick-btn${isToday ? ' active' : ''}" id="of-today">Сегодня</button>
         <button type="button" class="orders-quick-btn${isYesterday ? ' active' : ''}" id="of-yesterday">Вчера</button>
+        ${trashCount > 0 ? `<button type="button" class="orders-quick-btn orders-trash-btn" id="btn-show-trash">Корзина <span class="trash-count">${trashCount}</span></button>` : ''}
       </div>
       <div class="orders-date-range">
         <label class="orders-date-label">С <input type="date" id="of-from" class="orders-date-input" value="${escapeHtml(from)}" /></label>
@@ -81,6 +129,7 @@ export function buildFilterToolbar(): string {
 }
 
 export function renderOrdersPage(): string {
+  if (state.ordersShowTrash) return renderTrashView();
   const STORE_IDS = ['2', '4', '5', '6', '7', '9'];
   const STATUSES: Array<{ val: SavedOrder['status']; label: string }> = [
     { val: 'created', label: 'Создан' },
@@ -127,7 +176,7 @@ export function renderOrdersPage(): string {
                 ? order.items.map((item, idx) => {
                     const lineTotal = ((item.price ?? 0) * item.qty).toLocaleString('ru-RU', { minimumFractionDigits: 0 });
                     return `<div class="order-item-row">
-                      <span class="order-item-name">${escapeHtml(item.name)}</span>
+                      <span class="order-item-name">${escapeHtml(item.name)}${item.details ? ` <span class="order-item-detail">${escapeHtml(item.details)}</span>` : ''}</span>
                       <div class="order-item-controls">
                         <button type="button" class="qty-btn" data-oitem-dec data-order-id="${order.id}" data-item-idx="${idx}">−</button>
                         <input type="text" inputmode="decimal" class="qty-input" data-oitem-qty data-order-id="${order.id}" data-item-idx="${idx}" value="${item.qty}" />
@@ -146,7 +195,8 @@ export function renderOrdersPage(): string {
           ? `<span class="order-store-badge">№${order.storeId}</span>`
           : '';
 
-        return `<div class="order-row${isExpanded ? ' expanded' : ''}">
+        const needsAttention = !STORE_IDS.includes(order.storeId) || order.status !== 'done';
+        return `<div class="order-row${isExpanded ? ' expanded' : ''}${needsAttention ? ' order-row--attention' : ''}">
           <div class="order-row-info">
             <span class="order-num">#${orderNum}</span>
             ${storeNumBadge}

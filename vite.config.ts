@@ -3,18 +3,16 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { IncomingMessage, ServerResponse } from 'node:http';
+import Database from 'better-sqlite3';
 
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
 const p = (...parts: string[]) => path.join(ROOT, ...parts);
 
-const ORDERS_FILE         = p('desk-orders.json');
-const LOCAL_PRODUCTS_FILE = p('desk-local-products.json');
 const COUNTRIES_FILE      = p('desk-countries.json');
 const WHITELIST_FILE      = p('desk-whitelist.json');
 const OPERATOR_NAMES_FILE = p('desk-operator-names.json');
 const CATALOG_CACHE_FILE  = p('desk-cache-catalog.json');
 const VENDOR_CACHE_FILE   = p('desk-cache-vendor.json');
-const EXTRA_CLIENTS_FILE  = p('desk-extra-clients.json');
 
 const CATALOG_TTL = 60 * 60 * 1000;
 const VENDOR_TTL  = 4 * 60 * 60 * 1000;
@@ -45,38 +43,144 @@ interface SavedOrder {
   orderNumber?: string; deliveryPrice?: number; orderAmount?: number; given?: number; change?: number;
 }
 
-// ── Client helpers ───────────────────────────────────────────────────────────
+// ── SQLite DB ─────────────────────────────────────────────────────────────────
+
+const _db = new Database(p('desk.db'));
+_db.pragma('journal_mode = WAL');
+_db.pragma('foreign_keys = ON');
+_db.pragma('busy_timeout = 5000');
 
 function normPhone(raw: string): string {
   const d = raw.replace(/\D/g, '');
   return d.length === 11 && d[0] === '7' ? '8' + d.slice(1) : d;
 }
 
-function loadClientsDb(): DbClient[] {
-  try {
-    const file = p('clients.json');
-    if (!fs.existsSync(file)) return [];
-    return JSON.parse(fs.readFileSync(file, 'utf8')) as DbClient[];
-  } catch { return []; }
+function rowToOrder(row: Record<string, unknown>) {
+  const items = (_db.prepare('SELECT * FROM order_items WHERE order_id = ? ORDER BY id').all(row['id']) as Record<string, unknown>[])
+    .map(item => ({
+      ...(item['item_id'] != null ? { id: item['item_id'] } : {}),
+      name: item['name'], qty: item['qty'], price: item['price'],
+      productType: item['product_type'],
+      ...(item['details'] != null ? { details: item['details'] } : {}),
+    }));
+  const order: Record<string, unknown> = {
+    id: row['id'], createdAt: row['created_at'], status: row['status'],
+    storeId: row['store_id'], orderMethod: row['order_method'], payMethod: row['pay_method'],
+    operator: row['operator'], total: row['total'], items,
+    client: {
+      phone: row['client_phone'], name: row['client_name'], street: row['client_street'],
+      house: row['client_house'], entrance: row['client_entrance'], floor: row['client_floor'],
+      apartment: row['client_apartment'], intercom: row['client_intercom'], notes: row['client_notes'],
+    },
+  };
+  if (row['seq_num']       != null) order['seqNum']        = row['seq_num'];
+  if (row['order_number']  != null) order['orderNumber']   = row['order_number'];
+  if (row['delivery_price']!= null) order['deliveryPrice'] = row['delivery_price'];
+  if (row['order_amount']  != null) order['orderAmount']   = row['order_amount'];
+  if (row['given']         != null) order['given']         = row['given'];
+  if (row['change_amt']    != null) order['change']        = row['change_amt'];
+  if (row['deleted_at']    != null) order['deletedAt']     = row['deleted_at'];
+  return order;
 }
 
-function loadExtraClients(): DbClient[] {
-  try {
-    if (!fs.existsSync(EXTRA_CLIENTS_FILE)) return [];
-    return JSON.parse(fs.readFileSync(EXTRA_CLIENTS_FILE, 'utf8')) as DbClient[];
-  } catch { return []; }
+function orderToRow(o: Record<string, unknown>, id: string, createdAt: string) {
+  const c = (o['client'] as Record<string, unknown>) ?? {};
+  return {
+    id, created_at: createdAt,
+    status:           o['status']        ?? 'created',
+    store_id:         o['storeId']       ?? '',
+    order_method:     o['orderMethod']   ?? 'phone',
+    pay_method:       o['payMethod']     ?? 'cash',
+    operator:         o['operator']      ?? '',
+    total:            o['total']         ?? 0,
+    seq_num:          o['seqNum']        ?? null,
+    order_number:     o['orderNumber']   ?? null,
+    delivery_price:   o['deliveryPrice'] ?? null,
+    order_amount:     o['orderAmount']   ?? null,
+    given:            o['given']         ?? null,
+    change_amt:       o['change']        ?? null,
+    deleted_at:       o['deletedAt']     ?? null,
+    client_phone:     normPhone(String(c['phone'] ?? '')),
+    client_name:      c['name']      ?? '',
+    client_street:    c['street']    ?? '',
+    client_house:     c['house']     ?? '',
+    client_entrance:  c['entrance']  ?? '',
+    client_floor:     c['floor']     ?? '',
+    client_apartment: c['apartment'] ?? '',
+    client_intercom:  c['intercom']  ?? '',
+    client_notes:     c['notes']     ?? '',
+  };
 }
 
-function persistExtraClients(list: DbClient[]): void {
-  fs.writeFileSync(EXTRA_CLIENTS_FILE, JSON.stringify(list, null, 2), 'utf8');
+const _stmtInsertItem = _db.prepare(`
+  INSERT INTO order_items (order_id,item_id,name,qty,price,product_type,details)
+  VALUES (@order_id,@item_id,@name,@qty,@price,@product_type,@details)
+`);
+const _stmtDeleteItems = _db.prepare('DELETE FROM order_items WHERE order_id = ?');
+const _stmtUpsertClient = _db.prepare(`
+  INSERT INTO clients (phone,name,street,house,entrance,floor,apartment,intercom,notes)
+  VALUES (@phone,@name,@street,@house,@entrance,@floor,@apartment,@intercom,@notes)
+  ON CONFLICT(phone) DO NOTHING
+`);
+
+function rowToClient(row: Record<string, unknown>) {
+  const c: Record<string, unknown> = {
+    phone: row['phone'], name: row['name'], street: row['street'], house: row['house'],
+    entrance: row['entrance'], floor: row['floor'], apartment: row['apartment'],
+    intercom: row['intercom'], notes: row['notes'],
+  };
+  if (row['addresses_json']) try { c['addresses'] = JSON.parse(row['addresses_json'] as string); } catch { /* */ }
+  if (row['phones_json'])    try { c['phones']    = JSON.parse(row['phones_json']    as string); } catch { /* */ }
+  return c;
 }
 
-function getAllClients(): DbClient[] {
-  const extra = loadExtraClients();
-  const db = loadClientsDb();
-  const extraDigits = new Set(extra.map(c => normPhone(c.phone)));
-  return [...extra, ...db.filter(c => !extraDigits.has(normPhone(c.phone)))];
+function insertItemsForOrder(orderId: string, items: unknown[]) {
+  for (const item of items) {
+    const i = item as Record<string, unknown>;
+    _stmtInsertItem.run({ order_id: orderId, item_id: i['id'] ?? null, name: i['name'] ?? '',
+      qty: i['qty'] ?? 1, price: i['price'] ?? 0, product_type: i['productType'] ?? 'PIECE', details: i['details'] ?? null });
+  }
 }
+
+const _syncOrders = _db.transaction((orders: unknown[]) => {
+  const insertStmt = _db.prepare(`INSERT OR IGNORE INTO orders (
+    id,created_at,status,store_id,order_method,pay_method,operator,total,seq_num,
+    order_number,delivery_price,order_amount,given,change_amt,deleted_at,
+    client_phone,client_name,client_street,client_house,client_entrance,
+    client_floor,client_apartment,client_intercom,client_notes
+  ) VALUES (
+    @id,@created_at,@status,@store_id,@order_method,@pay_method,@operator,@total,@seq_num,
+    @order_number,@delivery_price,@order_amount,@given,@change_amt,@deleted_at,
+    @client_phone,@client_name,@client_street,@client_house,@client_entrance,
+    @client_floor,@client_apartment,@client_intercom,@client_notes
+  )`);
+  const updateStmt = _db.prepare(`UPDATE orders SET
+    status=@status,store_id=@store_id,order_method=@order_method,pay_method=@pay_method,
+    operator=@operator,total=@total,seq_num=@seq_num,order_number=@order_number,
+    delivery_price=@delivery_price,order_amount=@order_amount,given=@given,
+    change_amt=@change_amt,deleted_at=@deleted_at,
+    client_phone=@client_phone,client_name=@client_name,client_street=@client_street,
+    client_house=@client_house,client_entrance=@client_entrance,client_floor=@client_floor,
+    client_apartment=@client_apartment,client_intercom=@client_intercom,client_notes=@client_notes
+    WHERE id=@id`);
+  for (const o of orders) {
+    const order = o as Record<string, unknown>;
+    const row = orderToRow(order, String(order['id']), String(order['createdAt']));
+    const exists = _db.prepare('SELECT id FROM orders WHERE id = ?').get(row.id);
+    if (exists) {
+      updateStmt.run(row);
+      _stmtDeleteItems.run(row.id);
+    } else {
+      insertStmt.run(row);
+    }
+    insertItemsForOrder(String(row.id), (order['items'] as unknown[]) ?? []);
+    if (String(row.client_phone).length >= 7) _stmtUpsertClient.run({
+      phone: row.client_phone, name: row.client_name, street: row.client_street,
+      house: row.client_house, entrance: row.client_entrance, floor: row.client_floor,
+      apartment: row.client_apartment, intercom: row.client_intercom, notes: row.client_notes,
+    });
+  }
+});
 
 // ── Cache helpers ────────────────────────────────────────────────────────────
 
@@ -269,7 +373,7 @@ function makeJsonEndpoint(file: string, defaultValue = '[]'): Middleware {
 
 // ── Orders endpoint (with extended REST API) ─────────────────────────────────
 
-function makeOrdersEndpoint(file: string): Middleware {
+function makeOrdersEndpoint(): Middleware {
   return (req, res, next) => {
     const r = req as IncomingMessage;
     const s = res as ServerResponse;
@@ -286,165 +390,143 @@ function makeOrdersEndpoint(file: string): Middleware {
       s.statusCode = status;
       s.end(JSON.stringify({ ok: false, error: msg }));
     };
-    const readOrders = (): SavedOrder[] => {
-      try { return fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')) : []; }
-      catch { return []; }
-    };
-    const writeOrders = (orders: SavedOrder[]): void => {
-      fs.writeFileSync(file, JSON.stringify(orders, null, 2), 'utf8');
-    };
 
     // ── GET /desk-api/orders ─────────────────────────────────────────────────
     if (r.method === 'GET') {
-      const orders = readOrders();
       const id = url.searchParams.get('id');
-
       if (id) {
-        const order = orders.find(o => o.id === id);
-        if (order) ok(order); else err('Заказ не найден', 404);
-        return;
+        const row = _db.prepare('SELECT * FROM orders WHERE id = ?').get(id) as Record<string, unknown> | undefined;
+        return row ? ok(rowToOrder(row)) : err('Заказ не найден', 404);
       }
-
-      let result = orders;
-      const phone = url.searchParams.get('phone');
-      const status = url.searchParams.get('status');
+      let sql = 'SELECT * FROM orders WHERE 1=1';
+      const args: unknown[] = [];
+      const phone    = url.searchParams.get('phone');
+      const status   = url.searchParams.get('status');
       const operator = url.searchParams.get('operator');
-      const storeId = url.searchParams.get('store_id');
+      const storeId  = url.searchParams.get('store_id');
       const dateFrom = url.searchParams.get('date_from');
-      const dateTo = url.searchParams.get('date_to');
-      const limitParam = url.searchParams.get('limit');
-      const offsetParam = url.searchParams.get('offset');
-
-      if (phone) {
-        const d = normPhone(phone);
-        result = result.filter(o => normPhone(o.client?.phone ?? '') === d);
-      }
-      if (status) result = result.filter(o => o.status === status);
-      if (operator) result = result.filter(o => o.operator === operator);
-      if (storeId) result = result.filter(o => o.storeId === storeId);
-      if (dateFrom) result = result.filter(o => o.createdAt >= dateFrom);
-      if (dateTo) result = result.filter(o => o.createdAt <= dateTo);
-
-      const total = result.length;
-      const offset = offsetParam ? parseInt(offsetParam, 10) : 0;
-      const limit = limitParam ? parseInt(limitParam, 10) : total;
-      result = result.slice(offset, offset + limit);
-
-      s.end(JSON.stringify({ ok: true, data: result, total, offset, limit: result.length }));
+      const dateTo   = url.searchParams.get('date_to');
+      if (phone)    { sql += ' AND client_phone = ?'; args.push(normPhone(phone)); }
+      if (status)   { sql += ' AND status = ?';       args.push(status); }
+      if (operator) { sql += ' AND operator = ?';     args.push(operator); }
+      if (storeId)  { sql += ' AND store_id = ?';     args.push(storeId); }
+      if (dateFrom) { sql += ' AND created_at >= ?';  args.push(dateFrom); }
+      if (dateTo)   { sql += ' AND created_at <= ?';  args.push(dateTo + 'T23:59:59.999Z'); }
+      sql += ' ORDER BY created_at DESC';
+      const rows  = (_db.prepare(sql).all(...args) as Record<string, unknown>[]);
+      const total = rows.length;
+      const offset = parseInt(url.searchParams.get('offset') ?? '0', 10);
+      const lp     = url.searchParams.get('limit');
+      const limit  = lp ? parseInt(lp, 10) : total;
+      const data   = rows.slice(offset, offset + limit).map(rowToOrder);
+      s.end(JSON.stringify({ ok: true, data, total, offset, limit: data.length }));
       return;
     }
 
-    // ── POST /desk-api/orders/create — create single order ───────────────────
+    // ── POST /desk-api/orders/create ─────────────────────────────────────────
     if (r.method === 'POST' && pathname === '/create') {
       let body = '';
       r.on('data', (chunk: Buffer) => { body += chunk.toString(); });
       r.on('end', () => {
-        let input: Partial<SavedOrder>;
-        try { input = JSON.parse(body) as Partial<SavedOrder>; }
-        catch { err('Невалидный JSON'); return; }
-
-        if (!input.client?.phone) { err('client.phone обязателен'); return; }
-        if (!Array.isArray(input.items) || input.items.length === 0) {
-          err('items обязателен (непустой массив)'); return;
-        }
-
-        const calcTotal = input.items.reduce((sum, i) => sum + i.price * i.qty, 0);
-
-        const order: SavedOrder = {
-          id: Date.now().toString(),
-          createdAt: new Date().toISOString(),
-          status: input.status ?? 'created',
-          storeId: input.storeId ?? '',
-          client: {
-            phone: input.client.phone,
-            name: input.client.name ?? '',
-            street: input.client.street ?? '',
-            house: input.client.house ?? '',
-            entrance: input.client.entrance ?? '',
-            floor: input.client.floor ?? '',
-            apartment: input.client.apartment ?? '',
-            intercom: input.client.intercom ?? '',
-            notes: input.client.notes ?? '',
-          },
-          orderMethod: input.orderMethod ?? 'phone',
-          payMethod: input.payMethod ?? 'cash',
-          operator: input.operator ?? 'API',
-          items: input.items,
-          total: input.total ?? calcTotal,
-          ...(input.orderNumber !== undefined ? { orderNumber: input.orderNumber } : {}),
-          ...(input.deliveryPrice !== undefined ? { deliveryPrice: input.deliveryPrice } : {}),
-          ...(input.orderAmount !== undefined ? { orderAmount: input.orderAmount } : {}),
-        };
-
+        let input: Record<string, unknown>;
+        try { input = JSON.parse(body); } catch { err('Невалидный JSON'); return; }
+        const client = input['client'] as Record<string, unknown> | undefined;
+        if (!client?.['phone']) { err('client.phone обязателен'); return; }
+        const items = input['items'] as unknown[];
+        if (!Array.isArray(items) || !items.length) { err('items обязателен'); return; }
+        const id = Date.now().toString();
+        const createdAt = new Date().toISOString();
+        const row = orderToRow({ ...input, operator: input['operator'] ?? 'API' }, id, createdAt);
         try {
-          const orders = readOrders();
-          try { if (orders.length > 0) fs.copyFileSync(file, file + '.bak'); } catch { /* ignore */ }
-          writeOrders([order, ...orders].sort((a, b) => b.createdAt.localeCompare(a.createdAt)));
-          ok(order, 201);
+          _db.transaction(() => {
+            _db.prepare(`INSERT INTO orders (
+              id,created_at,status,store_id,order_method,pay_method,operator,total,seq_num,
+              order_number,delivery_price,order_amount,given,change_amt,deleted_at,
+              client_phone,client_name,client_street,client_house,client_entrance,
+              client_floor,client_apartment,client_intercom,client_notes
+            ) VALUES (
+              @id,@created_at,@status,@store_id,@order_method,@pay_method,@operator,@total,@seq_num,
+              @order_number,@delivery_price,@order_amount,@given,@change_amt,@deleted_at,
+              @client_phone,@client_name,@client_street,@client_house,@client_entrance,
+              @client_floor,@client_apartment,@client_intercom,@client_notes
+            )`).run(row);
+            insertItemsForOrder(id, items);
+          })();
+          ok(rowToOrder(_db.prepare('SELECT * FROM orders WHERE id = ?').get(id) as Record<string, unknown>), 201);
         } catch (e) { err(String(e), 500); }
       });
       return;
     }
 
-    // ── POST /desk-api/orders — sync (existing internal mechanism) ────────────
+    // ── POST /desk-api/orders — browser sync ─────────────────────────────────
     if (r.method === 'POST') {
       let body = '';
       r.on('data', (chunk: Buffer) => { body += chunk.toString(); });
       r.on('end', () => {
-        let incoming: SavedOrder[];
-        try { incoming = JSON.parse(body) as SavedOrder[]; } catch {
-          s.statusCode = 400; s.end('{"error":"invalid json"}'); return;
-        }
-        try {
-          const existing = readOrders();
-          const incomingIds = new Set(incoming.map(o => o.id));
-          const serverOnly = existing.filter(o => !incomingIds.has(o.id));
-          const merged = [...incoming, ...serverOnly]
-            .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-          try { if (existing.length > 0) fs.copyFileSync(file, file + '.bak'); } catch { /* ignore */ }
-          writeOrders(merged);
-          s.end('{"ok":true}');
-        } catch (e) {
-          s.statusCode = 500;
-          s.end(JSON.stringify({ error: String(e) }));
-        }
+        let incoming: unknown[];
+        try { incoming = JSON.parse(body); } catch { s.statusCode = 400; s.end('{"error":"invalid json"}'); return; }
+        try { _syncOrders(incoming); s.end('{"ok":true}'); }
+        catch (e) { s.statusCode = 500; s.end(JSON.stringify({ error: String(e) })); }
       });
       return;
     }
 
-    // ── PATCH /desk-api/orders?id=... — update order fields ──────────────────
+    // ── PATCH /desk-api/orders?id=... ────────────────────────────────────────
     if (r.method === 'PATCH') {
       const id = url.searchParams.get('id');
       if (!id) { err('Укажите ?id=...'); return; }
       let body = '';
       r.on('data', (chunk: Buffer) => { body += chunk.toString(); });
       r.on('end', () => {
-        let patch: Partial<SavedOrder>;
-        try { patch = JSON.parse(body) as Partial<SavedOrder>; }
-        catch { err('Невалидный JSON'); return; }
+        let patch: Record<string, unknown>;
+        try { patch = JSON.parse(body); } catch { err('Невалидный JSON'); return; }
+        const row = _db.prepare('SELECT * FROM orders WHERE id = ?').get(id) as Record<string, unknown> | undefined;
+        if (!row) { err('Заказ не найден', 404); return; }
         try {
-          const orders = readOrders();
-          const idx = orders.findIndex(o => o.id === id);
-          if (idx < 0) { err('Заказ не найден', 404); return; }
-          orders[idx] = { ...orders[idx], ...patch, id: orders[idx].id };
-          writeOrders(orders);
-          ok(orders[idx]);
+          const camel: Record<string, string> = { storeId:'store_id', orderMethod:'order_method',
+            payMethod:'pay_method', seqNum:'seq_num', orderNumber:'order_number',
+            deliveryPrice:'delivery_price', orderAmount:'order_amount', change:'change_amt', deletedAt:'deleted_at' };
+          const allowed = ['status','store_id','order_method','pay_method','operator','total','seq_num',
+            'order_number','delivery_price','order_amount','given','change_amt','deleted_at'];
+          const setClauses: string[] = [];
+          const params: Record<string, unknown> = { id };
+          if (patch['client']) {
+            const c = patch['client'] as Record<string, unknown>;
+            Object.assign(params, { client_phone:normPhone(String(c['phone']??'')), client_name:c['name']??'',
+              client_street:c['street']??'', client_house:c['house']??'', client_entrance:c['entrance']??'',
+              client_floor:c['floor']??'', client_apartment:c['apartment']??'',
+              client_intercom:c['intercom']??'', client_notes:c['notes']??'' });
+            setClauses.push('client_phone=@client_phone','client_name=@client_name','client_street=@client_street',
+              'client_house=@client_house','client_entrance=@client_entrance','client_floor=@client_floor',
+              'client_apartment=@client_apartment','client_intercom=@client_intercom','client_notes=@client_notes');
+          }
+          if (patch['items'] != null) {
+            _db.transaction(() => {
+              _stmtDeleteItems.run(id);
+              insertItemsForOrder(id, patch['items'] as unknown[]);
+            })();
+          }
+          for (const [key, val] of Object.entries(patch)) {
+            if (['id','createdAt','client','items'].includes(key)) continue;
+            const col = camel[key] ?? key;
+            if (!allowed.includes(col)) continue;
+            setClauses.push(`${col}=@${col}`); params[col] = val;
+          }
+          if (setClauses.length) _db.prepare(`UPDATE orders SET ${setClauses.join(',')} WHERE id=@id`).run(params);
+          ok(rowToOrder(_db.prepare('SELECT * FROM orders WHERE id = ?').get(id) as Record<string, unknown>));
         } catch (e) { err(String(e), 500); }
       });
       return;
     }
 
-    // ── DELETE /desk-api/orders?id=... — delete order ─────────────────────────
+    // ── DELETE /desk-api/orders?id=... ───────────────────────────────────────
     if (r.method === 'DELETE') {
       const id = url.searchParams.get('id');
       if (!id) { err('Укажите ?id=...'); return; }
-      try {
-        const orders = readOrders();
-        const before = orders.length;
-        const filtered = orders.filter(o => o.id !== id);
-        writeOrders(filtered);
-        ok({ deleted: before - filtered.length });
-      } catch (e) { err(String(e), 500); }
+      const row = _db.prepare('SELECT id FROM orders WHERE id = ?').get(id);
+      if (!row) { err('Заказ не найден', 404); return; }
+      _db.prepare('DELETE FROM orders WHERE id = ?').run(id);
+      ok({ deleted: 1 });
       return;
     }
 
@@ -459,106 +541,64 @@ function makeClientsEndpoint(): Middleware {
     const r = req as IncomingMessage;
     const s = res as ServerResponse;
     s.setHeader('Content-Type', 'application/json');
-
     const url = new URL(r.url ?? '/', 'http://localhost');
+    const ok = (data: unknown, status = 200) => { s.statusCode = status; s.end(JSON.stringify({ ok: true, data })); };
+    const err = (msg: string, status = 400) => { s.statusCode = status; s.end(JSON.stringify({ ok: false, error: msg })); };
 
-    const ok = (data: unknown, status = 200): void => {
-      s.statusCode = status;
-      s.end(JSON.stringify({ ok: true, data }));
-    };
-    const err = (msg: string, status = 400): void => {
-      s.statusCode = status;
-      s.end(JSON.stringify({ ok: false, error: msg }));
-    };
-
-    // ── GET /desk-api/clients ─────────────────────────────────────────────────
     if (r.method === 'GET') {
-      const phone = url.searchParams.get('phone') ?? '';
+      const phone  = url.searchParams.get('phone')  ?? '';
       const search = url.searchParams.get('search') ?? '';
-      const exact = url.searchParams.get('exact') !== 'false';
-
+      const exact  = url.searchParams.get('exact') !== 'false';
       if (phone) {
+        const d = normPhone(phone);
         if (exact) {
-          const d = normPhone(phone);
-          const client = getAllClients().find(c => normPhone(c.phone) === d);
-          if (client) ok(client); else err('Клиент не найден', 404);
-        } else {
-          const d = normPhone(phone);
-          const results = d.length >= 3
-            ? getAllClients().filter(c => normPhone(c.phone).includes(d)).slice(0, 20)
-            : [];
-          ok(results);
+          const row = _db.prepare('SELECT * FROM clients WHERE phone = ?').get(d) as Record<string, unknown> | undefined;
+          return row ? ok(rowToClient(row)) : err('Клиент не найден', 404);
         }
-        return;
+        if (d.length < 3) return ok([]);
+        return ok((_db.prepare("SELECT * FROM clients WHERE phone LIKE ? LIMIT 20").all(`%${d}%`) as Record<string, unknown>[]).map(rowToClient));
       }
-
       if (search) {
-        const q = search.toLowerCase();
-        const results = getAllClients()
-          .filter(c =>
-            c.name.toLowerCase().includes(q) ||
-            normPhone(c.phone).includes(normPhone(search)),
-          )
-          .slice(0, 20);
-        ok(results);
-        return;
+        const q = `%${search.toLowerCase()}%`;
+        return ok((_db.prepare("SELECT * FROM clients WHERE LOWER(name) LIKE ? OR phone LIKE ? LIMIT 20")
+          .all(q, `%${normPhone(search)}%`) as Record<string, unknown>[]).map(rowToClient));
       }
-
-      const limitParam = url.searchParams.get('limit');
-      const offsetParam = url.searchParams.get('offset');
-      const all = getAllClients();
-      const total = all.length;
-      const offset = offsetParam ? parseInt(offsetParam, 10) : 0;
-      const limit = limitParam ? parseInt(limitParam, 10) : total;
-      ok({ data: all.slice(offset, offset + limit), total, offset, limit });
-      return;
+      const total  = (_db.prepare('SELECT COUNT(*) as n FROM clients').get() as { n: number }).n;
+      const offset = parseInt(url.searchParams.get('offset') ?? '0', 10);
+      const lp     = url.searchParams.get('limit');
+      const limit  = lp ? parseInt(lp, 10) : total;
+      return ok({ data: (_db.prepare('SELECT * FROM clients ORDER BY name LIMIT ? OFFSET ?').all(limit, offset) as Record<string, unknown>[]).map(rowToClient), total, offset, limit });
     }
 
-    // ── POST /desk-api/clients — upsert client ────────────────────────────────
     if (r.method === 'POST') {
       let body = '';
       r.on('data', (chunk: Buffer) => { body += chunk.toString(); });
       r.on('end', () => {
-        let input: Partial<DbClient>;
-        try { input = JSON.parse(body) as Partial<DbClient>; }
-        catch { err('Невалидный JSON'); return; }
-
-        const digits = (input.phone ?? '').replace(/\D/g, '');
-        if (digits.length < 7) { err('Некорректный номер телефона (минимум 7 цифр)'); return; }
-
-        const list = loadExtraClients();
-        const d = normPhone(input.phone!);
-        const idx = list.findIndex(c => normPhone(c.phone) === d);
-
-        const entry: DbClient = {
-          name: '', street: '', house: '', entrance: '',
-          floor: '', apartment: '', intercom: '', notes: '',
-          ...input as DbClient,
-        };
-
-        if (idx >= 0) {
-          list[idx] = { ...list[idx], ...entry };
-          persistExtraClients(list);
-          ok(list[idx]);
-        } else {
-          list.push(entry);
-          persistExtraClients(list);
-          ok(list[list.length - 1], 201);
+        let input: Record<string, unknown>;
+        try { input = JSON.parse(body); } catch { err('Невалидный JSON'); return; }
+        const d = normPhone(String(input['phone'] ?? ''));
+        if (d.length < 7) { err('Некорректный номер телефона (минимум 7 цифр)'); return; }
+        const entry = { phone:d, name:input['name']??'', street:input['street']??'', house:input['house']??'',
+          entrance:input['entrance']??'', floor:input['floor']??'', apartment:input['apartment']??'',
+          intercom:input['intercom']??'', notes:input['notes']??'' };
+        const exists = _db.prepare('SELECT phone FROM clients WHERE phone = ?').get(d);
+        if (exists) {
+          _db.prepare(`UPDATE clients SET name=@name,street=@street,house=@house,entrance=@entrance,
+            floor=@floor,apartment=@apartment,intercom=@intercom,notes=@notes WHERE phone=@phone`).run(entry);
+          return ok(rowToClient(_db.prepare('SELECT * FROM clients WHERE phone = ?').get(d) as Record<string, unknown>));
         }
+        _db.prepare(`INSERT INTO clients (phone,name,street,house,entrance,floor,apartment,intercom,notes)
+          VALUES (@phone,@name,@street,@house,@entrance,@floor,@apartment,@intercom,@notes)`).run(entry);
+        return ok(rowToClient(_db.prepare('SELECT * FROM clients WHERE phone = ?').get(d) as Record<string, unknown>), 201);
       });
       return;
     }
 
-    // ── DELETE /desk-api/clients?phone=... — remove from extra clients ─────────
     if (r.method === 'DELETE') {
       const phone = url.searchParams.get('phone') ?? '';
       if (!phone) { err('Укажите ?phone=...'); return; }
-      const list = loadExtraClients();
-      const d = normPhone(phone);
-      const before = list.length;
-      const filtered = list.filter(c => normPhone(c.phone) !== d);
-      persistExtraClients(filtered);
-      ok({ deleted: before - filtered.length });
+      const result = _db.prepare('DELETE FROM clients WHERE phone = ?').run(normPhone(phone));
+      ok({ deleted: result.changes });
       return;
     }
 
@@ -569,9 +609,38 @@ function makeClientsEndpoint(): Middleware {
 // ── Attach all middlewares ───────────────────────────────────────────────────
 
 function attachMiddlewares(middlewares: { use: (p: string, h: Middleware) => void }): void {
-  middlewares.use('/desk-api/orders',         makeOrdersEndpoint(ORDERS_FILE));
-  middlewares.use('/desk-api/clients',        makeClientsEndpoint());
-  middlewares.use('/desk-api/local-products', makeJsonEndpoint(LOCAL_PRODUCTS_FILE));
+  middlewares.use('/desk-api/orders',   makeOrdersEndpoint());
+  middlewares.use('/desk-api/clients',  makeClientsEndpoint());
+  middlewares.use('/desk-api/local-products', ((req, res, next) => {
+    const r = req as IncomingMessage;
+    const s = res as ServerResponse;
+    s.setHeader('Content-Type', 'application/json');
+    if (r.method === 'GET') {
+      const list = (_db.prepare('SELECT * FROM local_products ORDER BY sort_order').all() as Record<string,unknown>[])
+        .map(x => ({ id:x['id'], name:x['name'], price:x['price'], productType:x['product_type'] }));
+      s.end(JSON.stringify(list));
+      return;
+    }
+    if (r.method === 'POST') {
+      let body = '';
+      r.on('data', (c: Buffer) => { body += c.toString(); });
+      r.on('end', () => {
+        let b: unknown[];
+        try { b = JSON.parse(body); } catch { s.statusCode = 400; s.end('{"error":"invalid json"}'); return; }
+        if (!Array.isArray(b)) { s.statusCode = 400; s.end('{"error":"expected array"}'); return; }
+        _db.transaction(() => {
+          _db.prepare('DELETE FROM local_products').run();
+          (b as Record<string,unknown>[]).forEach((x, i) => {
+            _db.prepare('INSERT OR REPLACE INTO local_products (id,name,price,product_type,sort_order) VALUES (@id,@name,@price,@product_type,@sort_order)')
+              .run({ id:x['id'], name:x['name'], price:x['price'], product_type:x['productType'], sort_order:i });
+          });
+        })();
+        s.end('{"ok":true}');
+      });
+      return;
+    }
+    (next as () => void)();
+  }) as Middleware);
   middlewares.use('/desk-api/countries',      makeJsonEndpoint(COUNTRIES_FILE));
   middlewares.use('/desk-api/whitelist',      makeJsonEndpoint(WHITELIST_FILE));
   middlewares.use('/desk-api/operator-names', makeJsonEndpoint(OPERATOR_NAMES_FILE, '{}'));

@@ -190,6 +190,7 @@ export function renderLocalTiles(): string {
       cartQtyMap.set(item.product.id, (cartQtyMap.get(item.product.id) ?? 0) + item.qty);
   }
   return `<div class="product-grid">${items.map((lp) => {
+    const isEditing = state.editingLocalProductId === lp.id;
     const priceStr = lp.price
       ? lp.productType === 'WEIGHT'
         ? `${lp.price.toLocaleString('ru-RU')} ₽/кг`
@@ -198,13 +199,21 @@ export function renderLocalTiles(): string {
     const lpProduct = localToProduct(lp);
     const cartQty = cartQtyMap.get(lpProduct.id) ?? 0;
     const cartBadge = cartQty > 0 ? `<div class="tile-cart-badge">${escapeHtml(formatQty(cartQty))}</div>` : '';
+    const editPriceInput = isEditing
+      ? `<div class="tile-edit-row" onclick="event.stopPropagation()">
+           <input type="text" inputmode="decimal" class="tile-edit-price-input" data-local-edit-id="${escapeHtml(lp.id)}" value="${escapeHtml(state.localEditPrice)}" placeholder="Цена" />
+           <button type="button" class="tile-edit-save-btn" data-local-edit-save="${escapeHtml(lp.id)}" title="Сохранить">✓</button>
+         </div>`
+      : '';
     return `
-      <div class="product-tile tile-local" data-local-id="${escapeHtml(lp.id)}" draggable="true">
+      <div class="product-tile tile-local${isEditing ? ' tile-editing' : ''}" data-local-id="${escapeHtml(lp.id)}" draggable="${isEditing ? 'false' : 'true'}">
         <button type="button" class="tile-del-btn" data-local-del="${escapeHtml(lp.id)}" title="Удалить">✕</button>
+        <button type="button" class="tile-edit-btn" data-local-edit="${escapeHtml(lp.id)}" title="Редактировать цену">✎</button>
         <span class="tile-drag-handle" title="Перетащить">⠿</span>
         ${cartBadge}
         <div class="tile-name">${escapeHtml(lp.name)}</div>
         <div class="tile-price">${escapeHtml(priceStr)}</div>
+        ${editPriceInput}
         <div class="tile-stock"></div>
       </div>`;
   }).join('')}</div>`;

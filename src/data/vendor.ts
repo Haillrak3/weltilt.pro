@@ -6,27 +6,26 @@ import { isConfigured } from '../config/settings';
 import type { LocalProduct, Product } from '../types';
 import type { ModeratedProduct } from '../api/types';
 
+async function pushLocalProductsToServer(): Promise<void> {
+  try {
+    await fetch('/desk-api/local-products', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(state.localProducts),
+    });
+  } catch { /* ignore */ }
+}
+
 export async function loadLocalProductsFromServer(): Promise<void> {
   try {
     const res = await fetch('/desk-api/local-products');
     if (!res.ok) return;
     const serverList = await res.json() as LocalProduct[];
-
-    if (state.localProducts.length > 0) {
-      // localStorage is authoritative — sync it to server if they differ
-      if (JSON.stringify(serverList) !== JSON.stringify(state.localProducts)) {
-        await fetch('/desk-api/local-products', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(state.localProducts),
-        });
-      }
-    } else if (serverList.length > 0) {
-      // localStorage empty — bootstrap from server
-      state.localProducts = serverList;
-      localStorage.setItem('orderdesk_local_products', JSON.stringify(serverList));
-      render();
-    }
+    if (serverList.length === 0) return;
+    // Server is authoritative — always use server data
+    state.localProducts = serverList;
+    localStorage.setItem('orderdesk_local_products', JSON.stringify(serverList));
+    render();
   } catch { /* сервер недоступен — используем localStorage */ }
 }
 
@@ -131,14 +130,27 @@ export function addLocalProduct(): void {
   };
   state.localProducts.push(lp);
   saveLocalProducts(state.localProducts);
+  pushLocalProductsToServer();
   state.showLocalProductForm = false;
   state.localProductForm = { name: '', price: '', productType: 'PIECE' };
+  render();
+}
+
+export function updateLocalProduct(id: string, price: number): void {
+  const lp = state.localProducts.find((x) => x.id === id);
+  if (!lp) return;
+  lp.price = Math.max(0, price);
+  saveLocalProducts(state.localProducts);
+  pushLocalProductsToServer();
+  state.editingLocalProductId = null;
+  state.localEditPrice = '';
   render();
 }
 
 export function deleteLocalProduct(id: string): void {
   state.localProducts = state.localProducts.filter((lp) => lp.id !== id);
   saveLocalProducts(state.localProducts);
+  pushLocalProductsToServer();
   render();
 }
 
@@ -150,5 +162,6 @@ export function reorderLocalProduct(fromId: string, toId: string): void {
   const [moved] = list.splice(from, 1);
   list.splice(to, 0, moved);
   saveLocalProducts(list);
+  pushLocalProductsToServer();
   render();
 }

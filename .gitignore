@@ -12,12 +12,22 @@ dist
 dist-ssr
 *.local
 desk-orders.json
+desk-local-products.json
 desk-cache-*.json
 desk-orders.json.bak
 desk-mango-accounts.json
+desk-extra-clients.json
+desk-whitelist.json
+desk-operator-names.json
+desk-countries.json
 src/clients.json
 mango-sip.py
 .env
+
+# SQLite database
+*.db
+*.db-shm
+*.db-wal
 
 # API server
 api-server.cjs

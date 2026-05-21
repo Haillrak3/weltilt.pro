@@ -1,692 +1,213 @@
 ================================================================================
-  DESK API — Полная документация
-  Проект: weltilt.pro / OrderDesk
-  Версия: 1.0
+  OrderDesk API v1
 ================================================================================
 
-BASE URL (dev)
-  http://localhost:5173
+Base URL:  https://weltilt.pro/desk-api/v1
 
-BASE URL (prod / preview)
-  https://weltilt.pro
+Роуты под /desk-api/v1/ зафиксированы и не изменятся.
+Новые ломающие изменения будут выходить под /desk-api/v2/.
 
-Все desk-api эндпоинты работают локально — данные хранятся в JSON-файлах
-на диске (desk-orders.json, desk-extra-clients.json).
-
-Внешний API (api.0-5.ru) требует X-Auth-Token и проксируется через /api/*.
-
-Формат ответа
-  Успех:  { "ok": true,  "data": <payload> }
-  Ошибка: { "ok": false, "error": "<описание>" }
-
-HTTP статусы
-  200 — OK
-  201 — Created (ресурс создан)
-  400 — Bad Request (невалидные параметры)
-  404 — Not Found
-  405 — Method Not Allowed
-  500 — Server Error
+Список всех эндпоинтов:  GET /desk-api/v1/
 
 
 ================================================================================
-  1. КЛИЕНТЫ  /desk-api/clients
+  ФОРМАТ ОТВЕТОВ
 ================================================================================
 
-Данные клиентов берутся из двух источников (объединяются):
-  - clients.json        — основная база (только чтение)
-  - desk-extra-clients.json — редактируемая база (клиенты из заказов / API)
+Успех:     { "ok": true,  "data": <payload> }
+Ошибка:    { "ok": false, "error": "описание ошибки" }
 
-Нормализация телефона:
-  Все форматы принимаются: "8 (903) 129-69-49", "79031296949", "89031296949".
-  Внутри они нормализуются к виду "89031296949".
-
-
-────────────────────────────────────────────────────────────────────────────────
-GET /desk-api/clients
-  Получить всех клиентов (пагинация опциональна).
-
-  Query-параметры:
-    limit   — int, количество записей (по умолчанию: все)
-    offset  — int, смещение (по умолчанию: 0)
-
-  Пример запроса:
-    GET /desk-api/clients
-    GET /desk-api/clients?limit=50&offset=0
-
-  Пример ответа:
-    {
-      "ok": true,
-      "data": {
-        "data": [
-          {
-            "name": "Иван Петров",
-            "phone": "89031296949",
-            "street": "Ленина",
-            "house": "12",
-            "entrance": "2",
-            "floor": "3",
-            "apartment": "45",
-            "intercom": "45",
-            "notes": "постоянный клиент",
-            "addresses": [...],
-            "phones": ["89031296949"]
-          }
-        ],
-        "total": 1523,
-        "offset": 0,
-        "limit": 1523
-      }
-    }
+HTTP-коды:
+  200  OK
+  201  Created
+  400  Bad Request
+  404  Not Found
+  500  Server Error
 
 
-────────────────────────────────────────────────────────────────────────────────
-GET /desk-api/clients?phone=<номер>
-  Получить клиента по точному номеру телефона.
+================================================================================
+  ЗАКАЗЫ
+================================================================================
 
-  Query-параметры:
-    phone   — string, номер телефона (обязательный)
-    exact   — "false" для поиска по подстроке (по умолчанию: точное совпадение)
+GET /orders
+  Список заказов. Все параметры опциональны.
 
-  Пример: найти точно
-    GET /desk-api/clients?phone=89031296949
-    GET /desk-api/clients?phone=8+%28903%29+129-69-49
-
-  Пример ответа (нашли):
-    {
-      "ok": true,
-      "data": {
-        "name": "Иван Петров",
-        "phone": "89031296949",
-        "street": "Ленина",
-        "house": "12",
-        "entrance": "2",
-        "floor": "3",
-        "apartment": "45",
-        "intercom": "45",
-        "notes": "",
-        "addresses": []
-      }
-    }
-
-  Пример ответа (не нашли):
-    HTTP 404
-    { "ok": false, "error": "Клиент не найден" }
-
-  Пример: поиск по подстроке (partial match)
-    GET /desk-api/clients?phone=9031&exact=false
-
-  Ответ (массив до 20 совпадений):
-    {
-      "ok": true,
-      "data": [ { "name": "...", "phone": "..." }, ... ]
-    }
-
-
-────────────────────────────────────────────────────────────────────────────────
-GET /desk-api/clients?search=<строка>
-  Поиск по имени или телефону (подстрока).
-
-  Query-параметры:
-    search  — string, поисковая строка
-
-  Пример:
-    GET /desk-api/clients?search=Иванов
-    GET /desk-api/clients?search=9031
-
-  Ответ (до 20 совпадений):
-    {
-      "ok": true,
-      "data": [ { "name": "...", "phone": "..." }, ... ]
-    }
-
-
-────────────────────────────────────────────────────────────────────────────────
-POST /desk-api/clients
-  Создать или обновить клиента (upsert по номеру телефона).
-  Если клиент с таким телефоном уже есть — обновляются его поля.
-  Если нет — создаётся новый в desk-extra-clients.json.
-
-  Тело запроса (JSON):
-    {
-      "phone":     "89031296949",   // обязательный (минимум 7 цифр)
-      "name":      "Иван Петров",   // строка
-      "street":    "Ленина",        // строка
-      "house":     "12",            // строка
-      "entrance":  "2",             // строка
-      "floor":     "3",             // строка
-      "apartment": "45",            // строка
-      "intercom":  "45",            // строка
-      "notes":     "комментарий",   // строка
-      "addresses": [...],           // массив адресов (опционально)
-      "phones":    ["89031111111"]  // доп. телефоны (опционально)
-    }
-
-  Минимальный запрос (только телефон):
-    { "phone": "89031296949" }
-
-  Ответ (создан, HTTP 201):
-    { "ok": true, "data": { "phone": "89031296949", "name": "", ... } }
-
-  Ответ (обновлён, HTTP 200):
-    { "ok": true, "data": { "phone": "89031296949", "name": "Иван Петров", ... } }
-
-  Ошибка:
-    HTTP 400
-    { "ok": false, "error": "Некорректный номер телефона (минимум 7 цифр)" }
-
-
-────────────────────────────────────────────────────────────────────────────────
-DELETE /desk-api/clients?phone=<номер>
-  Удалить клиента из редактируемой базы (desk-extra-clients.json).
-  Клиенты из основной clients.json не удаляются.
-
-  Query-параметры:
-    phone — string, номер телефона (обязательный)
-
-  Пример:
-    DELETE /desk-api/clients?phone=89031296949
+  Параметры:
+    phone      — фильтр по телефону клиента
+    status     — created / in_progress / done
+    operator   — фильтр по имени оператора
+    store_id   — фильтр по магазину
+    date_from  — дата от, ISO 8601 (включительно)
+    date_to    — дата до, ISO 8601 (включительно)
+    offset     — пагинация, по умолчанию 0
+    limit      — пагинация, по умолчанию все
 
   Ответ:
-    { "ok": true, "data": { "deleted": 1 } }
-    { "ok": true, "data": { "deleted": 0 } }  // если не найден в extra-базе
-
-
-================================================================================
-  2. ЗАКАЗЫ  /desk-api/orders
-================================================================================
-
-Заказы хранятся в desk-orders.json. При каждой записи создаётся резервная
-копия desk-orders.json.bak.
-
-Структура заказа (SavedOrder):
-  {
-    "id":           "1716200000000",     // string, timestamp-based ID
-    "createdAt":    "2026-05-20T10:00:00.000Z",
-    "status":       "created",           // "created" | "in_progress" | "done"
-    "storeId":      "1",
-    "orderMethod":  "phone",             // "phone" | "app"
-    "payMethod":    "cash",              // "cash" | "card"
-    "operator":     "Менеджер",
-    "total":        1500,
-    "orderNumber":  "12345",             // для app-заказов (опционально)
-    "deliveryPrice": 300,                // для app-заказов (опционально)
-    "orderAmount":  1200,                // сумма товаров без доставки (опционально)
-    "given":        2000,                // сдача: сколько дал клиент (опционально)
-    "change":       500,                 // сдача: сколько вернули (опционально)
-    "client": {
-      "phone":     "89031296949",
-      "name":      "Иван Петров",
-      "street":    "Ленина",
-      "house":     "12",
-      "entrance":  "2",
-      "floor":     "3",
-      "apartment": "45",
-      "intercom":  "45",
-      "notes":     ""
-    },
-    "items": [
-      {
-        "id":          123,              // ID товара из каталога (опционально)
-        "name":        "Пиво Балтика",
-        "qty":         2,
-        "price":       150,             // цена за единицу (в копейках для WEIGHT)
-        "productType": "NORMAL",        // "NORMAL" | "WEIGHT" | "DRAFT" | "LOCAL"
-        "details":     ""               // доп. инфо (опционально)
-      }
-    ]
-  }
-
-
-────────────────────────────────────────────────────────────────────────────────
-GET /desk-api/orders
-  Получить все заказы с фильтрацией и пагинацией.
-
-  Query-параметры (все опциональны):
-    id        — string, получить один заказ по ID
-    phone     — string, фильтр по телефону клиента (точное совпадение)
-    status    — "created" | "in_progress" | "done"
-    operator  — string, фильтр по оператору
-    store_id  — string, фильтр по складу
-    date_from — ISO string, фильтр "от" (включительно), напр. "2026-05-01T00:00:00.000Z"
-    date_to   — ISO string, фильтр "до" (включительно)
-    limit     — int, количество записей
-    offset    — int, смещение
-
-  Примеры:
-    GET /desk-api/orders
-    GET /desk-api/orders?id=1716200000000
-    GET /desk-api/orders?phone=89031296949
-    GET /desk-api/orders?status=created
-    GET /desk-api/orders?status=done&limit=20&offset=0
-    GET /desk-api/orders?date_from=2026-05-01T00:00:00.000Z&date_to=2026-05-31T23:59:59.999Z
-    GET /desk-api/orders?phone=89031296949&status=done
-
-  Ответ (список):
     {
       "ok": true,
-      "data": [ { ...SavedOrder }, ... ],
-      "total": 142,
-      "offset": 0,
-      "limit": 142
+      "data": {
+        "data": [ ...заказы... ],
+        "total": 42,
+        "offset": 0,
+        "limit": 20
+      }
     }
 
-  Ответ (один заказ по ?id=...):
-    { "ok": true, "data": { ...SavedOrder } }
+--------------------------------------------------------------------------------
 
-  Ошибка (не найден):
-    HTTP 404
-    { "ok": false, "error": "Заказ не найден" }
+GET /orders/:id
+  Один заказ по ID.
 
+--------------------------------------------------------------------------------
 
-────────────────────────────────────────────────────────────────────────────────
-POST /desk-api/orders/create
-  Создать новый заказ через API.
+POST /orders
+  Создать заказ.
 
-  Тело запроса (JSON):
+  Тело запроса:
     {
-      "client": {                        // обязательный объект
-        "phone":     "89031296949",      // обязательный
-        "name":      "Иван Петров",
+      "client": {
+        "phone":     "79991234567",   // обязательно
+        "name":      "Иван",
         "street":    "Ленина",
-        "house":     "12",
-        "entrance":  "2",
-        "floor":     "3",
-        "apartment": "45",
-        "intercom":  "45",
+        "house":     "1",
+        "entrance":  "",
+        "floor":     "",
+        "apartment": "",
+        "intercom":  "",
         "notes":     ""
       },
-      "items": [                         // обязательный, непустой массив
+      "items": [                       // обязательно, непустой массив
         {
-          "name":        "Пиво Балтика",
+          "name":        "Пиво Светлое",
           "qty":         2,
           "price":       150,
-          "productType": "NORMAL",
-          "id":          123             // опционально
+          "productType": "DRAFT"
         }
       ],
-      "storeId":      "1",              // опционально
-      "orderMethod":  "phone",          // "phone" | "app" (по умолч.: "phone")
-      "payMethod":    "cash",           // "cash" | "card" (по умолч.: "cash")
-      "operator":     "Менеджер",       // по умолч.: "API"
-      "status":       "created",        // по умолч.: "created"
-      "total":        300,              // если не указан — считается автоматически
-      "orderNumber":  "12345",          // для app-заказов (опционально)
-      "deliveryPrice": 300,             // для app-заказов (опционально)
-      "orderAmount":  0                 // для app-заказов (опционально)
+      "storeId":       "13",
+      "orderMethod":   "phone",        // phone / app
+      "payMethod":     "cash",         // cash / card
+      "operator":      "Анна",
+      "status":        "created",
+      "deliveryPrice": 300             // опционально
     }
 
-  Минимальный запрос:
-    {
-      "client": { "phone": "89031296949" },
-      "items": [{ "name": "Пиво", "qty": 1, "price": 100, "productType": "NORMAL" }]
-    }
+  productType:  DRAFT / BOTTLED / PIECE / WEIGHT
 
-  Ответ (HTTP 201):
-    {
-      "ok": true,
-      "data": {
-        "id": "1716200000000",
-        "createdAt": "2026-05-20T10:00:00.000Z",
-        "status": "created",
-        ...
-      }
-    }
+  Ответ: 201 + созданный заказ.
 
-  Ошибки:
-    HTTP 400 — { "ok": false, "error": "client.phone обязателен" }
-    HTTP 400 — { "ok": false, "error": "items обязателен (непустой массив)" }
-    HTTP 400 — { "ok": false, "error": "Невалидный JSON" }
+--------------------------------------------------------------------------------
 
-
-────────────────────────────────────────────────────────────────────────────────
-PATCH /desk-api/orders?id=<id>
-  Обновить поля существующего заказа.
-  Передаются только изменяемые поля (merge). ID изменить нельзя.
-
-  Query-параметры:
-    id — string, ID заказа (обязательный)
-
-  Тело запроса (JSON, любые поля SavedOrder):
-    { "status": "done" }
-    { "status": "in_progress", "operator": "Новый оператор" }
-    { "payMethod": "card" }
-    { "given": 2000, "change": 500 }
-    { "client": { "name": "Новое имя", ... все поля клиента } }
-
-  Примеры:
-    PATCH /desk-api/orders?id=1716200000000
-    Body: { "status": "done" }
-
-    PATCH /desk-api/orders?id=1716200000000
-    Body: { "status": "in_progress", "operator": "Петров" }
-
-  Ответ:
-    { "ok": true, "data": { ...обновлённый SavedOrder } }
-
-  Ошибки:
-    HTTP 400 — { "ok": false, "error": "Укажите ?id=..." }
-    HTTP 404 — { "ok": false, "error": "Заказ не найден" }
-
-
-────────────────────────────────────────────────────────────────────────────────
-DELETE /desk-api/orders?id=<id>
-  Удалить заказ.
-
-  Query-параметры:
-    id — string, ID заказа (обязательный)
+PATCH /orders/:id
+  Обновить поля заказа. Передавать только изменяемые поля.
 
   Пример:
-    DELETE /desk-api/orders?id=1716200000000
+    { "status": "done", "payMethod": "card" }
 
-  Ответ:
-    { "ok": true, "data": { "deleted": 1 } }
-    { "ok": true, "data": { "deleted": 0 } }  // если не найден
+  Допустимые поля:
+    status, storeId, client, payMethod, operator, orderMethod,
+    orderNumber, deliveryPrice, orderAmount, items, given, change
 
-  Ошибки:
-    HTTP 400 — { "ok": false, "error": "Укажите ?id=..." }
+--------------------------------------------------------------------------------
 
-
-────────────────────────────────────────────────────────────────────────────────
-POST /desk-api/orders  [ВНУТРЕННИЙ — для синхронизации браузера]
-  Принимает полный массив заказов и мержит с серверными данными.
-  Используется приложением автоматически. Не предназначен для внешних вызовов.
-
-  Тело: JSON-массив SavedOrder[]
-  Ответ: { "ok": true }
+DELETE /orders/:id
+  Удалить заказ.
+  Ответ: { "ok": true, "data": { "deleted": 1 } }
 
 
 ================================================================================
-  3. ОСТАЛЬНЫЕ ЭНДПОИНТЫ  /desk-api/*
+  КЛИЕНТЫ
 ================================================================================
 
-────────────────────────────────────────────────────────────────────────────────
-GET  /desk-api/local-products      — список локальных товаров
-POST /desk-api/local-products      — сохранить список локальных товаров
+GET /clients
+  Список / поиск клиентов.
 
-  Формат (LocalProduct[]):
-    [
-      { "id": "local-1", "name": "Пиво разливное", "price": 150, "productType": "LOCAL" }
-    ]
+  Параметры:
+    phone   — поиск по части номера (мин. 3 цифры), до 20 результатов
+    search  — поиск по имени или номеру, до 20 результатов
+    offset  — пагинация
+    limit   — пагинация
 
+--------------------------------------------------------------------------------
 
-────────────────────────────────────────────────────────────────────────────────
-GET  /desk-api/countries           — список стран для кода телефона
-POST /desk-api/countries           — обновить список стран
+GET /clients/:phone
+  Клиент по точному номеру телефона.
 
-  Формат (CountryEntry[]):
-    [{ "keyword": "ru", "country": "+7" }]
+--------------------------------------------------------------------------------
 
+POST /clients
+  Создать или обновить клиента (upsert по полю phone).
 
-────────────────────────────────────────────────────────────────────────────────
-GET  /desk-api/whitelist           — белый список операторов
-POST /desk-api/whitelist           — обновить белый список
+  Тело запроса:
+    {
+      "phone":     "79991234567",
+      "name":      "Иван Петров",
+      "street":    "Ленина",
+      "house":     "5",
+      "apartment": "12",
+      "notes":     "Домофон не работает"
+    }
 
+--------------------------------------------------------------------------------
 
-────────────────────────────────────────────────────────────────────────────────
-GET  /desk-api/operator-names      — имена операторов { "login": "Имя" }
-POST /desk-api/operator-names      — обновить имена операторов
+PATCH /clients/:phone
+  Обновить отдельные поля клиента.
 
+--------------------------------------------------------------------------------
 
-────────────────────────────────────────────────────────────────────────────────
-POST /desk-api/warm-cache          — прогрев кэша каталога (fire-and-forget)
-
-  Тело: { "token": "<X-Auth-Token>", "storeIds": ["1", "2"] }
-  Ответ: { "ok": true }
-
-
-────────────────────────────────────────────────────────────────────────────────
-GET  /desk-api/catalog             — каталог товаров (кэшируется 1 час)
-
-  Query: ?store_id=<id>&category_id=<id>
-  Заголовок: X-Auth-Token: <токен>
-  Ответ: { "success": true, "data": { "list": [...], "has_more": false, "total_count": N } }
-
-
-────────────────────────────────────────────────────────────────────────────────
-GET  /desk-api/vendor-catalog      — вендорский каталог (кэшируется 4 часа)
-
-  Query: ?store_id=<id>
-  Заголовок: X-Auth-Token: <токен>
-  Ответ: { "success": true, "data": { "list": [...], "has_more": false, "total_count": N } }
+DELETE /clients/:phone
+  Удалить клиента.
 
 
 ================================================================================
-  4. ВНЕШНИЙ API  /api/* → https://api.0-5.ru
+  СВОИ ТОВАРЫ
 ================================================================================
 
-Все запросы к /api/* проксируются на https://api.0-5.ru.
-Большинство эндпоинтов требуют заголовок X-Auth-Token.
-
-Обязательные заголовки:
-  X-Auth-Token: <токен из настроек приложения>
-  X-App: 2po2
-  Accept: application/json
-
-────────────────────────────────────────────────────────────────────────────────
-GET /api/v1/stores
-  Список магазинов/складов.
+GET /local-products
+  Список всех локальных товаров.
 
   Пример ответа:
-    { "success": true, "data": [{ "id": 1, "name": "Склад 1" }, ...] }
-
-
-────────────────────────────────────────────────────────────────────────────────
-GET /api/v1/catalog/categories?store_id=<id>
-  Список категорий каталога.
-
-
-────────────────────────────────────────────────────────────────────────────────
-GET /api/v1/catalog/products?store_id=<id>&category_id=<id>&page=1&per_page=50
-  Товары в категории.
-
-
-────────────────────────────────────────────────────────────────────────────────
-GET /api/v1/vendor/catalog/products?store_id=<id>&page=1&per_page=100
-  Вендорский каталог (включая OUT_OF_STOCK).
-
-
-────────────────────────────────────────────────────────────────────────────────
-POST /api/v1/vendor/sms/request_code
-  Запросить SMS-код для входа.
-
-  Тело: { "country_code": "+7", "phone_number": "9031296949" }
-
-
-────────────────────────────────────────────────────────────────────────────────
-POST /api/v1/vendor/sign_in
-  Войти по SMS-коду, получить X-Auth-Token.
-
-  Тело:
-    {
-      "user": {
-        "country_code": "+7",
-        "phone_number": "9031296949",
-        "confirmation_code": "1234"
+    [
+      {
+        "id":          "local_1234",
+        "name":        "Доставка",
+        "price":       300,
+        "productType": "PIECE"
       }
+    ]
+
+--------------------------------------------------------------------------------
+
+POST /local-products
+  Добавить товар.
+
+  Тело запроса:
+    {
+      "name":        "Пакет",
+      "price":       10,
+      "productType": "PIECE"
     }
 
-  Ответ: { "success": true, "data": { "auth_token": "...", ... } }
+  productType:  PIECE / WEIGHT / DRAFT / BOTTLED
+
+  Ответ: 201 + созданный товар.
+
+--------------------------------------------------------------------------------
+
+PATCH /local-products/:id
+  Обновить товар. Передавать только изменяемые поля:
+    name, price, productType
+
+--------------------------------------------------------------------------------
+
+DELETE /local-products/:id
+  Удалить товар.
 
 
 ================================================================================
-  5. НАСТРОЙКА НА ПРОДАКШН-СЕРВЕРЕ (Nginx + Node.js)
+  СТАТУСЫ ЗАКАЗА
 ================================================================================
 
-Проблема: Vite-плагин (vite.config.ts) работает только при запущенном Vite
-(npm run dev / npm run preview). В продакшне Nginx раздаёт статику из dist/,
-и /desk-api/* запросы никуда не уходят.
-
-Решение: запустить api-server.mjs как отдельный процесс.
-
-────────────────────────────────────────────────────────────────────────────────
-Шаг 1. Запустить API-сервер на сервере
-
-  cd /путь/до/проекта
-  node api-server.mjs          # по умолчанию порт 3002
-  node api-server.mjs 3003     # или другой порт
-  DESK_API_PORT=3002 node api-server.mjs   # через env
-
-  Для постоянной работы (PM2):
-    npm install -g pm2
-    pm2 start api-server.mjs --name desk-api
-    pm2 save
-    pm2 startup    # автозапуск при перезагрузке
-
-
-────────────────────────────────────────────────────────────────────────────────
-Шаг 2. Настроить Nginx
-
-  Добавить в конфиг сайта (обычно /etc/nginx/sites-available/weltilt.pro):
-
-    server {
-        listen 443 ssl;
-        server_name weltilt.pro www.weltilt.pro;
-
-        # Статика (собранный Vite)
-        root /путь/до/dist;
-        index index.html;
-
-        # API — проксируем на Node.js
-        location /desk-api/ {
-            proxy_pass         http://127.0.0.1:3002;
-            proxy_http_version 1.1;
-            proxy_set_header   Host $host;
-            proxy_set_header   X-Real-IP $remote_addr;
-        }
-
-        # SPA — все остальные пути отдают index.html
-        location / {
-            try_files $uri $uri/ /index.html;
-        }
-    }
-
-  После изменений:
-    nginx -t && systemctl reload nginx
-
-
-────────────────────────────────────────────────────────────────────────────────
-Шаг 3. Проверить
-
-  curl https://weltilt.pro/desk-api/clients?phone=89031296949
-  # Должен вернуть: {"ok":true,"data":{...}} или {"ok":false,"error":"Клиент не найден"}
-
-
-================================================================================
-  6. ПРИМЕРЫ CURL (curl)
-================================================================================
-
-# Получить клиента по телефону
-curl "http://localhost:5173/desk-api/clients?phone=89031296949"
-
-# Поиск клиента по подстроке
-curl "http://localhost:5173/desk-api/clients?phone=9031&exact=false"
-
-# Создать / обновить клиента
-curl -X POST "http://localhost:5173/desk-api/clients" \
-  -H "Content-Type: application/json" \
-  -d '{"phone":"89031296949","name":"Иван Петров","street":"Ленина","house":"12"}'
-
-# Удалить клиента из базы
-curl -X DELETE "http://localhost:5173/desk-api/clients?phone=89031296949"
-
-# Все заказы
-curl "http://localhost:5173/desk-api/orders"
-
-# Заказы клиента
-curl "http://localhost:5173/desk-api/orders?phone=89031296949"
-
-# Один заказ по ID
-curl "http://localhost:5173/desk-api/orders?id=1716200000000"
-
-# Заказы за период со статусом
-curl "http://localhost:5173/desk-api/orders?status=done&date_from=2026-05-01T00:00:00.000Z"
-
-# Создать заказ
-curl -X POST "http://localhost:5173/desk-api/orders/create" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "client": { "phone": "89031296949", "name": "Иван" },
-    "items": [{ "name": "Пиво Балтика", "qty": 2, "price": 150, "productType": "NORMAL" }],
-    "payMethod": "cash",
-    "operator": "Менеджер"
-  }'
-
-# Изменить статус заказа
-curl -X PATCH "http://localhost:5173/desk-api/orders?id=1716200000000" \
-  -H "Content-Type: application/json" \
-  -d '{"status": "done"}'
-
-# Удалить заказ
-curl -X DELETE "http://localhost:5173/desk-api/orders?id=1716200000000"
-
-# Записать сдачу
-curl -X PATCH "http://localhost:5173/desk-api/orders?id=1716200000000" \
-  -H "Content-Type: application/json" \
-  -d '{"given": 2000, "change": 500}'
-
-
-================================================================================
-  6. ХРАНЕНИЕ ДАННЫХ
-================================================================================
-
-Файл                       Эндпоинт                   TTL / Описание
-─────────────────────────────────────────────────────────────────────────────
-desk-orders.json           /desk-api/orders            Все заказы
-desk-orders.json.bak       —                           Авто-резерв при записи
-desk-extra-clients.json    /desk-api/clients (POST)    Редактируемые клиенты
-clients.json               /desk-api/clients (GET)     Основная БД (readonly)
-desk-local-products.json   /desk-api/local-products    Локальные товары
-desk-countries.json        /desk-api/countries         Коды стран
-desk-whitelist.json        /desk-api/whitelist         Белый список
-desk-operator-names.json   /desk-api/operator-names    Имена операторов
-desk-cache-catalog.json    /desk-api/catalog           Кэш каталога (1 час)
-desk-cache-vendor.json     /desk-api/vendor-catalog    Кэш вендора (4 часа)
-
-
-================================================================================
-  7. ТИПЫ ДАННЫХ
-================================================================================
-
-DbClient (клиент):
-  name        string    — имя
-  phone       string    — телефон (основной)
-  street      string    — улица
-  house       string    — дом
-  entrance    string    — подъезд
-  floor       string    — этаж
-  apartment   string    — квартира
-  intercom    string    — домофон
-  notes       string    — заметки
-  addresses   Address[] — дополнительные адреса (опционально)
-  phones      string[]  — дополнительные телефоны (опционально)
-
-Address (адрес):
-  street / house / entrance / floor / apartment / intercom — string
-
-SavedOrder (заказ):
-  id            string              — уникальный ID (timestamp)
-  createdAt     string (ISO 8601)   — время создания
-  status        "created" | "in_progress" | "done"
-  storeId       string              — ID склада
-  client        SavedOrderClient    — данные клиента
-  orderMethod   "phone" | "app"     — способ получения заказа
-  payMethod     "cash" | "card"     — способ оплаты
-  operator      string              — имя оператора
-  items         SavedOrderItem[]    — позиции
-  total         number              — итого (рубли)
-  orderNumber   string?             — номер в приложении (для app)
-  deliveryPrice number?             — стоимость доставки
-  orderAmount   number?             — сумма товаров (без доставки, для app)
-  given         number?             — сколько дал клиент (для cash)
-  change        number?             — сдача
-
-SavedOrderItem (позиция заказа):
-  id          number?   — ID товара из каталога
-  name        string    — название товара
-  qty         number    — количество
-  price       number    — цена за ед. (для WEIGHT: в копейках за 100г)
-  productType string    — "NORMAL" | "WEIGHT" | "DRAFT" | "LOCAL"
-  details     string?   — доп. описание
-
-
-================================================================================
+  created      — создан
+  in_progress  — в работе
+  done         — выполнен

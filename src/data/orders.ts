@@ -1,9 +1,9 @@
 import { state } from '../state';
-import { saveClient, saveOrderMeta, saveOrderApp, saveOrders, saveOrderMode, ORDERS_KEY, markOrderDeleted, loadDeletedOrderIds, pruneDeletedOrderIds } from '../storage';
+import { saveClient, saveOrderMeta, saveOrderApp, saveOrders, saveOrderMode } from '../storage';
 import { render } from '../render/trigger';
 import { upsertClientRecord } from './clients';
 import { buildCartItems, roundQty } from './cart';
-import { unitPrice } from '../utils';
+import { dayKeyGMT3, unitPrice } from '../utils';
 import { showChangeCalculator, showOrderReceipt } from '../ui/receipt';
 import { storeDisplayNum } from '../render/products-panel';
 import { formatShopOptionLabel } from '../utils/shop';
@@ -13,6 +13,26 @@ function resolveStoreId(apiId: string): string {
   const shop = state.storesList.find((s) => String(s.id) === apiId);
   if (!shop) return apiId;
   return storeDisplayNum(formatShopOptionLabel(shop)) ?? apiId;
+}
+
+function nextSeqNum(dayKey: string): number {
+  const existing = state.orders
+    .filter((o) => dayKeyGMT3(o.createdAt) === dayKey && o.seqNum != null)
+    .map((o) => o.seqNum as number);
+  return existing.length ? Math.max(...existing) + 1 : 1;
+}
+
+export function migrateOrderSeqNums(): void {
+  const sorted = [...state.orders].sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+  const dayCounts = new Map<string, number>();
+  let changed = false;
+  sorted.forEach((o) => {
+    const dk = dayKeyGMT3(o.createdAt);
+    const n = (dayCounts.get(dk) ?? 0) + 1;
+    dayCounts.set(dk, n);
+    if (o.seqNum == null) { o.seqNum = n; changed = true; }
+  });
+  if (changed) saveOrders(state.orders);
 }
 
 export function newOrder(): void {
@@ -81,9 +101,11 @@ export function createOrder(): void {
     return;
   }
 
+  const createdAt = new Date().toISOString();
   const order: SavedOrder = {
     id: Date.now().toString(),
-    createdAt: new Date().toISOString(),
+    createdAt,
+    seqNum: nextSeqNum(dayKeyGMT3(createdAt)),
     status: 'created',
     storeId: resolveStoreId(state.activeStoreId),
     client: { ...state.client },
@@ -219,10 +241,26 @@ export function changeOrderStore(orderId: string, storeId: string): void {
 }
 
 export function removeOrder(orderId: string): void {
-  markOrderDeleted(orderId);
-  state.orders = state.orders.filter((o) => o.id !== orderId);
+  const order = state.orders.find((o) => o.id === orderId);
+  if (!order) return;
+  order.deletedAt = new Date().toISOString();
   if (state.expandedOrderId === orderId) state.expandedOrderId = null;
   saveOrders(state.orders);
+  render();
+}
+
+export function restoreOrder(orderId: string): void {
+  const order = state.orders.find((o) => o.id === orderId);
+  if (!order) return;
+  delete order.deletedAt;
+  saveOrders(state.orders);
+  render();
+}
+
+export function permanentDeleteOrder(orderId: string): void {
+  state.orders = state.orders.filter((o) => o.id !== orderId);
+  if (state.expandedOrderId === orderId) state.expandedOrderId = null;
+  fetch(`/desk-api/orders?id=${encodeURIComponent(orderId)}`, { method: 'DELETE' }).catch(() => {});
   render();
 }
 
@@ -273,23 +311,16 @@ export async function loadOrdersFromServer(): Promise<void> {
   try {
     const res = await fetch('/desk-api/orders');
     if (!res.ok) return;
-    const serverOrders = await res.json() as SavedOrder[];
-    const allServerIds = new Set(serverOrders.map(o => o.id));
-    const deletedIds = loadDeletedOrderIds();
-    pruneDeletedOrderIds(allServerIds);
-    const filteredServer = deletedIds.size > 0
-      ? serverOrders.filter(o => !deletedIds.has(o.id))
-      : serverOrders;
+    const body = await res.json() as SavedOrder[] | { ok: boolean; data: SavedOrder[] };
+    const serverOrders: SavedOrder[] = Array.isArray(body) ? body : (body as { data: SavedOrder[] }).data ?? [];
 
-    const serverIds = new Set(filteredServer.map(o => o.id));
-    // Заказы которые есть в памяти но не на сервере — загрузить на сервер
+    const serverIds = new Set(serverOrders.map(o => o.id));
     const localOnly = state.orders.filter(o => !serverIds.has(o.id));
     const merged = localOnly.length > 0
-      ? [...localOnly, ...filteredServer].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-      : filteredServer;
+      ? [...localOnly, ...serverOrders].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+      : serverOrders;
 
     if (localOnly.length > 0) {
-      // Грузим локальные заказы на сервер (не трогаем localStorage — он источник этих данных)
       fetch('/desk-api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

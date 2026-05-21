@@ -17,14 +17,14 @@ import { renderSearchPage, updateSearchDOM } from './search-page';
 import { saveCountries } from '../data/countries';
 
 import { newOrder, createOrder, loadOrderToCart, changeOrderStatus, changeOrderStore,
-  removeOrder, toggleOrderExpand, changeOrderItemQty, setOrderItemQty, removeOrderItem,
+  removeOrder, restoreOrder, permanentDeleteOrder, toggleOrderExpand, changeOrderItemQty, setOrderItemQty, removeOrderItem,
   loadOrdersFromServer } from '../data/orders';
 import { openClientHistoryModal } from '../ui/order-preview-modal';
 import { addToCart, addDraftWithTara, removeDraftWithTara, changeCartQty, removeFromCart, roundQty, getCartSum } from '../data/cart';
 import { loadCategories, toggleCategory, selectSubcategory } from '../data/categories';
 import { selectStore } from '../data/stores';
 import { loadAllStoresProducts } from '../data/all-stores-search';
-import { addLocalProduct, deleteLocalProduct, localToProduct, moderatedToProduct, reorderLocalProduct } from '../data/vendor';
+import { addLocalProduct, deleteLocalProduct, localToProduct, moderatedToProduct, reorderLocalProduct, updateLocalProduct } from '../data/vendor';
 import { searchClients, allClientsDeduped, findClientByPhone, getClientAddresses, getAllClientPhones, saveClientRecord } from '../data/clients';
 import type { ClientAddress } from '../types';
 import { openProductModal, findProductInCache } from '../ui/product-modal';
@@ -504,9 +504,25 @@ function bindEvents(): void {
     });
   });
 
-  document.querySelectorAll<HTMLButtonElement>('.order-del-btn').forEach((btn) => {
+  document.querySelectorAll<HTMLButtonElement>('.order-del-btn:not(.order-perm-del-btn)').forEach((btn) => {
     btn.addEventListener('click', () => {
-      if (btn.dataset.orderId && confirm('Удалить заказ?')) removeOrder(btn.dataset.orderId);
+      if (btn.dataset.orderId) removeOrder(btn.dataset.orderId);
+    });
+  });
+
+  document.getElementById('btn-show-trash')?.addEventListener('click', () => {
+    state.ordersShowTrash = true; renderApp();
+  });
+  document.getElementById('btn-trash-back')?.addEventListener('click', () => {
+    state.ordersShowTrash = false; renderApp();
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('.order-restore-btn').forEach((btn) => {
+    btn.addEventListener('click', () => { if (btn.dataset.orderId) restoreOrder(btn.dataset.orderId); });
+  });
+  document.querySelectorAll<HTMLButtonElement>('.order-perm-del-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      if (btn.dataset.orderId && confirm('Удалить заказ навсегда? Это действие необратимо.')) permanentDeleteOrder(btn.dataset.orderId);
     });
   });
 
@@ -595,6 +611,51 @@ function bindEvents(): void {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       if (btn.dataset.localDel) deleteLocalProduct(btn.dataset.localDel);
+    });
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('.tile-edit-btn[data-local-edit]').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = btn.dataset.localEdit!;
+      const lp = state.localProducts.find((x) => x.id === id);
+      if (!lp) return;
+      state.editingLocalProductId = state.editingLocalProductId === id ? null : id;
+      state.localEditPrice = state.editingLocalProductId ? String(lp.price) : '';
+      renderApp();
+      if (state.editingLocalProductId) {
+        setTimeout(() => {
+          const input = document.querySelector<HTMLInputElement>(`.tile-edit-price-input[data-local-edit-id="${id}"]`);
+          input?.focus();
+          input?.select();
+        }, 0);
+      }
+    });
+  });
+
+  document.querySelectorAll<HTMLInputElement>('.tile-edit-price-input').forEach((input) => {
+    input.addEventListener('input', (e) => {
+      state.localEditPrice = (e.target as HTMLInputElement).value;
+    });
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const id = input.dataset.localEditId!;
+        const price = parseFloat(state.localEditPrice.replace(',', '.'));
+        if (!isNaN(price)) updateLocalProduct(id, price);
+      } else if (e.key === 'Escape') {
+        state.editingLocalProductId = null;
+        state.localEditPrice = '';
+        renderApp();
+      }
+    });
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('.tile-edit-save-btn[data-local-edit-save]').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = btn.dataset.localEditSave!;
+      const price = parseFloat(state.localEditPrice.replace(',', '.'));
+      if (!isNaN(price)) updateLocalProduct(id, price);
     });
   });
 

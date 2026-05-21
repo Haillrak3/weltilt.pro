@@ -83,10 +83,12 @@ export interface SavedOrder {
   items: SavedOrderItem[];
   total: number;
   orderNumber?: string;
+  seqNum?: number;
   deliveryPrice?: number;
   orderAmount?: number;
   given?: number;
   change?: number;
+  deletedAt?: string;
 }
 
 export interface OrderApp {

@@ -4,6 +4,7 @@ import {
   loadOrderMeta, loadOrderApp, loadOrders, loadActiveStoreId, loadOrderMode,
   loadAllStoresCache, loadProductsCache,
 } from './storage';
+import { todayGMT3 } from './utils';
 import type {
   AnalyticsPeriod, AnalyticsTab, AppPage, CartItem, CartTab, CategoryNode, CountryEntry, DbClient,
   OrderApp, OrderMode, Product, RefsTab, SavedOrder, Shop,
@@ -41,10 +42,11 @@ export const state = {
   currentPage: 'products' as AppPage,
   orders: _orders,
   expandedOrderId: null as string | null,
-  ordersFilterFrom: '',
-  ordersFilterTo: '',
+  ordersFilterFrom: todayGMT3(),
+  ordersFilterTo: todayGMT3(),
   ordersFilterStore: '',
   ordersFilterStatus: '' as SavedOrder['status'] | '',
+  ordersShowTrash: false,
   editingOrderId: null as string | null,
   vendorProducts: [] as Product[],
   vendorProductsLoading: false,
@@ -54,6 +56,8 @@ export const state = {
   localProducts: loadLocalProducts(),
   showLocalProductForm: false,
   localProductForm: { name: '', price: '', productType: 'PIECE' },
+  editingLocalProductId: null as string | null,
+  localEditPrice: '',
   refsClientSearch: '',
   refsPage: 0,
   refsExpandedPhone: null as string | null,

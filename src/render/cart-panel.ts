@@ -4,12 +4,17 @@ import { getCartSum } from '../data/cart';
 import { searchClients, findClientByPhone, getClientAddresses, getAllClientPhones } from '../data/clients';
 import { buildOrderNumbers } from '../ui/receipt';
 
+function normPhone(raw: string): string {
+  const d = raw.replace(/\D/g, '');
+  return d.length === 11 && d[0] === '7' ? '8' + d.slice(1) : d;
+}
+
 export function renderClientHistory(): string {
-  const digits = state.client.phone.replace(/\D/g, '');
+  const digits = normPhone(state.client.phone);
   if (digits.length < 7) return '';
 
   const clientOrders = state.orders
-    .filter((o) => o.client.phone.replace(/\D/g, '') === digits)
+    .filter((o) => !o.deletedAt && normPhone(o.client.phone) === digits)
     .slice(0, 15);
 
   if (!clientOrders.length) return '';
@@ -28,6 +33,7 @@ export function renderClientHistory(): string {
       <div class="ch-row">
         <span class="ch-num">#${num}</span>
         <span class="ch-date">${escapeHtml(dateLabel)}</span>
+        ${order.orderNumber ? `<span class="ch-app-num">№${escapeHtml(order.orderNumber)}</span>` : ''}
         <span class="ch-items">${order.items.length} поз.</span>
         <span class="ch-total">${escapeHtml(totalStr)}</span>
         <span class="ch-status ${STATUS_CLS[order.status] ?? ''}">${escapeHtml(STATUS_LABEL[order.status] ?? order.status)}</span>
@@ -114,7 +120,7 @@ export function renderClientForm(): string {
 
   const digits = c.phone.replace(/\D/g, '');
   const pastCount = digits.length >= 7
-    ? state.orders.filter((o) => o.client.phone.replace(/\D/g, '') === digits).length
+    ? state.orders.filter((o) => !o.deletedAt && normPhone(o.client.phone) === normPhone(digits)).length
     : 0;
   const historyBtn = pastCount > 0
     ? `<button type="button" class="btn-client-history" id="btn-client-history">${pastCount} зак.</button>`

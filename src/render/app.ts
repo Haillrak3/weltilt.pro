@@ -3,6 +3,7 @@ import { saveClient, saveOrderMeta, saveActiveStoreId, saveOrderApp, saveOrderMo
 import { saveSettings } from '../config/settings';
 import { openSettings } from '../ui/settings';
 import { openMangoAdmin } from '../ui/mango-admin';
+import { runAsAdmin } from '../auth';
 import { escapeHtml, formatPhone, todayGMT3, yesterdayGMT3, debounce } from '../utils';
 import { NO_CATEGORY_ID, PENDING_ID, LOCAL_CATEGORY_ID } from '../types';
 import type { SavedOrder } from '../types';
@@ -25,10 +26,11 @@ import { loadCategories, toggleCategory, selectSubcategory } from '../data/categ
 import { selectStore } from '../data/stores';
 import { loadAllStoresProducts } from '../data/all-stores-search';
 import { addLocalProduct, deleteLocalProduct, localToProduct, moderatedToProduct, reorderLocalProduct, updateLocalProduct } from '../data/vendor';
-import { searchClients, allClientsDeduped, findClientByPhone, getClientAddresses, getAllClientPhones, saveClientRecord } from '../data/clients';
+import { searchClients, allClientsDeduped, findClientByPhone, getClientAddresses, getAllClientPhones, saveClientRecord, addAddressToClient } from '../data/clients';
 import type { ClientAddress } from '../types';
 import { openProductModal, findProductInCache } from '../ui/product-modal';
 import { showOrderReceipt } from '../ui/receipt';
+import { showToast } from '../ui/toast';
 import { geocodeAddress, detectZones, nearestZone } from '../utils/geo';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
@@ -255,13 +257,23 @@ function bindEvents(): void {
     });
   });
 
+  document.getElementById('btn-save-addr')?.addEventListener('click', () => {
+    const c = state.client;
+    void addAddressToClient(c.phone, {
+      street: c.street.trim(), house: c.house.trim(), entrance: c.entrance.trim(),
+      floor: c.floor.trim(), apartment: c.apartment.trim(), intercom: c.intercom.trim(),
+    }).then(updated => {
+      if (updated) { showToast('Адрес сохранён'); renderApp(); }
+      else showToast('Не удалось сохранить адрес');
+    });
+  });
 
   document.querySelectorAll<HTMLButtonElement>('.store-btn').forEach((btn) => {
     btn.addEventListener('click', () => { if (btn.dataset.storeId) selectStore(btn.dataset.storeId); });
   });
   document.getElementById('btn-stores-expand')?.addEventListener('click', () => { state.storesExpanded = true; renderApp(); });
   document.getElementById('btn-stores-collapse')?.addEventListener('click', () => { state.storesExpanded = false; renderApp(); });
-  document.getElementById('btn-mango-admin')?.addEventListener('click', () => openMangoAdmin());
+  document.getElementById('btn-mango-admin')?.addEventListener('click', () => void runAsAdmin(() => openMangoAdmin()));
 
   document.getElementById('btn-logout')?.addEventListener('click', () => {
     saveSettings({ storeId: '', storeLabel: '', authToken: '', countryCode: '+7', phoneNumber: '' });
@@ -892,26 +904,25 @@ export function renderApp(): void {
 
   app.innerHTML = `
     <div class="shell">
-      <header class="topbar">
-        <button type="button" class="btn btn-ghost" id="btn-reload">Обновить</button>
-        <label class="theme-toggle" title="Светлая / тёмная тема">
-          <input type="checkbox" class="theme-toggle-input" id="theme-toggle"${isLightTheme() ? ' checked' : ''}>
-          <span class="theme-toggle-track">
-            <span class="theme-toggle-icon theme-toggle-icon-dark">☾</span>
-            <span class="theme-toggle-icon theme-toggle-icon-light">☀</span>
-            <span class="theme-toggle-thumb"></span>
-          </span>
-        </label>
-        <button type="button" class="btn btn-ghost" id="btn-mango-admin" title="Mango SIP настройки">Манго</button>
-        <button type="button" class="btn btn-ghost btn-logout" id="btn-logout" title="Выйти из аккаунта">Выход</button>
-      </header>
-
       <nav class="tabs">
         <button type="button" class="tab${state.currentPage === 'products' ? ' active' : ''}" id="tab-products">Новый заказ</button>
         <button type="button" class="tab${state.currentPage === 'orders' ? ' active' : ''}" id="tab-orders">Заказы</button>
         <button type="button" class="tab${state.currentPage === 'analytics' ? ' active' : ''}" id="tab-analytics">Аналитика</button>
         <button type="button" class="tab${state.currentPage === 'refs' ? ' active' : ''}" id="tab-refs">Справочники</button>
         <button type="button" class="tab${state.currentPage === 'search' ? ' active' : ''}" id="tab-search">Поиск</button>
+        <div class="tabs-actions">
+          <button type="button" class="btn btn-ghost" id="btn-reload">Обновить</button>
+          <label class="theme-toggle" title="Светлая / тёмная тема">
+            <input type="checkbox" class="theme-toggle-input" id="theme-toggle"${isLightTheme() ? ' checked' : ''}>
+            <span class="theme-toggle-track">
+              <span class="theme-toggle-icon theme-toggle-icon-dark">☾</span>
+              <span class="theme-toggle-icon theme-toggle-icon-light">☀</span>
+              <span class="theme-toggle-thumb"></span>
+            </span>
+          </label>
+          <button type="button" class="btn btn-ghost" id="btn-mango-admin" title="Mango SIP настройки">Манго</button>
+          <button type="button" class="btn btn-ghost btn-logout" id="btn-logout" title="Выйти из аккаунта">Выход</button>
+        </div>
       </nav>
 
       ${state.currentPage === 'orders' ? `<main class="orders-main scroll">${renderOrdersPage()}</main>`

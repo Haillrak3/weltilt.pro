@@ -1,5 +1,5 @@
 import { state } from '../state';
-import { saveClient, saveOrderMeta, saveOrderApp, saveOrders, saveOrderMode } from '../storage';
+import { saveClient, saveOrderMeta, saveOrderApp, saveOrders, saveOrderMode, ORDERS_KEY } from '../storage';
 import { render } from '../render/trigger';
 import { upsertClientRecord } from './clients';
 import { buildCartItems, roundQty } from './cart';
@@ -315,7 +315,9 @@ export async function loadOrdersFromServer(): Promise<void> {
     const serverOrders: SavedOrder[] = Array.isArray(body) ? body : (body as { data: SavedOrder[] }).data ?? [];
 
     const serverIds = new Set(serverOrders.map(o => o.id));
-    const localOnly = state.orders.filter(o => !serverIds.has(o.id));
+    // Exclude locally-deleted orders — they were permanently deleted on server by another session
+    // and must not be re-uploaded (that's what caused deleted orders to reappear after tab switch)
+    const localOnly = state.orders.filter(o => !serverIds.has(o.id) && !o.deletedAt);
     const merged = localOnly.length > 0
       ? [...localOnly, ...serverOrders].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
       : serverOrders;
@@ -327,6 +329,17 @@ export async function loadOrdersFromServer(): Promise<void> {
         body: JSON.stringify(merged),
       }).catch(() => {});
     }
+
+    // Пересчитываем seqNum для сегодняшних заказов чтобы исправить возможные гонки
+    const todayKey = dayKeyGMT3(new Date().toISOString());
+    const todayOrders = merged
+      .filter(o => dayKeyGMT3(o.createdAt) === todayKey)
+      .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+    let seq = 0;
+    for (const o of todayOrders) o.seqNum = ++seq;
+
+    // Кэшируем в localStorage чтобы следующий старт видел актуальные заказы
+    try { localStorage.setItem(ORDERS_KEY, JSON.stringify(merged)); } catch { /* quota */ }
 
     if (JSON.stringify(merged) !== JSON.stringify(state.orders)) {
       state.orders = merged;

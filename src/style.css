@@ -66,15 +66,7 @@ button {
 }
 
 .topbar {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 8px;
-  padding: 5px 14px;
-  background: var(--surface);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
-  position: relative;
-  z-index: 1;
+  display: none;
 }
 
 .brand {
@@ -139,12 +131,22 @@ button {
 
 .tabs {
   display: flex;
+  align-items: flex-end;
   gap: 4px;
-  padding: 8px 20px 0;
+  padding: 6px 14px 0;
   background: var(--surface);
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
   position: relative;
   z-index: 1;
+}
+
+.tabs-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-bottom: 6px;
+  flex-shrink: 0;
 }
 
 .tab {
@@ -1401,6 +1403,19 @@ button {
   white-space: nowrap;
 }
 .btn-client-history:hover { border-color: var(--accent); }
+
+.btn-save-addr {
+  width: 100%;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  background: var(--surface-2);
+  border: 1px dashed var(--accent);
+  border-radius: var(--radius);
+  color: var(--accent);
+  cursor: pointer;
+  text-align: center;
+}
+.btn-save-addr:hover { background: var(--accent); color: #fff; }
 
 .client-name-right {
   display: flex;
@@ -3447,16 +3462,9 @@ select:disabled {
 /* ── Mobile responsive (≤ 767px) ─────────────────────── */
 @media (max-width: 767px) {
 
-  /* Topbar */
-  .topbar {
-    padding: 4px 10px;
-    gap: 6px;
-  }
-  .brand-sub { display: none; }
-
   /* Tabs: scrollable row */
   .tabs {
-    padding: 6px 8px 0;
+    padding: 4px 8px 0;
     gap: 0;
     overflow-x: auto;
     overflow-y: hidden;
@@ -3466,10 +3474,18 @@ select:disabled {
   }
   .tabs::-webkit-scrollbar { display: none; }
   .tab {
-    padding: 8px 14px;
+    padding: 8px 12px;
     white-space: nowrap;
     flex-shrink: 0;
     font-size: 0.88rem;
+  }
+  .tabs-actions {
+    gap: 4px;
+    padding-bottom: 4px;
+  }
+  .tabs-actions .btn {
+    padding: 5px 8px;
+    font-size: 0.8rem;
   }
 
   /* Workspace: single-panel mode */

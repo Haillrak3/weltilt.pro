@@ -50,6 +50,19 @@ async function fetchWhitelistFromServer(): Promise<Set<string> | null> {
   return null;
 }
 
+async function checkPhoneAllowed(phone: string): Promise<boolean> {
+  try {
+    const res = await fetch('/desk-api/whitelist-check', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone }),
+    });
+    if (!res.ok) return false;
+    const data = await res.json() as { allowed: boolean };
+    return data.allowed === true;
+  } catch { return false; }
+}
+
 function loadOperatorNames(): Record<string, string> {
   try {
     const raw = localStorage.getItem(OPERATOR_NAMES_KEY);
@@ -251,6 +264,58 @@ function showAdminLogin(overlay: HTMLElement): void {
   box.querySelector('#admin-back')?.addEventListener('click', () => showAuthForm(overlay));
 }
 
+export async function runAsAdmin(fn: () => void): Promise<void> {
+  // Проверяем есть ли уже активная админ-сессия
+  try {
+    const res = await fetch('/desk-api/auth/session');
+    if (res.ok) {
+      const data = await res.json() as { ok: boolean; phone?: string };
+      if (data.ok && data.phone === 'admin') { fn(); return; }
+    }
+  } catch { /* офлайн */ }
+
+  // Показываем компактную форму авторизации
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML = `
+    <div class="modal" role="dialog">
+      <h2>Вход администратора</h2>
+      <input type="text" id="admin-login" class="auth-input" placeholder="Логин" autocomplete="username" style="margin-bottom:8px" />
+      <input type="password" id="admin-pass" class="auth-input" placeholder="Пароль" autocomplete="current-password" />
+      <div class="auth-error" id="admin-error" style="min-height:1.2em;margin:6px 0"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" id="admin-cancel">Отмена</button>
+        <button type="button" class="btn btn-primary" id="admin-submit">Войти</button>
+      </div>
+    </div>`;
+
+  document.body.appendChild(overlay);
+
+  const loginInput = overlay.querySelector<HTMLInputElement>('#admin-login')!;
+  const passInput  = overlay.querySelector<HTMLInputElement>('#admin-pass')!;
+  const errorEl    = overlay.querySelector<HTMLElement>('#admin-error')!;
+  loginInput.focus();
+
+  overlay.querySelector('#admin-cancel')?.addEventListener('click', () => overlay.remove());
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+
+  function attempt(): void {
+    if (loginInput.value.trim() === ADMIN_LOGIN && passInput.value.trim() === ADMIN_PASSWORD) {
+      void createServerSession({ adminPassword: passInput.value.trim() });
+      overlay.remove();
+      fn();
+    } else {
+      errorEl.textContent = 'Неверный логин или пароль';
+      passInput.value = '';
+      passInput.focus();
+    }
+  }
+
+  overlay.querySelector('#admin-submit')?.addEventListener('click', attempt);
+  loginInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') passInput.focus(); });
+  passInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') attempt(); });
+}
+
 function showCodeStep(overlay: HTMLElement, normalized: string): void {
   const box = overlay.querySelector<HTMLElement>('.auth-box')!;
   const digits = normalized.slice(1); // 10 цифр без ведущей '7'
@@ -328,10 +393,9 @@ function showAuthForm(overlay: HTMLElement): void {
   input.focus();
 
   async function attempt(): Promise<void> {
-    const serverList = await fetchWhitelistFromServer();
     const normalized = normalizePhone(input.value);
-    const whitelist = serverList ?? loadWhitelist();
-    if (!whitelist.has(normalized)) {
+    const allowed = await checkPhoneAllowed(normalized);
+    if (!allowed) {
       errorEl.textContent = 'Номер не найден';
       input.select();
       return;

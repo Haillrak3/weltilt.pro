@@ -90,7 +90,7 @@ export function openMangoAdmin(): void {
       status = 'Сохранение…';
       render();
       try {
-        const res = await fetch('/desk-api/mango/accounts', {
+        const res = await fetch('/desk-api/mango-accounts', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(accounts),
@@ -109,7 +109,7 @@ export function openMangoAdmin(): void {
 
   document.body.appendChild(overlay);
 
-  fetch('/desk-api/mango/accounts')
+  fetch('/desk-api/mango-accounts')
     .then((r) => r.json())
     .then((data) => {
       accounts = Array.isArray(data) ? data : [];

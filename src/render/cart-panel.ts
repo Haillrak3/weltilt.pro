@@ -1,7 +1,7 @@
 import { state } from '../state';
 import { escapeHtml, formatPhone, formatProductName, unitPrice } from '../utils';
 import { getCartSum } from '../data/cart';
-import { searchClients, findClientByPhone, getClientAddresses, getAllClientPhones } from '../data/clients';
+import { searchClients, findClientByPhone, getClientAddresses, getAllClientPhones, addrKey } from '../data/clients';
 import { buildOrderNumbers } from '../ui/receipt';
 
 function normPhone(raw: string): string {
@@ -126,6 +126,16 @@ export function renderClientForm(): string {
     ? `<button type="button" class="btn-client-history" id="btn-client-history">${pastCount} зак.</button>`
     : '';
 
+  const currentAddr = { street: c.street.trim(), house: c.house.trim(), entrance: c.entrance.trim(),
+    floor: c.floor.trim(), apartment: c.apartment.trim(), intercom: c.intercom.trim() };
+  const hasCurrentAddr = !!(currentAddr.street || currentAddr.house);
+  const existingClient = digits.length >= 7 ? findClientByPhone(digits) : undefined;
+  const existingAddrs = existingClient ? getClientAddresses(existingClient) : [];
+  const isNewAddr = hasCurrentAddr && !existingAddrs.some(a => addrKey(a) === addrKey(currentAddr));
+  const saveAddrBtn = isNewAddr && existingClient
+    ? `<button type="button" class="btn-save-addr" id="btn-save-addr" title="Добавить этот адрес в список адресов клиента">Сохранить адрес</button>`
+    : '';
+
   const suggestions = state.clientSuggestHidden ? [] : searchClients(c.phone);
   const suggestionsHtml = suggestions.length
     ? `<ul class="client-suggestions">${suggestions.map((s, i) =>
@@ -159,6 +169,7 @@ export function renderClientForm(): string {
       ${f('floor', 'Этаж', c.floor)}
       ${f('apartment', 'Квартира', c.apartment)}
       ${f('intercom', 'Код домофона', c.intercom)}
+      ${saveAddrBtn}
       <label class="client-field">
         <span>Примечания</span>
         <textarea id="cl-notes" class="client-input client-textarea" data-cl="notes" rows="3">${escapeHtml(c.notes)}</textarea>

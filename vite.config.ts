@@ -2,13 +2,16 @@ import { defineConfig, type Plugin } from 'vite';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import http from 'node:http';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { randomBytes } from 'node:crypto';
 import Database from 'better-sqlite3';
+import { createCanvas } from 'canvas';
 
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
 const p = (...parts: string[]) => path.join(ROOT, ...parts);
 
+const MANGO_ACCOUNTS_FILE = p('desk-mango-accounts.json');
 const COUNTRIES_FILE      = p('desk-countries.json');
 const WHITELIST_FILE      = p('desk-whitelist.json');
 const OPERATOR_NAMES_FILE = p('desk-operator-names.json');
@@ -50,6 +53,7 @@ const _db = new Database(p('desk.db'));
 _db.pragma('journal_mode = WAL');
 _db.pragma('foreign_keys = ON');
 _db.pragma('busy_timeout = 5000');
+_db.exec('CREATE TABLE IF NOT EXISTS kv (key TEXT PRIMARY KEY, value TEXT)');
 
 function normPhone(raw: string): string {
   const d = raw.replace(/\D/g, '');
@@ -710,15 +714,17 @@ function makeV1Endpoint(): Middleware {
         'POST   /desk-api/v1/orders', 'PATCH  /desk-api/v1/orders/:id', 'DELETE /desk-api/v1/orders/:id',
         'GET    /desk-api/v1/clients', 'GET    /desk-api/v1/clients/:phone',
         'POST   /desk-api/v1/clients', 'PATCH  /desk-api/v1/clients/:phone', 'DELETE /desk-api/v1/clients/:phone',
+        'POST   /desk-api/v1/clients/:phone/addresses',
         'GET    /desk-api/v1/local-products', 'POST   /desk-api/v1/local-products',
         'PATCH  /desk-api/v1/local-products/:id', 'DELETE /desk-api/v1/local-products/:id',
       ]}));
       return;
     }
 
-    const orderId  = path.match(/^\/orders\/([^/]+)$/)?.[1];
-    const clientId = path.match(/^\/clients\/([^/]+)$/)?.[1];
-    const localId  = path.match(/^\/local-products\/([^/]+)$/)?.[1];
+    const orderId       = path.match(/^\/orders\/([^/]+)$/)?.[1];
+    const clientAddrPhone = path.match(/^\/clients\/([^/]+)\/addresses$/)?.[1];
+    const clientId      = path.match(/^\/clients\/([^/]+)$/)?.[1];
+    const localId       = path.match(/^\/local-products\/([^/]+)$/)?.[1];
 
     // ── Orders ────────────────────────────────────────────────────────────────
 
@@ -810,6 +816,35 @@ function makeV1Endpoint(): Middleware {
     }
 
     // ── Clients ────────────────────────────────────────────────────────────────
+
+    if (mtd === 'POST' && clientAddrPhone) {
+      void body().then(input => {
+        const d = normPhone(decodeURIComponent(clientAddrPhone));
+        const row = _db.prepare('SELECT * FROM clients WHERE phone = ?').get(d) as Record<string, unknown> | undefined;
+        if (!row) { err('Клиент не найден', 404); return; }
+        const newAddr = {
+          street: String(input['street'] ?? '').trim(),
+          house: String(input['house'] ?? '').trim(),
+          entrance: String(input['entrance'] ?? '').trim(),
+          floor: String(input['floor'] ?? '').trim(),
+          apartment: String(input['apartment'] ?? '').trim(),
+          intercom: String(input['intercom'] ?? '').trim(),
+        };
+        if (!newAddr.street && !newAddr.house) { err('Укажите улицу или дом'); return; }
+        const addrKey = (a: typeof newAddr) =>
+          [a.street, a.house, a.entrance, a.floor, a.apartment, a.intercom]
+            .map(s => s.toLowerCase()).join('|');
+        const existing: typeof newAddr[] = row['addresses_json']
+          ? JSON.parse(row['addresses_json'] as string) : [];
+        if (existing.some(a => addrKey(a) === addrKey(newAddr))) {
+          return ok(rowToClient(row));
+        }
+        existing.push(newAddr);
+        _db.prepare('UPDATE clients SET addresses_json=? WHERE phone=?').run(JSON.stringify(existing), d);
+        return ok(rowToClient(_db.prepare('SELECT * FROM clients WHERE phone = ?').get(d) as Record<string, unknown>));
+      }).catch(e => err(String(e)));
+      return;
+    }
 
     if (mtd === 'GET' && clientId) {
       const d = normPhone(decodeURIComponent(clientId));
@@ -918,6 +953,354 @@ function makeV1Endpoint(): Middleware {
   };
 }
 
+// ── /desk-api/settings ────────────────────────────────────────────────────────
+function makeSettingsEndpoint(): Middleware {
+  return (req, res, next) => {
+    const r = req as IncomingMessage;
+    const s = res as ServerResponse;
+    s.setHeader('Content-Type', 'application/json');
+    const ok  = (data: unknown) => { s.statusCode = 200; s.end(JSON.stringify(data)); };
+    const err = (msg: string, code = 400) => { s.statusCode = code; s.end(JSON.stringify({ ok: false, error: msg })); };
+    const mtd = r.method?.toUpperCase();
+
+    if (mtd === 'GET') {
+      const row = _db.prepare('SELECT value FROM kv WHERE key = ?').get('shared_settings') as { value: string } | undefined;
+      return ok(row ? JSON.parse(row.value) : {});
+    }
+
+    if (mtd === 'POST') {
+      let body = '';
+      r.on('data', (c: Buffer) => { body += c.toString(); });
+      r.on('end', () => {
+        try {
+          const input = JSON.parse(body) as Record<string, unknown>;
+          const allowed = ['authToken', 'storeId', 'storeLabel'];
+          const data: Record<string, unknown> = {};
+          for (const k of allowed) if (k in input) data[k] = input[k];
+          _db.prepare('INSERT OR REPLACE INTO kv (key, value) VALUES (?, ?)').run('shared_settings', JSON.stringify(data));
+          ok({ ok: true });
+        } catch { err('Неверный JSON'); }
+      });
+      return;
+    }
+
+    (next as () => void)();
+  };
+}
+
+// ── /desk-api/mango-accounts (с паролями, только для авторизованных) ──────────
+function proxyToApiServer(payload: string, s: ServerResponse): void {
+  const pr = http.request(
+    { hostname: '127.0.0.1', port: 3001, path: '/api/mango/accounts', method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(payload) } },
+    (pres) => {
+      let d = '';
+      pres.on('data', (c: Buffer) => { d += c.toString(); });
+      pres.on('end', () => { s.statusCode = pres.statusCode ?? 200; s.end(d); });
+    },
+  );
+  pr.on('error', () => { s.statusCode = 502; s.end(JSON.stringify({ ok: false, error: 'api-server недоступен' })); });
+  pr.write(payload);
+  pr.end();
+}
+
+function makeMangoAccountsEndpoint(): Middleware {
+  return (req, res, next) => {
+    const r = req as IncomingMessage;
+    const s = res as ServerResponse;
+    s.setHeader('Content-Type', 'application/json');
+    const ok  = (data: unknown) => { s.statusCode = 200; s.end(JSON.stringify(data)); };
+    const err = (msg: string, code = 400) => { s.statusCode = code; s.end(JSON.stringify({ ok: false, error: msg })); };
+    const mtd = r.method?.toUpperCase();
+
+    if (mtd === 'GET') {
+      try {
+        const data = fs.existsSync(MANGO_ACCOUNTS_FILE)
+          ? JSON.parse(fs.readFileSync(MANGO_ACCOUNTS_FILE, 'utf8')) as unknown[]
+          : [];
+        return ok(data);
+      } catch { return err('Ошибка чтения файла', 500); }
+    }
+
+    if (mtd === 'POST') {
+      let body = '';
+      r.on('data', (c: Buffer) => { body += c.toString(); });
+      r.on('end', () => {
+        try {
+          const accounts = JSON.parse(body) as unknown[];
+          if (!Array.isArray(accounts)) { err('array expected'); return; }
+          proxyToApiServer(JSON.stringify(accounts), s);
+        } catch { err('Неверный JSON'); }
+      });
+      return;
+    }
+
+    (next as () => void)();
+  };
+}
+
+// ── Receipt PNG renderer ─────────────────────────────────────────────────────
+
+function isDraftVolumeDetail(d?: string): boolean {
+  return /^\d+(\.\d+)?\s*л$/i.test(d ?? '');
+}
+
+function groupDraftItemsSrv(items: SavedOrderItem[]): SavedOrderItem[] {
+  const seen = new Set<string>();
+  const out: SavedOrderItem[] = [];
+  for (const item of items) {
+    const isOldDraft = item.productType === 'DRAFT' && isDraftVolumeDetail(item.details);
+    if (!isOldDraft) { out.push(item); continue; }
+    if (seen.has(item.name)) continue;
+    seen.add(item.name);
+    const siblings = items.filter(i => i.name === item.name && i.productType === 'DRAFT' && isDraftVolumeDetail(i.details));
+    const totalQty = Math.round(siblings.reduce((s, i) => s + i.qty, 0) * 1000) / 1000;
+    const entries = siblings
+      .map(i => ({ vol: parseFloat(i.details!), count: Math.round(i.qty / parseFloat(i.details!)) }))
+      .sort((a, b) => b.vol - a.vol);
+    const details = 'Тара ' + entries.map(e => `${e.vol}л — ${e.count} шт`).join(', ');
+    out.push({ ...item, qty: totalQty, details });
+  }
+  return out;
+}
+
+function sortReceiptItemsSrv(items: SavedOrderItem[]): SavedOrderItem[] {
+  const rank = (item: SavedOrderItem): number => {
+    const isDraft = item.productType === 'DRAFT' || /^\d+(\.\d+)?\s*л$/i.test(item.details ?? '');
+    if (isDraft) return 0;
+    if (/тара|бутылка/i.test(item.name)) return 1;
+    if (/пакет|доставка/i.test(item.name)) return 3;
+    return 2;
+  };
+  return [...items].sort((a, b) => rank(a) - rank(b));
+}
+
+type RenderCtx = ReturnType<ReturnType<typeof createCanvas>['getContext']>;
+
+function srvWrapText(ctx: RenderCtx, text: string, maxWidth: number): [string] | [string, string] {
+  if (ctx.measureText(text).width <= maxWidth) return [text];
+  const words = text.split(' ');
+  let line1 = '';
+  let i = 0;
+  while (i < words.length) {
+    const test = line1 ? `${line1} ${words[i]}` : words[i];
+    if (ctx.measureText(test).width > maxWidth && line1) break;
+    line1 = test;
+    i++;
+  }
+  if (!line1) {
+    let t = words[0];
+    while (t.length > 0 && ctx.measureText(t + '…').width > maxWidth) t = t.slice(0, -1);
+    line1 = t + '…';
+  }
+  if (i >= words.length) return [line1];
+  let rest = words.slice(i).join(' ');
+  while (rest.length > 0 && ctx.measureText(rest + '…').width > maxWidth) rest = rest.slice(0, -1);
+  return [line1, rest + (words.slice(i).join(' ') !== rest ? '…' : '')];
+}
+
+function srvWrapTextMulti(ctx: RenderCtx, text: string, maxWidth: number): string[] {
+  if (ctx.measureText(text).width <= maxWidth) return [text];
+  const words = text.split(' ');
+  const lines: string[] = [];
+  let cur = '';
+  for (const word of words) {
+    const test = cur ? `${cur} ${word}` : word;
+    if (ctx.measureText(test).width > maxWidth && cur) { lines.push(cur); cur = word; }
+    else cur = test;
+  }
+  if (cur) lines.push(cur);
+  return lines.length ? lines : [text];
+}
+
+function renderOrderReceiptPng(order: SavedOrder, seqNum: number | string): Buffer {
+  const SCALE = 2, W = 420, PAD = 28;
+  const F = 'sans-serif';
+  const CT = '#1a1a1a', CM = '#888888';
+  const isApp = order.orderMethod === 'app' && order.orderAmount !== undefined;
+  const cl = order.client;
+
+  const dateObj = new Date(new Date(order.createdAt).getTime() + 3 * 60 * 60 * 1000);
+  const dateStr = dateObj.toLocaleString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'UTC' });
+  const payLabel = order.payMethod === 'cash' ? 'Наличные' : 'Безналичный расчёт';
+
+  const maxW = W - PAD * 2;
+  const QTY_COL = 38, TOTAL_COL = 70;
+  const NAME_MAX_W = maxW - QTY_COL - TOTAL_COL;
+  const X_QTY = PAD + NAME_MAX_W + QTY_COL / 2;
+  const X_RIGHT = W - PAD;
+
+  const sortedItems = sortReceiptItemsSrv(groupDraftItemsSrv(order.items));
+  const _mCanvas = createCanvas(10, 10);
+  const _mCtx = _mCanvas.getContext('2d');
+  _mCtx.font = `17px ${F}`;
+  const itemLines = sortedItems.map(item => {
+    const suffix = item.details ? ` ${item.details}` : '';
+    const name = item.productType === 'DRAFT' ? `${item.name} розлив` : `${item.name}${suffix}`;
+    return srvWrapText(_mCtx, name, NAME_MAX_W);
+  });
+
+  _mCtx.font = `bold 21px ${F}`;
+  const preWrap = (label: string, value: string): string[] => {
+    const tagW = _mCtx.measureText(`${label}: `).width;
+    return srvWrapTextMulti(_mCtx, value, maxW - tagW);
+  };
+  const fieldH = (lines: string[]) => 32 + Math.max(0, lines.length - 1) * 26;
+
+  const clientRows: Array<{ label: string; lines: string[] }> = [];
+  if (cl.name)      clientRows.push({ label: 'Клиент',     lines: preWrap('Клиент',     cl.name) });
+  if (cl.street)    clientRows.push({ label: 'Улица',      lines: preWrap('Улица',      cl.street) });
+  if (cl.house)     clientRows.push({ label: 'Дом',        lines: preWrap('Дом',        cl.house) });
+  if (cl.entrance)  clientRows.push({ label: 'Подъезд',    lines: preWrap('Подъезд',    cl.entrance) });
+  if (cl.floor)     clientRows.push({ label: 'Этаж',       lines: preWrap('Этаж',       cl.floor) });
+  if (cl.apartment) clientRows.push({ label: 'Кв. (офис)', lines: preWrap('Кв. (офис)', cl.apartment) });
+  if (cl.intercom)  clientRows.push({ label: 'Домофон',    lines: preWrap('Домофон',    cl.intercom) });
+  if (cl.phone)     clientRows.push({ label: 'Телефон',    lines: preWrap('Телефон',    cl.phone) });
+  if (cl.notes)     clientRows.push({ label: 'Примечание', lines: preWrap('Примечание', cl.notes) });
+
+  const appW = {
+    phone:     cl.phone     ? preWrap('Телефон',     cl.phone)     : null,
+    name:      cl.name      ? preWrap('Имя',         cl.name)      : null,
+    street:    cl.street    ? preWrap('Улица',       cl.street)    : null,
+    house:     cl.house     ? preWrap('Дом',         cl.house)     : null,
+    entrance:  cl.entrance  ? preWrap('Подъезд',     cl.entrance)  : null,
+    floor:     cl.floor     ? preWrap('Этаж',        cl.floor)     : null,
+    apartment: cl.apartment ? preWrap('Кв. (офис)',  cl.apartment) : null,
+    intercom:  cl.intercom  ? preWrap('Домофон',     cl.intercom)  : null,
+    notes:     cl.notes     ? preWrap('Примечание',  cl.notes)     : null,
+  };
+
+  const DIV = 23;
+  let H = PAD * 2;
+  if (isApp) {
+    H += 22;
+    if (order.orderNumber) H += 30;
+    H += DIV;
+    if (appW.phone)     H += fieldH(appW.phone);
+    if (appW.name)      H += fieldH(appW.name);
+    if (appW.street)    H += fieldH(appW.street);
+    if (appW.house)     H += fieldH(appW.house);
+    if (appW.entrance)  H += fieldH(appW.entrance);
+    if (appW.floor)     H += fieldH(appW.floor);
+    if (appW.apartment) H += fieldH(appW.apartment);
+    if (appW.intercom)  H += fieldH(appW.intercom);
+    if (appW.notes)     H += fieldH(appW.notes);
+  } else {
+    H += 22; H += 28; H += DIV; H += 22;
+    if (order.items.length > 0) {
+      H += itemLines.reduce((s, lines) => s + (lines.length === 1 ? 26 : 54), 0);
+      H += Math.max(0, order.items.length - 1) * 6;
+    }
+    H += DIV; H += 24; H += 24;
+    if (order.payMethod === 'cash' && order.given)  H += 20;
+    if (order.payMethod === 'cash' && order.change) H += 26;
+    if (clientRows.length > 0) { H += DIV; H += clientRows.reduce((s, r) => s + fieldH(r.lines), 0); }
+  }
+
+  const canvas = createCanvas(W * SCALE, H * SCALE);
+  const ctx = canvas.getContext('2d');
+  ctx.scale(SCALE, SCALE);
+  ctx.textBaseline = 'top';
+  ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, W, H);
+
+  let cy = PAD;
+  const drawDash = () => {
+    ctx.save();
+    ctx.strokeStyle = '#cccccc'; ctx.lineWidth = 1; ctx.setLineDash([5, 5]);
+    ctx.beginPath(); ctx.moveTo(PAD, cy); ctx.lineTo(W - PAD, cy); ctx.stroke();
+    ctx.restore();
+  };
+  const divider = () => { cy += 10; drawDash(); cy += 13; };
+
+  if (isApp) {
+    ctx.font = `13px ${F}`; ctx.fillStyle = CM; ctx.textAlign = 'center';
+    ctx.fillText(dateStr, W / 2, cy); cy += 22;
+    if (order.orderNumber) {
+      ctx.font = `bold 22px ${F}`; ctx.fillStyle = CT; ctx.textAlign = 'center';
+      ctx.fillText(`№ ${order.orderNumber}`, W / 2, cy); cy += 30;
+    }
+    divider();
+    const appField = (label: string, lines: string[]) => {
+      const tag = `${label}: `;
+      ctx.font = `bold 21px ${F}`; ctx.fillStyle = CM; ctx.textAlign = 'left';
+      ctx.fillText(tag, PAD, cy);
+      const tagW = ctx.measureText(tag).width;
+      ctx.fillStyle = CT;
+      ctx.fillText(lines[0], PAD + tagW, cy); cy += 32;
+      for (let i = 1; i < lines.length; i++) { ctx.fillText(lines[i], PAD, cy); cy += 26; }
+    };
+    if (appW.phone)     appField('Телефон',    appW.phone);
+    if (appW.name)      appField('Имя',        appW.name);
+    if (appW.street)    appField('Улица',      appW.street);
+    if (appW.house)     appField('Дом',        appW.house);
+    if (appW.entrance)  appField('Подъезд',    appW.entrance);
+    if (appW.floor)     appField('Этаж',       appW.floor);
+    if (appW.apartment) appField('Кв. (офис)', appW.apartment);
+    if (appW.intercom)  appField('Домофон',    appW.intercom);
+    if (appW.notes)     appField('Примечание', appW.notes);
+  } else {
+    ctx.font = `13px ${F}`; ctx.fillStyle = CM; ctx.textAlign = 'center';
+    ctx.fillText(dateStr, W / 2, cy); cy += 22;
+    ctx.font = `bold 19px ${F}`; ctx.fillStyle = CT; ctx.textAlign = 'center';
+    ctx.fillText(`№ ${seqNum}`, W / 2, cy); cy += 28;
+    divider();
+
+    ctx.font = `13px ${F}`; ctx.fillStyle = CM;
+    ctx.textAlign = 'left';   ctx.fillText('Наименование', PAD, cy);
+    ctx.textAlign = 'center'; ctx.fillText('Кол.', X_QTY, cy);
+    ctx.textAlign = 'right';  ctx.fillText('Сумма', X_RIGHT, cy);
+    cy += 22;
+
+    for (let i = 0; i < sortedItems.length; i++) {
+      const item = sortedItems[i];
+      const qtyStr = Number.isInteger(item.qty) ? String(item.qty) : item.qty.toFixed(3).replace(/\.?0+$/, '');
+      const lineTotal = (item.price * item.qty).toLocaleString('ru-RU', { minimumFractionDigits: 0 }) + ' ₽';
+      const lines = itemLines[i];
+      ctx.font = `17px ${F}`; ctx.fillStyle = CT;
+      ctx.textAlign = 'left';   ctx.fillText(lines[0], PAD, cy);
+      ctx.textAlign = 'center'; ctx.fillText(qtyStr, X_QTY, cy);
+      ctx.font = `bold 17px ${F}`; ctx.textAlign = 'right'; ctx.fillText(lineTotal, X_RIGHT, cy);
+      cy += 26;
+      if (lines[1]) { ctx.font = `17px ${F}`; ctx.fillStyle = CT; ctx.textAlign = 'left'; ctx.fillText(lines[1], PAD, cy); cy += 28; }
+      if (i < sortedItems.length - 1) cy += 6;
+    }
+
+    divider();
+    ctx.font = `bold 16px ${F}`; ctx.fillStyle = CT;
+    ctx.textAlign = 'left';  ctx.fillText('К ОПЛАТЕ', PAD, cy);
+    ctx.textAlign = 'right'; ctx.fillText((order.total ?? 0).toLocaleString('ru-RU', { minimumFractionDigits: 0 }) + ' ₽', X_RIGHT, cy);
+    cy += 24;
+    ctx.font = `bold 16px ${F}`; ctx.fillStyle = CM; ctx.textAlign = 'left';
+    ctx.fillText(`Способ оплаты: ${payLabel}`, PAD, cy); cy += 24;
+    if (order.payMethod === 'cash' && order.given) {
+      ctx.fillText('Внесено', PAD, cy);
+      ctx.textAlign = 'right'; ctx.fillText(`${order.given.toLocaleString('ru-RU')} ₽`, X_RIGHT, cy);
+      cy += 20;
+    }
+    if (order.payMethod === 'cash' && order.change) {
+      cy += 4; ctx.fillStyle = '#16a34a'; ctx.font = `bold 15px ${F}`;
+      ctx.textAlign = 'left';  ctx.fillText('Сдача', PAD, cy);
+      ctx.textAlign = 'right'; ctx.fillText(`${order.change.toLocaleString('ru-RU')} ₽`, X_RIGHT, cy);
+      cy += 22;
+    }
+
+    if (clientRows.length > 0) {
+      divider();
+      for (const { label, lines } of clientRows) {
+        const tag = `${label}: `;
+        ctx.font = `bold 21px ${F}`; ctx.fillStyle = CM; ctx.textAlign = 'left';
+        ctx.fillText(tag, PAD, cy);
+        const tagW = ctx.measureText(tag).width;
+        ctx.fillStyle = CT;
+        ctx.fillText(lines[0], PAD + tagW, cy); cy += 32;
+        for (let i = 1; i < lines.length; i++) { ctx.fillText(lines[i], PAD, cy); cy += 26; }
+      }
+    }
+  }
+
+  return canvas.toBuffer('image/png');
+}
+
 // ── Attach all middlewares ───────────────────────────────────────────────────
 
 function attachMiddlewares(middlewares: { use: (p: string, h: Middleware) => void }): void {
@@ -999,13 +1382,53 @@ function attachMiddlewares(middlewares: { use: (p: string, h: Middleware) => voi
     });
   }) as Middleware);
 
+  middlewares.use('/desk-api/v1/receipt', requireAuth(((req, res, _next) => {
+    const r = req as IncomingMessage;
+    const s = res as ServerResponse;
+    if (r.method !== 'GET') { s.statusCode = 405; s.end('{"ok":false}'); return; }
+    const orderId = new URL(r.url ?? '/', 'http://localhost').pathname.replace(/^\//, '');
+    if (!orderId) { s.statusCode = 400; s.setHeader('Content-Type', 'application/json'); s.end('{"ok":false,"error":"укажите id"}'); return; }
+    const row = _db.prepare('SELECT * FROM orders WHERE id = ?').get(orderId) as Record<string, unknown> | undefined;
+    if (!row) { s.statusCode = 404; s.setHeader('Content-Type', 'application/json'); s.end('{"ok":false,"error":"Заказ не найден"}'); return; }
+    const order = rowToOrder(row) as unknown as SavedOrder & { seqNum?: number };
+    try {
+      const png = renderOrderReceiptPng(order, order.seqNum ?? '?');
+      s.setHeader('Content-Type', 'image/png');
+      s.setHeader('Content-Disposition', `inline; filename="receipt-${orderId}.png"`);
+      s.end(png);
+    } catch (e) {
+      s.statusCode = 500;
+      s.setHeader('Content-Type', 'application/json');
+      s.end(JSON.stringify({ ok: false, error: String(e) }));
+    }
+  }) as Middleware));
+
   middlewares.use('/desk-api/v1', requireAuth(makeV1Endpoint()));
 
   // ── Whitelist (GET open for auth flow, POST requires session) ──────────────
   const _whitelistMw = makeJsonEndpoint(WHITELIST_FILE);
-  middlewares.use('/desk-api/whitelist', ((req, res, next) => {
-    if ((req as IncomingMessage).method === 'GET') return _whitelistMw(req, res, next);
-    return requireAuth(_whitelistMw)(req, res, next);
+  // GET и POST — только для авторизованных (админ-панель)
+  middlewares.use('/desk-api/whitelist', requireAuth(_whitelistMw));
+  // Открытый check: POST { phone } → { allowed: bool } — не раскрывает список
+  middlewares.use('/desk-api/whitelist-check', ((req, res, _next) => {
+    const r = req as IncomingMessage;
+    const s = res as ServerResponse;
+    s.setHeader('Content-Type', 'application/json');
+    if (r.method !== 'POST') { s.statusCode = 405; s.end('{"ok":false}'); return; }
+    let body = '';
+    r.on('data', (c: Buffer) => { body += c.toString(); });
+    r.on('end', () => {
+      try {
+        const { phone } = JSON.parse(body) as { phone?: string };
+        const norm = phone ? phone.replace(/\D/g, '') : '';
+        const list: string[] = fs.existsSync(WHITELIST_FILE)
+          ? JSON.parse(fs.readFileSync(WHITELIST_FILE, 'utf8')) as string[]
+          : [];
+        const allowed = list.some(p => p.replace(/\D/g, '') === norm);
+        s.statusCode = 200;
+        s.end(JSON.stringify({ allowed }));
+      } catch { s.statusCode = 400; s.end('{"ok":false}'); }
+    });
   }) as Middleware);
 
   middlewares.use('/desk-api/orders',   requireAuth(makeOrdersEndpoint()));
@@ -1040,6 +1463,8 @@ function attachMiddlewares(middlewares: { use: (p: string, h: Middleware) => voi
     }
     (next as () => void)();
   }) as Middleware));
+  middlewares.use('/desk-api/mango-accounts',  requireAuth(makeMangoAccountsEndpoint()));
+  middlewares.use('/desk-api/settings',        requireAuth(makeSettingsEndpoint()));
   middlewares.use('/desk-api/countries',      makeJsonEndpoint(COUNTRIES_FILE));
   middlewares.use('/desk-api/operator-names', requireAuth(makeJsonEndpoint(OPERATOR_NAMES_FILE, '{}')));
   middlewares.use('/desk-api/warm-cache',     requireAuth(((req, res, next) => {

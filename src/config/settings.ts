@@ -30,6 +30,22 @@ export function saveSettings(settings: Settings): void {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
 }
 
+export function syncSharedSettingsToServer(settings: Settings): void {
+  fetch('/desk-api/settings', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ authToken: settings.authToken, storeId: settings.storeId, storeLabel: settings.storeLabel }),
+  }).catch(() => {});
+}
+
+export async function loadSharedSettingsFromServer(): Promise<Partial<Pick<Settings, 'authToken' | 'storeId' | 'storeLabel'>>> {
+  try {
+    const res = await fetch('/desk-api/settings');
+    if (!res.ok) return {};
+    return await res.json() as Partial<Pick<Settings, 'authToken' | 'storeId' | 'storeLabel'>>;
+  } catch { return {}; }
+}
+
 export function isConfigured(settings: Settings): boolean {
   return Boolean(settings.storeId.trim() && settings.authToken.trim());
 }

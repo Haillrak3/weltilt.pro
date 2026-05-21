@@ -12,7 +12,7 @@ import { loadLocalProductsFromServer } from './data/vendor';
 import { loadCountries } from './data/countries';
 import { loadStoresList } from './data/stores';
 import { openSettings } from './ui/settings';
-import { isConfigured, operatorFromSettings, loadSettings } from './config/settings';
+import { isConfigured, operatorFromSettings, loadSettings, loadSharedSettingsFromServer, saveSettings } from './config/settings';
 import { state } from './state';
 import { saveOrderMeta } from './storage';
 import { isAuthorized, showAuthScreen, syncOperatorNames, ensureServerSession } from './auth';
@@ -38,6 +38,24 @@ async function boot(): Promise<void> {
   }
 
   await ensureServerSession();
+
+  // Если токен/магазин не настроен локально — пробуем взять с сервера
+  if (!isConfigured(state.settings)) {
+    const shared = await loadSharedSettingsFromServer();
+    if (shared.authToken) {
+      if (!state.settings.authToken) state.settings.authToken = shared.authToken;
+      if (!state.settings.storeId && shared.storeId) {
+        state.settings.storeId   = shared.storeId;
+        state.settings.storeLabel = shared.storeLabel ?? '';
+      }
+      if (isConfigured(state.settings)) {
+        saveSettings(state.settings);
+        void loadCategories();
+        void loadStoresList();
+        renderApp();
+      }
+    }
+  }
 
   void loadOrdersFromServer();
   void loadLocalProductsFromServer();

@@ -1,5 +1,5 @@
 import { getStores } from '../api/client';
-import { loadSettings, saveSettings } from '../config/settings';
+import { loadSettings, saveSettings, syncSharedSettingsToServer } from '../config/settings';
 import { formatShopOptionLabel } from '../utils/shop';
 import type { Settings } from '../config/settings';
 
@@ -23,5 +23,6 @@ export async function completeSignIn(
     } catch { }
   }
   saveSettings(settings);
+  syncSharedSettingsToServer(settings);
   return settings;
 }

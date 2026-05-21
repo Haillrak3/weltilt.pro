@@ -70,7 +70,7 @@ function fetchClientFromServer(phone: string): void {
     .catch(() => {});
 }
 
-function addrKey(a: ClientAddress): string {
+export function addrKey(a: ClientAddress): string {
   return [a.street, a.house, a.entrance, a.floor, a.apartment, a.intercom]
     .map((s) => s.trim().toLowerCase()).join('|');
 }
@@ -173,6 +173,23 @@ export function upsertClientRecord(client: ClientInfo & { notes: string }): void
   }
   saveExtraClients(state.extraClients);
   syncClientToServer(state.extraClients.find((c) => c.phone.replace(/\D/g, '') === digits)!);
+}
+
+export async function addAddressToClient(phone: string, addr: ClientAddress): Promise<DbClient | null> {
+  const digits = normPhone(phone);
+  if (digits.length < 7) return null;
+  try {
+    const res = await fetch(`/desk-api/v1/clients/${encodeURIComponent(digits)}/addresses`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(addr),
+    });
+    const json = await res.json() as { ok: boolean; data?: DbClient };
+    if (!json.ok || !json.data) return null;
+    const updated = json.data;
+    if (mergeServerClient(updated)) saveExtraClients(state.extraClients);
+    return updated;
+  } catch { return null; }
 }
 
 export function saveClientRecord(client: DbClient): void {

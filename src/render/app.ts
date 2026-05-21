@@ -457,29 +457,36 @@ function bindEvents(): void {
     renderApp();
   });
 
+  const renderKeepOrdersScroll = () => {
+    const el = document.querySelector<HTMLElement>('.orders-main');
+    const top = el?.scrollTop ?? 0;
+    renderApp();
+    document.querySelector<HTMLElement>('.orders-main')?.scrollTo({ top, behavior: 'instant' });
+  };
+
   document.getElementById('of-all')?.addEventListener('click', () => {
-    state.ordersFilterFrom = ''; state.ordersFilterTo = ''; renderApp();
+    state.ordersFilterFrom = ''; state.ordersFilterTo = ''; renderKeepOrdersScroll();
   });
   document.getElementById('of-today')?.addEventListener('click', () => {
-    const t = todayGMT3(); state.ordersFilterFrom = t; state.ordersFilterTo = t; renderApp();
+    const t = todayGMT3(); state.ordersFilterFrom = t; state.ordersFilterTo = t; renderKeepOrdersScroll();
   });
   document.getElementById('of-yesterday')?.addEventListener('click', () => {
-    const y = yesterdayGMT3(); state.ordersFilterFrom = y; state.ordersFilterTo = y; renderApp();
+    const y = yesterdayGMT3(); state.ordersFilterFrom = y; state.ordersFilterTo = y; renderKeepOrdersScroll();
   });
   (document.getElementById('of-from') as HTMLInputElement | null)?.addEventListener('change', (e) => {
-    state.ordersFilterFrom = (e.target as HTMLInputElement).value; renderApp();
+    state.ordersFilterFrom = (e.target as HTMLInputElement).value; renderKeepOrdersScroll();
   });
   (document.getElementById('of-to') as HTMLInputElement | null)?.addEventListener('change', (e) => {
-    state.ordersFilterTo = (e.target as HTMLInputElement).value; renderApp();
+    state.ordersFilterTo = (e.target as HTMLInputElement).value; renderKeepOrdersScroll();
   });
 
   document.querySelectorAll<HTMLButtonElement>('[data-filter-store]').forEach((btn) => {
-    btn.addEventListener('click', () => { state.ordersFilterStore = btn.dataset.filterStore!; renderApp(); });
+    btn.addEventListener('click', () => { state.ordersFilterStore = btn.dataset.filterStore!; renderKeepOrdersScroll(); });
   });
   document.querySelectorAll<HTMLButtonElement>('[data-filter-status]').forEach((btn) => {
     btn.addEventListener('click', () => {
       state.ordersFilterStatus = btn.dataset.filterStatus! as SavedOrder['status'] | '';
-      renderApp();
+      renderKeepOrdersScroll();
     });
   });
 
@@ -523,10 +530,10 @@ function bindEvents(): void {
   });
 
   document.getElementById('btn-show-trash')?.addEventListener('click', () => {
-    state.ordersShowTrash = true; renderApp();
+    state.ordersShowTrash = true; renderKeepOrdersScroll();
   });
   document.getElementById('btn-trash-back')?.addEventListener('click', () => {
-    state.ordersShowTrash = false; renderApp();
+    state.ordersShowTrash = false; renderKeepOrdersScroll();
   });
 
   document.querySelectorAll<HTMLButtonElement>('.order-restore-btn').forEach((btn) => {

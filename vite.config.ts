@@ -663,6 +663,243 @@ function makeClientsEndpoint(): Middleware {
   };
 }
 
+// ── REST v1 endpoint (/desk-api/v1/*) ────────────────────────────────────────
+// Vite strips the prefix, so req.url inside handler is already relative:
+//   /desk-api/v1/clients/89001234567  →  pathname = /clients/89001234567
+
+function makeV1Endpoint(): Middleware {
+  return (req, res, next) => {
+    const r   = req as IncomingMessage;
+    const s   = res as ServerResponse;
+    const mtd = r.method ?? 'GET';
+    s.setHeader('Content-Type', 'application/json');
+    const url  = new URL(r.url ?? '/', 'http://localhost');
+    const path = url.pathname;
+
+    const ok  = (data: unknown, status = 200): void => { s.statusCode = status; s.end(JSON.stringify({ ok: true, data })); };
+    const err = (msg: string, status = 400): void   => { s.statusCode = status; s.end(JSON.stringify({ ok: false, error: msg })); };
+    const body = (): Promise<Record<string, unknown>> => new Promise((res, rej) => {
+      let b = '';
+      r.on('data', (c: Buffer) => { b += c.toString(); });
+      r.on('end', () => { try { res(JSON.parse(b)); } catch { rej(new Error('Невалидный JSON')); } });
+    });
+
+    if (mtd === 'OPTIONS') { s.statusCode = 204; s.end(); return; }
+
+    if (mtd === 'GET' && path === '/') {
+      s.end(JSON.stringify({ ok: true, version: 'v1', endpoints: [
+        'GET    /desk-api/v1/orders', 'GET    /desk-api/v1/orders/:id',
+        'POST   /desk-api/v1/orders', 'PATCH  /desk-api/v1/orders/:id', 'DELETE /desk-api/v1/orders/:id',
+        'GET    /desk-api/v1/clients', 'GET    /desk-api/v1/clients/:phone',
+        'POST   /desk-api/v1/clients', 'PATCH  /desk-api/v1/clients/:phone', 'DELETE /desk-api/v1/clients/:phone',
+        'GET    /desk-api/v1/local-products', 'POST   /desk-api/v1/local-products',
+        'PATCH  /desk-api/v1/local-products/:id', 'DELETE /desk-api/v1/local-products/:id',
+      ]}));
+      return;
+    }
+
+    const orderId  = path.match(/^\/orders\/([^/]+)$/)?.[1];
+    const clientId = path.match(/^\/clients\/([^/]+)$/)?.[1];
+    const localId  = path.match(/^\/local-products\/([^/]+)$/)?.[1];
+
+    // ── Orders ────────────────────────────────────────────────────────────────
+
+    if (mtd === 'GET' && orderId) {
+      const row = _db.prepare('SELECT * FROM orders WHERE id = ?').get(orderId) as Record<string, unknown> | undefined;
+      return row ? ok(rowToOrder(row)) : err('Заказ не найден', 404);
+    }
+
+    if (mtd === 'GET' && path === '/orders') {
+      let sql = 'SELECT * FROM orders WHERE 1=1';
+      const args: unknown[] = [];
+      const phone = url.searchParams.get('phone'), status = url.searchParams.get('status'),
+            operator = url.searchParams.get('operator'), storeId = url.searchParams.get('store_id'),
+            dateFrom = url.searchParams.get('date_from'), dateTo = url.searchParams.get('date_to');
+      if (phone)    { sql += ' AND client_phone = ?'; args.push(normPhone(phone)); }
+      if (status)   { sql += ' AND status = ?';       args.push(status); }
+      if (operator) { sql += ' AND operator = ?';     args.push(operator); }
+      if (storeId)  { sql += ' AND store_id = ?';     args.push(storeId); }
+      if (dateFrom) { sql += ' AND created_at >= ?';  args.push(dateFrom); }
+      if (dateTo)   { sql += ' AND created_at <= ?';  args.push(dateTo + 'T23:59:59.999Z'); }
+      sql += ' ORDER BY created_at DESC';
+      const rows = _db.prepare(sql).all(...args) as Record<string, unknown>[];
+      const total = rows.length;
+      const offset = parseInt(url.searchParams.get('offset') ?? '0', 10);
+      const lim = url.searchParams.get('limit');
+      const limit = lim ? parseInt(lim, 10) : total;
+      return ok({ data: rows.slice(offset, offset + limit).map(rowToOrder), total, offset, limit });
+    }
+
+    if (mtd === 'POST' && path === '/orders') {
+      void body().then(b => {
+        const client = b['client'] as Record<string, unknown> | undefined;
+        if (!client?.['phone']) { err('client.phone обязателен'); return; }
+        const items = b['items'] as unknown[];
+        if (!Array.isArray(items) || !items.length) { err('items обязателен'); return; }
+        const id = Date.now().toString();
+        const row = orderToRow({ ...b, operator: b['operator'] ?? 'API' }, id, new Date().toISOString());
+        try {
+          _db.transaction(() => {
+            _db.prepare(`INSERT INTO orders (id,created_at,status,store_id,order_method,pay_method,operator,total,seq_num,order_number,delivery_price,order_amount,given,change_amt,deleted_at,client_phone,client_name,client_street,client_house,client_entrance,client_floor,client_apartment,client_intercom,client_notes) VALUES (@id,@created_at,@status,@store_id,@order_method,@pay_method,@operator,@total,@seq_num,@order_number,@delivery_price,@order_amount,@given,@change_amt,@deleted_at,@client_phone,@client_name,@client_street,@client_house,@client_entrance,@client_floor,@client_apartment,@client_intercom,@client_notes)`).run(row);
+            insertItemsForOrder(id, items);
+          })();
+          ok(rowToOrder(_db.prepare('SELECT * FROM orders WHERE id = ?').get(id) as Record<string, unknown>), 201);
+        } catch (e) { err(String(e), 500); }
+      }).catch(e => err(String(e)));
+      return;
+    }
+
+    if (mtd === 'PATCH' && orderId) {
+      void body().then(patch => {
+        const row = _db.prepare('SELECT * FROM orders WHERE id = ?').get(orderId) as Record<string, unknown> | undefined;
+        if (!row) { err('Заказ не найден', 404); return; }
+        try {
+          const camel: Record<string, string> = { storeId:'store_id', orderMethod:'order_method', payMethod:'pay_method',
+            seqNum:'seq_num', orderNumber:'order_number', deliveryPrice:'delivery_price', orderAmount:'order_amount',
+            change:'change_amt', deletedAt:'deleted_at' };
+          const allowed = ['status','store_id','order_method','pay_method','operator','total','seq_num',
+            'order_number','delivery_price','order_amount','given','change_amt','deleted_at'];
+          const setClauses: string[] = [];
+          const params: Record<string, unknown> = { id: orderId };
+          if (patch['client']) {
+            const c = patch['client'] as Record<string, unknown>;
+            Object.assign(params, { client_phone:normPhone(String(c['phone']??'')), client_name:c['name']??'',
+              client_street:c['street']??'', client_house:c['house']??'', client_entrance:c['entrance']??'',
+              client_floor:c['floor']??'', client_apartment:c['apartment']??'',
+              client_intercom:c['intercom']??'', client_notes:c['notes']??'' });
+            setClauses.push('client_phone=@client_phone','client_name=@client_name','client_street=@client_street',
+              'client_house=@client_house','client_entrance=@client_entrance','client_floor=@client_floor',
+              'client_apartment=@client_apartment','client_intercom=@client_intercom','client_notes=@client_notes');
+          }
+          if (patch['items'] != null) _db.transaction(() => { _stmtDeleteItems.run(orderId); insertItemsForOrder(orderId, patch['items'] as unknown[]); })();
+          for (const [key, val] of Object.entries(patch)) {
+            if (['id','createdAt','client','items'].includes(key)) continue;
+            const col = camel[key] ?? key;
+            if (!allowed.includes(col)) continue;
+            setClauses.push(`${col}=@${col}`); params[col] = val;
+          }
+          if (setClauses.length) _db.prepare(`UPDATE orders SET ${setClauses.join(',')} WHERE id=@id`).run(params);
+          ok(rowToOrder(_db.prepare('SELECT * FROM orders WHERE id = ?').get(orderId) as Record<string, unknown>));
+        } catch (e) { err(String(e), 500); }
+      }).catch(e => err(String(e)));
+      return;
+    }
+
+    if (mtd === 'DELETE' && orderId) {
+      if (!_db.prepare('SELECT id FROM orders WHERE id = ?').get(orderId)) { err('Заказ не найден', 404); return; }
+      _db.prepare('DELETE FROM orders WHERE id = ?').run(orderId);
+      return ok({ deleted: 1 });
+    }
+
+    // ── Clients ────────────────────────────────────────────────────────────────
+
+    if (mtd === 'GET' && clientId) {
+      const d = normPhone(decodeURIComponent(clientId));
+      const row = _db.prepare('SELECT * FROM clients WHERE phone = ?').get(d) as Record<string, unknown> | undefined;
+      return row ? ok(rowToClient(row)) : err('Клиент не найден', 404);
+    }
+
+    if (mtd === 'GET' && path === '/clients') {
+      const phone = url.searchParams.get('phone') ?? '', search = url.searchParams.get('search') ?? '';
+      if (phone) {
+        const d = normPhone(phone);
+        if (d.length < 3) return ok([]);
+        return ok((_db.prepare("SELECT * FROM clients WHERE phone LIKE ? LIMIT 20").all(`%${d}%`) as Record<string, unknown>[]).map(rowToClient));
+      }
+      if (search) {
+        const q = `%${search.toLowerCase()}%`;
+        return ok((_db.prepare("SELECT * FROM clients WHERE LOWER(name) LIKE ? OR phone LIKE ? LIMIT 20")
+          .all(q, `%${normPhone(search)}%`) as Record<string, unknown>[]).map(rowToClient));
+      }
+      const total  = (_db.prepare('SELECT COUNT(*) as n FROM clients').get() as { n: number }).n;
+      const offset = parseInt(url.searchParams.get('offset') ?? '0', 10);
+      const lim    = url.searchParams.get('limit');
+      const limit  = lim ? parseInt(lim, 10) : total;
+      return ok({ data: (_db.prepare('SELECT * FROM clients ORDER BY name LIMIT ? OFFSET ?').all(limit, offset) as Record<string, unknown>[]).map(rowToClient), total, offset, limit });
+    }
+
+    if (mtd === 'POST' && path === '/clients') {
+      void body().then(input => {
+        const d = normPhone(String(input['phone'] ?? ''));
+        if (d.length < 7) { err('Некорректный номер телефона'); return; }
+        const entry = { phone:d, name:input['name']??'', street:input['street']??'', house:input['house']??'',
+          entrance:input['entrance']??'', floor:input['floor']??'', apartment:input['apartment']??'',
+          intercom:input['intercom']??'', notes:input['notes']??'' };
+        const exists = _db.prepare('SELECT phone FROM clients WHERE phone = ?').get(d);
+        if (exists) {
+          _db.prepare(`UPDATE clients SET name=@name,street=@street,house=@house,entrance=@entrance,floor=@floor,apartment=@apartment,intercom=@intercom,notes=@notes WHERE phone=@phone`).run(entry);
+          ok(rowToClient(_db.prepare('SELECT * FROM clients WHERE phone = ?').get(d) as Record<string, unknown>));
+        } else {
+          _db.prepare(`INSERT INTO clients (phone,name,street,house,entrance,floor,apartment,intercom,notes) VALUES (@phone,@name,@street,@house,@entrance,@floor,@apartment,@intercom,@notes)`).run(entry);
+          ok(rowToClient(_db.prepare('SELECT * FROM clients WHERE phone = ?').get(d) as Record<string, unknown>), 201);
+        }
+      }).catch(e => err(String(e)));
+      return;
+    }
+
+    if (mtd === 'PATCH' && clientId) {
+      void body().then(b => {
+        const d = normPhone(decodeURIComponent(clientId));
+        const row = _db.prepare('SELECT * FROM clients WHERE phone = ?').get(d) as Record<string, unknown> | undefined;
+        if (!row) { err('Клиент не найден', 404); return; }
+        const fields = ['name','street','house','entrance','floor','apartment','intercom','notes'];
+        const setClauses: string[] = [];
+        const params: Record<string, unknown> = { phone: d };
+        for (const f of fields) { if (b[f] != null) { setClauses.push(`${f}=@${f}`); params[f] = b[f]; } }
+        if (setClauses.length) _db.prepare(`UPDATE clients SET ${setClauses.join(',')} WHERE phone=@phone`).run(params);
+        ok(rowToClient(_db.prepare('SELECT * FROM clients WHERE phone = ?').get(d) as Record<string, unknown>));
+      }).catch(e => err(String(e)));
+      return;
+    }
+
+    if (mtd === 'DELETE' && clientId) {
+      const d = normPhone(decodeURIComponent(clientId));
+      return ok({ deleted: _db.prepare('DELETE FROM clients WHERE phone = ?').run(d).changes });
+    }
+
+    // ── Local Products ─────────────────────────────────────────────────────────
+
+    if (mtd === 'GET' && path === '/local-products') {
+      return ok((_db.prepare('SELECT * FROM local_products ORDER BY sort_order').all() as Record<string, unknown>[])
+        .map(x => ({ id:x['id'], name:x['name'], price:x['price'], productType:x['product_type'] })));
+    }
+
+    if (mtd === 'POST' && path === '/local-products') {
+      void body().then(b => {
+        if (!b['name']) { err('name обязателен'); return; }
+        const maxSort = ((_db.prepare('SELECT MAX(sort_order) as m FROM local_products').get() as { m: number | null }).m ?? -1);
+        const item = { id:`local_${Date.now()}`, name:String(b['name']).trim(),
+          price:Math.max(0, parseFloat(String(b['price'] ?? 0)) || 0),
+          product_type:String(b['productType'] ?? 'PIECE'), sort_order:maxSort + 1 };
+        _db.prepare('INSERT INTO local_products (id,name,price,product_type,sort_order) VALUES (@id,@name,@price,@product_type,@sort_order)').run(item);
+        ok({ id:item.id, name:item.name, price:item.price, productType:item.product_type }, 201);
+      }).catch(e => err(String(e)));
+      return;
+    }
+
+    if (mtd === 'PATCH' && localId) {
+      void body().then(b => {
+        const row = _db.prepare('SELECT * FROM local_products WHERE id = ?').get(localId) as Record<string, unknown> | undefined;
+        if (!row) { err('Товар не найден', 404); return; }
+        if (b['name']        != null) _db.prepare('UPDATE local_products SET name=? WHERE id=?').run(String(b['name']).trim(), localId);
+        if (b['price']       != null) _db.prepare('UPDATE local_products SET price=? WHERE id=?').run(Math.max(0, parseFloat(String(b['price'])) || 0), localId);
+        if (b['productType'] != null) _db.prepare('UPDATE local_products SET product_type=? WHERE id=?').run(String(b['productType']), localId);
+        const u = _db.prepare('SELECT * FROM local_products WHERE id = ?').get(localId) as Record<string, unknown>;
+        ok({ id:u['id'], name:u['name'], price:u['price'], productType:u['product_type'] });
+      }).catch(e => err(String(e)));
+      return;
+    }
+
+    if (mtd === 'DELETE' && localId) {
+      const result = _db.prepare('DELETE FROM local_products WHERE id = ?').run(localId);
+      if (!result.changes) { err('Товар не найден', 404); return; }
+      return ok({ deleted: 1 });
+    }
+
+    (next as () => void)();
+  };
+}
+
 // ── Attach all middlewares ───────────────────────────────────────────────────
 
 function attachMiddlewares(middlewares: { use: (p: string, h: Middleware) => void }): void {
@@ -743,6 +980,8 @@ function attachMiddlewares(middlewares: { use: (p: string, h: Middleware) => voi
       s.end('{"ok":false,"error":"Не авторизован"}');
     });
   }) as Middleware);
+
+  middlewares.use('/desk-api/v1', requireAuth(makeV1Endpoint()));
 
   // ── Whitelist (GET open for auth flow, POST requires session) ──────────────
   const _whitelistMw = makeJsonEndpoint(WHITELIST_FILE);

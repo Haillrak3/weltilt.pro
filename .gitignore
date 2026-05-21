@@ -24,6 +24,7 @@ desk-countries.json
 src/clients.json
 mango-sip.py
 .env
+api.txt
 
 # SQLite database
 *.db

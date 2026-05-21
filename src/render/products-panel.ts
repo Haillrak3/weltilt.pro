@@ -172,13 +172,12 @@ export function renderTiles(products: Product[]): string {
       : priceStr;
     return `
     <div class="product-tile${isStopped ? ' tile-stopped' : ''}${oos ? ' tile-oos' : ''}${isDraft ? ' tile-draft' : ''}" data-add-id="${p.id}">
-      ${isStopped ? `<div class="stopped-badge">НЕ НА КРАНЕ · остаток неизвестен</div>` : ''}
       <button type="button" class="tile-info-btn" data-info-id="${p.id}">?</button>
       ${cartBadge}
       <div class="tile-name">${formatProductName(p)}</div>
       ${stil || showCountry ? `<div class="tile-stil">${stil ? escapeHtml(stil) : ''}${stil && showCountry ? ' · ' : ''}${showCountry ? escapeHtml(country) : ''}</div>` : ''}
       <div class="tile-price">${priceHtml}</div>
-      <div class="tile-stock">${isStopped ? '' : oos ? '' : 'Остаток: ' + escapeHtml(formatQty(p.available_qty))}</div>
+      <div class="tile-stock">${isStopped ? '<span class="stopped-badge">НЕ НА КРАНЕ</span>' : oos ? '' : 'Остаток: ' + escapeHtml(formatQty(p.available_qty))}</div>
       ${draftBtns}
     </div>`;
   }).join('')}</div>`;

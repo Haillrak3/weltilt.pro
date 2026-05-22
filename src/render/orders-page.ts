@@ -160,7 +160,7 @@ export function renderOrdersPage(): string {
         const dateLabel = `${dk.slice(8)}.${dk.slice(5, 7)} ${timeStr}`;
         const clientName = order.client.name || '—';
         const clientPhone = order.client.phone || '—';
-        const addrBase = [order.client.street, order.client.house].filter(Boolean).join(', ') || '—';
+        const addrBase = [order.client.street, order.client.house, order.client.apartment ? `кв. ${order.client.apartment}` : ''].filter(Boolean).join(', ') || '—';
         const preferredStore = clientPreferredStore(order.client.phone);
         const addr = preferredStore ? `${addrBase} · №${preferredStore}` : addrBase;
         const totalStr = (order.total ?? 0).toLocaleString('ru-RU', { minimumFractionDigits: 0 }) + ' ₽';
@@ -209,9 +209,7 @@ export function renderOrdersPage(): string {
             </div>`
           : '';
 
-        const storeNumBadge = STORE_IDS.includes(order.storeId)
-          ? `<span class="order-store-badge">№${order.storeId}</span>`
-          : '';
+        const storeNumBadge = `<span class="order-store-badge">${STORE_IDS.includes(order.storeId) ? `№${order.storeId}` : ''}</span>`;
 
         const attention = needsAttention(order);
         return `<div class="order-row${isExpanded ? ' expanded' : ''}${attention ? ' order-row--attention' : ''}">
@@ -220,18 +218,20 @@ export function renderOrdersPage(): string {
             ${storeNumBadge}
             <span class="order-date">${escapeHtml(dateLabel)}</span>
             <span class="order-client">${escapeHtml(clientName)}</span>
-            <button type="button" class="order-phone-btn" data-phone="${escapeHtml(order.client.phone)}">${escapeHtml(clientPhone)}</button>
-            <span class="order-addr">${escapeHtml(addr)}</span>
+            <span class="order-phone-wrap"><button type="button" class="order-phone-btn" data-phone="${escapeHtml(order.client.phone)}">${escapeHtml(clientPhone)}</button></span>
             <span class="order-items">${order.items.length} поз. · ${escapeHtml(totalStr)}</span>
-            <span class="order-method">${escapeHtml(methodLabel)} · ${escapeHtml(payLabel)}${escapeHtml(changeLabel)}${order.orderNumber ? ` <span class="order-app-num">№${escapeHtml(order.orderNumber)}</span>` : ''}</span>
-            <button type="button" class="order-expand-btn${isExpanded ? ' active' : ''}" data-order-id="${order.id}">${isExpanded ? '▲ Свернуть' : '▼ Состав'}</button>
-            <button type="button" class="order-edit-btn" data-order-id="${order.id}" title="Редактировать заказ">Изменить</button>
-            <button type="button" class="order-receipt-btn" data-order-id="${order.id}" title="Показать чек">Чек</button>
-            <button type="button" class="order-del-btn" data-order-id="${order.id}" title="Удалить заказ">✕</button>
+            <span class="order-addr">${escapeHtml(addr)}</span>
+            <div class="order-actions">
+              <button type="button" class="order-expand-btn${isExpanded ? ' active' : ''}" data-order-id="${order.id}">${isExpanded ? '▲ Свернуть' : '▼ Состав'}</button>
+              <button type="button" class="order-edit-btn" data-order-id="${order.id}" title="Редактировать заказ">Изменить</button>
+              <button type="button" class="order-receipt-btn" data-order-id="${order.id}" title="Показать чек">Чек</button>
+              <button type="button" class="order-del-btn" data-order-id="${order.id}" title="Удалить заказ">✕</button>
+            </div>
           </div>
           <div class="order-row-controls">
             <div class="order-store-picker">${storeChips}</div>
             <div class="order-status-picker">${statusBtns}</div>
+            <span class="order-row-meta">${escapeHtml(methodLabel)} · ${escapeHtml(payLabel)}${escapeHtml(changeLabel)}${order.orderNumber ? ` <span class="order-app-num">№${escapeHtml(order.orderNumber)}</span>` : ''}</span>
           </div>
           ${expandedHtml}
         </div>`;

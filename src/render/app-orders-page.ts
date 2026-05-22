@@ -1,26 +1,13 @@
 import { state } from '../state';
 import { escapeHtml } from '../utils';
-import type { AppOrder, AppOrderStatus } from '../api/types';
+import type { AppOrder } from '../api/types';
 
-const OUR_STORE_IDS = new Set([6, 7, 10, 11, 12, 13, 14, 15, 16]);
-
-const STATUS_LABEL: Record<AppOrderStatus, string> = {
-  CREATED: 'Создан',
-  ACTIVE: 'В работе',
-  PACKAGING: 'Собирается',
-  READY_FOR_PICK_UP: 'Готов',
-  PICKED_UP: 'Выдан',
-  CANCELED: 'Отменён',
+const STORE_NUM: Record<number, string> = {
+  12: '1', 7: '2', 11: '3', 10: '4',
+  13: '5', 6: '6', 14: '7', 15: '8', 16: '9',
 };
 
-const STATUS_CLASS: Record<AppOrderStatus, string> = {
-  CREATED: 'ao-status--created',
-  ACTIVE: 'ao-status--active',
-  PACKAGING: 'ao-status--packaging',
-  READY_FOR_PICK_UP: 'ao-status--ready',
-  PICKED_UP: 'ao-status--done',
-  CANCELED: 'ao-status--canceled',
-};
+const OUR_STORE_IDS = new Set(Object.keys(STORE_NUM).map(Number));
 
 const PERIOD_LABELS = [
   { val: 'today', label: 'Сегодня' },
@@ -43,8 +30,7 @@ function renderOrder(o: AppOrder): string {
   const name = o.user.name || '—';
   const time = formatTime(o.order_date);
   const total = o.total_price.toLocaleString('ru-RU', { minimumFractionDigits: 0 }) + ' ₽';
-  const statusLabel = STATUS_LABEL[o.status] ?? o.status;
-  const statusClass = STATUS_CLASS[o.status] ?? '';
+  const storeNum = STORE_NUM[o.store.id] ?? '?';
   const items = o.cart_products
     .map((p) => {
       const pack = p.pack_item ? ` ${p.pack_item.volume}л` : '';
@@ -53,18 +39,14 @@ function renderOrder(o: AppOrder): string {
     .join(', ');
   const note = o.note ? `<div class="ao-note" title="${escapeHtml(o.note)}">💬 ${escapeHtml(o.note)}</div>` : '';
 
-  const canProgress = o.status !== 'PICKED_UP' && o.status !== 'CANCELED';
-
   return `<div class="ao-row${o.status === 'CANCELED' ? ' ao-row--canceled' : ''}">
     <div class="ao-row-main">
       <span class="ao-num">#${escapeHtml(o.number.slice(-6))}</span>
       <span class="ao-time">${time}</span>
-      <span class="ao-status ${statusClass}">${statusLabel}</span>
-      <span class="ao-store">${escapeHtml(o.store.name)}</span>
+      <span class="ao-store-badge">№${storeNum}</span>
       <span class="ao-client">${escapeHtml(name)}</span>
       <span class="ao-phone">${escapeHtml(phone)}</span>
       <span class="ao-total">${total}</span>
-      ${canProgress ? `<button type="button" class="btn btn-sm btn-ghost ao-progress-btn" data-ao-number="${escapeHtml(o.number)}">▶</button>` : '<span></span>'}
     </div>
     <div class="ao-items">${escapeHtml(items)}</div>
     ${note}

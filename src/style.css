@@ -3733,17 +3733,17 @@ select:disabled {
 
 .ao-row-main {
   display: grid;
-  grid-template-columns: 80px 70px 100px 1fr 120px 120px 80px 36px;
+  grid-template-columns: 80px 70px 40px 1fr 140px 80px;
   align-items: center;
   column-gap: 10px;
 }
 
-.ao-num  { font-weight: 700; color: var(--accent); }
-.ao-time { color: var(--muted); font-size: 0.82rem; }
-.ao-store { color: var(--muted); font-size: 0.82rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.ao-client { font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.ao-phone { color: var(--muted); font-size: 0.82rem; }
-.ao-total { font-weight: 600; text-align: right; color: var(--text); }
+.ao-num        { font-weight: 700; color: var(--accent); }
+.ao-time       { color: var(--muted); font-size: 0.82rem; }
+.ao-store-badge { font-weight: 700; font-size: 0.85rem; color: var(--ok); white-space: nowrap; }
+.ao-client     { font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ao-phone      { color: var(--muted); font-size: 0.82rem; }
+.ao-total      { font-weight: 600; text-align: right; color: var(--text); }
 
 .ao-items {
   margin-top: 4px;
@@ -3762,20 +3762,6 @@ select:disabled {
   text-overflow: ellipsis;
 }
 
-.ao-status {
-  display: inline-block;
-  padding: 2px 7px;
-  border-radius: 10px;
-  font-size: 0.78rem;
-  font-weight: 600;
-  white-space: nowrap;
-}
-.ao-status--created   { background: color-mix(in srgb, var(--accent) 15%, transparent); color: var(--accent); }
-.ao-status--active    { background: color-mix(in srgb, #f59e0b 15%, transparent); color: #d97706; }
-.ao-status--packaging { background: color-mix(in srgb, #8b5cf6 15%, transparent); color: #7c3aed; }
-.ao-status--ready     { background: color-mix(in srgb, #10b981 15%, transparent); color: #059669; }
-.ao-status--done      { background: color-mix(in srgb, var(--ok) 15%, transparent); color: var(--ok); }
-.ao-status--canceled  { background: color-mix(in srgb, var(--muted) 15%, transparent); color: var(--muted); }
 
 /* ── Theme toggle ───────────────────────────────────── */
 .theme-toggle {

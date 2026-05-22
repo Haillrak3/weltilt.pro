@@ -23,7 +23,7 @@ import { newOrder, createOrder, loadOrderToCart, changeOrderStatus, changeOrderS
 import { openClientHistoryModal } from '../ui/order-preview-modal';
 import { addToCart, addDraftWithTara, removeDraftWithTara, changeCartQty, removeFromCart, roundQty, getCartSum } from '../data/cart';
 import { loadCategories, toggleCategory, selectSubcategory } from '../data/categories';
-import { getAllProducts, getAppOrders, progressAppOrder } from '../api/client';
+import { getAllProducts, getAppOrders } from '../api/client';
 import { selectStore } from '../data/stores';
 import { loadAllStoresProducts } from '../data/all-stores-search';
 import { addLocalProduct, deleteLocalProduct, localToProduct, moderatedToProduct, reorderLocalProduct, updateLocalProduct } from '../data/vendor';
@@ -455,20 +455,6 @@ function bindEvents(): void {
     });
   });
 
-  document.querySelectorAll<HTMLButtonElement>('.ao-progress-btn').forEach((btn) => {
-    btn.addEventListener('click', async () => {
-      const num = btn.dataset.aoNumber;
-      if (!num) return;
-      btn.disabled = true;
-      try {
-        await progressAppOrder(num);
-        void loadAppOrders();
-      } catch (e) {
-        btn.disabled = false;
-        alert(e instanceof Error ? e.message : 'Ошибка');
-      }
-    });
-  });
 
   (document.getElementById('search-all-input') as HTMLInputElement | null)?.addEventListener('input', (e) => {
     state.searchAllQuery = (e.target as HTMLInputElement).value;

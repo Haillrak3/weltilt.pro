@@ -462,7 +462,7 @@ function bindEvents(): void {
         1,
       );
 
-      state.orderApp.orderNumber = order.number;
+      state.orderApp.orderNumber = order.number.slice(-6);
       state.orderApp.orderAmount = String(order.total_price);
       state.orderApp.packageQty = packages;
       saveOrderApp(state.orderApp);

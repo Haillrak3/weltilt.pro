@@ -825,7 +825,6 @@ button {
   gap: 6px;
   min-height: 90px;
   cursor: pointer;
-  user-select: none;
 }
 
 .product-tile:hover {
@@ -1801,8 +1800,10 @@ select:disabled {
 
 .orders-main {
   flex: 1;
+  overflow-x: auto;
   overflow-y: auto;
   padding: 20px 24px;
+  min-width: 0;
 }
 
 /* ── Встроенный браузер ─────────────────────────────────────────── */
@@ -2020,6 +2021,7 @@ select:disabled {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   font-size: 0.9rem;
+  min-width: 900px;
 }
 
 .order-row--attention {
@@ -2028,17 +2030,17 @@ select:disabled {
 }
 
 .order-row-info {
-  display: flex;
+  display: grid;
+  grid-template-columns: 38px 32px 84px 148px 110px 152px 1fr auto;
   align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
+  column-gap: 10px;
 }
 
 .order-row-controls {
-  display: flex;
+  display: grid;
+  grid-template-columns: 38px 32px 84px 148px 110px 152px 1fr auto;
+  column-gap: 10px;
   align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
 }
 
 .order-num {
@@ -2046,7 +2048,6 @@ select:disabled {
   font-size: 1rem;
   color: var(--accent);
   white-space: nowrap;
-  min-width: 28px;
 }
 
 .order-store-badge {
@@ -2054,7 +2055,6 @@ select:disabled {
   font-size: 0.85rem;
   color: var(--ok);
   white-space: nowrap;
-  min-width: 24px;
 }
 
 .order-app-num {
@@ -2067,12 +2067,18 @@ select:disabled {
   color: var(--muted);
   white-space: nowrap;
   font-size: 0.82rem;
-  min-width: 80px;
 }
 
 .order-client {
   font-weight: 600;
-  min-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.order-phone-wrap {
+  position: relative;
+  min-width: 0;
 }
 
 .order-phone {
@@ -2094,9 +2100,18 @@ select:disabled {
 .order-phone-btn:hover { color: var(--text); text-decoration: underline dotted; }
 
 .order-phone-popup {
-  display: inline-flex;
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 50;
+  display: flex;
   align-items: center;
-  margin-left: 4px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 4px 6px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+  white-space: nowrap;
   animation: fade-in 0.1s ease;
 }
 .order-callback-btn {
@@ -2115,25 +2130,38 @@ select:disabled {
 @keyframes fade-in { from { opacity: 0; transform: translateX(-4px); } to { opacity: 1; transform: none; } }
 
 .order-addr {
-  flex: 1;
   color: var(--muted);
   font-size: 0.85rem;
-  min-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
 }
 
 .order-items {
   white-space: nowrap;
   font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.order-method {
+.order-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.order-row-meta {
+  grid-column: 7;
+  font-size: 0.8rem;
   color: var(--muted);
-  font-size: 0.82rem;
   white-space: nowrap;
 }
 
 /* Per-order store picker */
 .order-store-picker {
+  grid-column: 1 / span 4;
   display: flex;
   gap: 4px;
 }
@@ -2162,6 +2190,7 @@ select:disabled {
 
 /* Per-order status picker */
 .order-status-picker {
+  grid-column: 5 / span 2;
   display: flex;
   gap: 4px;
 }
@@ -2882,6 +2911,7 @@ select:disabled {
 .refs-client-name {
   font-weight: 600;
   min-width: 140px;
+  color: var(--text);
 }
 
 .refs-client-phone {
@@ -3887,8 +3917,17 @@ select:disabled {
     padding: 8px 10px;
     font-size: 0.82rem;
   }
-  .order-row-info {
-    gap: 8px;
+  .order-row-info,
+  .order-row-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 8px;
+  }
+  .order-client,
+  .order-addr {
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
   }
 
   /* Analytics / refs pages */

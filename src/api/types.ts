@@ -157,7 +157,7 @@ export interface AppOrder {
   user: {
     id: number;
     name: string | null;
-    phone_number: { country_code: string; number: string };
+    phone_number: { country_code: string; phone_number: string };
     orders_count?: number;
   };
   total_price: number;

@@ -37,7 +37,7 @@ function formatTime(iso: string): string {
 }
 
 function renderOrder(o: AppOrder): string {
-  const phone = `${o.user.phone_number.country_code}${o.user.phone_number.number}`;
+  const phone = `${o.user.phone_number.country_code}${o.user.phone_number.phone_number}`;
   const name = o.user.name || '—';
   const time = formatTime(o.order_date);
   const total = o.total_price.toLocaleString('ru-RU', { minimumFractionDigits: 0 }) + ' ₽';

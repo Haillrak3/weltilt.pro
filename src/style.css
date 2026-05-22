@@ -3725,6 +3725,8 @@ select:disabled {
   width: 200px;
   flex-shrink: 0;
   font-size: 0.85rem;
+  position: relative;
+  z-index: 3;
 }
 .linked-order-note {
   color: var(--accent);

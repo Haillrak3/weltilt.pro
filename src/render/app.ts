@@ -1029,11 +1029,11 @@ function renderInlineAppOrders(): string {
 
   const rows = waiting.map((o) => {
     const storeNum = OUR_STORE_NUMS[o.store.id];
-    const note = o.note ? escapeHtml(o.note) : '';
+    const note = o.note ? `<div class="ao-inline-note">${escapeHtml(o.note)}</div>` : '';
     return `<div class="ao-inline-row">
-      <span class="ao-inline-store">№${storeNum}</span>
-      <span class="ao-inline-num">#${escapeHtml(o.number.slice(-6))}</span>
-      <span class="ao-inline-note">${note}</span>
+      <div class="ao-inline-store">Магазин №${storeNum}</div>
+      <div class="ao-inline-num">#${escapeHtml(o.number.slice(-6))}</div>
+      ${note}
       <button type="button" class="btn btn-sm btn-primary ao-deliver-btn" data-ao-deliver="${escapeHtml(o.number)}">Оформить доставку</button>
     </div>`;
   }).join('');

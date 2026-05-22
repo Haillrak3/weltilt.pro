@@ -4155,14 +4155,15 @@ select:disabled {
 .ao-inline-strip:empty { display: none; }
 .ao-inline-row {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 3px 0;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 0;
   font-size: 0.85rem;
-  min-height: 28px;
+  border-bottom: 1px solid var(--border);
 }
-.ao-inline-row.ao-inline-status { color: var(--muted); font-style: italic; }
-.ao-inline-store { font-weight: 700; color: var(--accent); flex-shrink: 0; min-width: 28px; }
-.ao-inline-num { font-family: monospace; color: var(--muted); flex-shrink: 0; }
-.ao-inline-note { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); }
+.ao-inline-row:last-child { border-bottom: none; }
+.ao-inline-row.ao-inline-status { color: var(--muted); font-style: italic; flex-direction: row; }
+.ao-inline-store { font-weight: 700; color: var(--accent); }
+.ao-inline-num { font-family: monospace; color: var(--muted); }
+.ao-inline-note { color: var(--text); }
 .call-popup__btn--primary:hover { background: var(--accent-dim); border-color: var(--accent-dim); }

@@ -16,7 +16,7 @@ const PERIOD_LABELS = [
   { val: '28day', label: '28 дней' },
 ] as const;
 
-function formatTime(iso: string): string {
+export function formatTime(iso: string): string {
   const d = new Date(new Date(iso).getTime() + 3 * 60 * 60 * 1000);
   const dd = String(d.getUTCDate()).padStart(2, '0');
   const mm = String(d.getUTCMonth() + 1).padStart(2, '0');

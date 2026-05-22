@@ -14,6 +14,7 @@ import { renderOrdersPage } from './orders-page';
 import { renderAnalyticsPage } from './analytics-page';
 import { renderRefsPage } from './refs-page';
 import { renderSearchPage, updateSearchDOM, buildStoreNumMap } from './search-page';
+import { formatTime } from './app-orders-page';
 import { saveCountries } from '../data/countries';
 
 import { newOrder, createOrder, loadOrderToCart, changeOrderStatus, changeOrderStore,
@@ -462,8 +463,9 @@ function bindEvents(): void {
       void navigator.clipboard.writeText(`#${num}   ${amount}`);
       btn.textContent = '✓ Скопировано';
       btn.classList.add('ao-copied');
-      btn.closest('.ao-inline-row')?.classList.remove('ao-inline-row--new');
-      btn.closest('.ao-inline-row')?.querySelector('.ao-new-badge')?.remove();
+      const row = btn.closest('.ao-inline-row');
+      row?.classList.remove('ao-inline-row--new');
+      row?.querySelector('.ao-new-badge')?.remove();
       setTimeout(() => { btn.textContent = 'Самовывоз'; btn.classList.remove('ao-copied'); }, 1500);
     });
   });
@@ -1058,7 +1060,9 @@ function renderInlineAppOrders(): string {
     const note = o.note ? `<div class="ao-inline-note">${escapeHtml(o.note)}</div>` : '';
     const isNew = !_handledOrders.has(o.number);
     return `<div class="ao-inline-row${isNew ? ' ao-inline-row--new' : ''}">
-      <div class="ao-inline-store">Магазин №${storeNum}${isNew ? ' <span class="ao-new-badge">новый</span>' : ''}</div>
+      ${isNew ? '<div class="ao-new-badge">новый</div>' : ''}
+      <div class="ao-inline-store">Магазин №${storeNum}</div>
+      <div class="ao-inline-time">${formatTime(o.order_date)}</div>
       <div class="ao-inline-num">#${escapeHtml(o.number.slice(-6))}</div>
       ${note}
       <div class="ao-inline-actions">

@@ -4167,7 +4167,8 @@ select:disabled {
 .ao-inline-num { font-family: monospace; color: var(--muted); }
 .ao-pickup-btn.ao-copied { background: var(--ok) !important; border-color: var(--ok) !important; color: #fff !important; }
 .ao-inline-row--new { border-left: 3px solid var(--ok); padding-left: 6px; }
-.ao-new-badge { display: inline-block; font-size: 0.7rem; font-weight: 700; background: var(--ok); color: #fff; border-radius: 4px; padding: 1px 5px; vertical-align: middle; margin-left: 4px; text-transform: uppercase; }
+.ao-new-badge { display: inline-block; font-size: 0.7rem; font-weight: 700; background: var(--ok); color: #fff; border-radius: 4px; padding: 1px 5px; text-transform: uppercase; align-self: flex-start; }
+.ao-inline-time { font-size: 0.8rem; color: var(--muted); }
 .ao-inline-actions { display: flex; gap: 6px; }
 .ao-inline-note { color: var(--text); }
 .call-popup__btn--primary:hover { background: var(--accent-dim); border-color: var(--accent-dim); }

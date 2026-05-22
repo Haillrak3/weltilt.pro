@@ -69,6 +69,7 @@ function renderOrder(o: AppOrder, isDupe: boolean): string {
       <span class="ao-client">${escapeHtml(name)}</span>
       <span class="ao-phone">${escapeHtml(phone)}</span>
       <span class="ao-total">${total}</span>
+      <button type="button" class="btn btn-sm btn-primary ao-deliver-btn" data-ao-deliver="${escapeHtml(o.number)}">Оформить доставку</button>
     </div>
     <div class="ao-items">${escapeHtml(items)}</div>
     ${note}

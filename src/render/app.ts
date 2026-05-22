@@ -448,6 +448,34 @@ function bindEvents(): void {
 
   document.getElementById('ao-refresh-btn')?.addEventListener('click', () => { void loadAppOrders(); });
 
+  document.querySelectorAll<HTMLButtonElement>('.ao-deliver-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const num = btn.dataset.aoDeliver;
+      const order = state.appOrders.find((o) => o.number === num);
+      if (!order) return;
+
+      const totalQty = order.cart_products.reduce((s, p) => s + p.qty, 0);
+      const totalLiters = order.cart_products.reduce((s, p) => s + (p.pack_item ? p.qty * p.pack_item.volume : 0), 0);
+      const packages = Math.max(
+        Math.ceil(totalQty / 7),
+        totalLiters > 0 ? Math.ceil(totalLiters / 7) : 0,
+        1,
+      );
+
+      state.orderApp.orderNumber = order.number;
+      state.orderApp.orderAmount = String(order.total_price);
+      state.orderApp.packageQty = packages;
+      saveOrderApp(state.orderApp);
+      state.orderMode = 'app';
+      saveOrderMode('app');
+      state.cart = [];
+      const pkg = state.localProducts.find((lp) => /пакет/i.test(lp.name));
+      if (pkg) state.cart.push({ product: localToProduct(pkg), qty: packages });
+      state.currentPage = 'products';
+      renderApp();
+    });
+  });
+
   document.querySelectorAll<HTMLButtonElement>('[data-ao-period]').forEach((btn) => {
     btn.addEventListener('click', () => {
       state.appOrdersPeriod = btn.dataset.aoPeriod as typeof state.appOrdersPeriod;

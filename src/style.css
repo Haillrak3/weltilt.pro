@@ -3734,7 +3734,7 @@ select:disabled {
 
 .ao-row-main {
   display: grid;
-  grid-template-columns: 80px 70px 40px 1fr 140px 80px;
+  grid-template-columns: 80px 70px 40px 1fr 140px 80px auto;
   align-items: center;
   column-gap: 10px;
 }

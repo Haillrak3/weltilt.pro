@@ -464,6 +464,9 @@ function bindEvents(): void {
         1,
       );
 
+      const rawPhone = order.user.phone_number.country_code + order.user.phone_number.phone_number;
+      state.client.phone = formatPhone(rawPhone) || rawPhone;
+      saveClient(state.client);
       state.orderApp.orderNumber = order.number.slice(-6);
       state.orderApp.orderAmount = String(order.total_price);
       state.orderApp.packageQty = packages;

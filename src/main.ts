@@ -5,7 +5,7 @@ if (localStorage.getItem('orderdesk_theme') === 'light') {
   document.documentElement.dataset.theme = 'light';
 }
 import { setRender } from './render/trigger';
-import { renderApp, triggerZoneDetection } from './render/app';
+import { renderApp, triggerZoneDetection, startAppOrdersPolling } from './render/app';
 import { loadCategories } from './data/categories';
 import { loadOrdersFromServer, migrateOrderSeqNums } from './data/orders';
 import { loadLocalProductsFromServer } from './data/vendor';
@@ -47,6 +47,7 @@ async function boot(): Promise<void> {
   });
   renderApp();
   triggerZoneDetection(0);
+  if (state.orderMode === 'app') startAppOrdersPolling();
 
   if (!isConfigured(state.settings)) {
     openSettings(false);

@@ -226,7 +226,7 @@ function bindEvents(): void {
       state.orderMode = newMode;
       saveOrderMode(newMode);
       state.cart = [];
-      if (newMode === 'phone') state.appOrderLinked = null;
+      if (newMode === 'phone') { state.appOrderLinked = null; stopAppOrdersPolling(); }
       if (newMode === 'app') {
         const pkg = state.localProducts.find((lp) => /пакет/i.test(lp.name));
         if (pkg) {
@@ -235,6 +235,7 @@ function bindEvents(): void {
           saveOrderApp(state.orderApp);
         }
         void loadAppOrders();
+        startAppOrdersPolling();
       }
       renderApp();
     });
@@ -412,8 +413,12 @@ function bindEvents(): void {
     state.currentPage = 'orders';
     renderApp();
   });
-  document.getElementById('tab-products')?.addEventListener('click', () => { state.currentPage = 'products'; newOrder(); void loadAppOrders(); });
-  document.getElementById('tab-orders')?.addEventListener('click', () => { state.currentPage = 'orders'; renderApp(); void loadOrdersFromServer(); });
+  document.getElementById('tab-products')?.addEventListener('click', () => {
+    state.currentPage = 'products';
+    newOrder();
+    if (state.orderMode === 'app') { void loadAppOrders(); startAppOrdersPolling(); }
+  });
+  document.getElementById('tab-orders')?.addEventListener('click', () => { state.currentPage = 'orders'; stopAppOrdersPolling(); renderApp(); void loadOrdersFromServer(); });
 
   document.querySelectorAll<HTMLButtonElement>('.mob-nav-btn[data-mob-panel]').forEach((btn) => {
     btn.addEventListener('click', () => {
@@ -1077,19 +1082,44 @@ function renderLinkedAppOrder(): string {
   </aside>`;
 }
 
-async function loadAppOrders(): Promise<void> {
-  state.appOrdersLoading = true;
-  state.appOrdersError = '';
-  renderApp();
+let _appOrdersPollTimer: ReturnType<typeof setInterval> | null = null;
+
+async function loadAppOrders(silent = false): Promise<void> {
+  if (!silent) {
+    state.appOrdersLoading = true;
+    state.appOrdersError = '';
+    renderApp();
+  }
   try {
     const page = await getAppOrders(state.appOrdersPeriod);
-    state.appOrders = page.list ?? [];
+    const newList = page.list ?? [];
+    const changed = JSON.stringify(newList.map((o) => o.number + o.status)) !==
+                    JSON.stringify(state.appOrders.map((o) => o.number + o.status));
+    state.appOrders = newList;
     state.appOrdersTotalCount = page.total_count ?? 0;
+    if (!silent || changed) renderApp();
   } catch (e) {
-    state.appOrdersError = e instanceof Error ? e.message : 'Ошибка загрузки';
+    if (!silent) {
+      state.appOrdersError = e instanceof Error ? e.message : 'Ошибка загрузки';
+      renderApp();
+    }
   } finally {
-    state.appOrdersLoading = false;
-    renderApp();
+    if (!silent) {
+      state.appOrdersLoading = false;
+      renderApp();
+    }
+  }
+}
+
+export function startAppOrdersPolling(): void {
+  stopAppOrdersPolling();
+  _appOrdersPollTimer = setInterval(() => { void loadAppOrders(true); }, 15_000);
+}
+
+export function stopAppOrdersPolling(): void {
+  if (_appOrdersPollTimer !== null) {
+    clearInterval(_appOrdersPollTimer);
+    _appOrdersPollTimer = null;
   }
 }
 

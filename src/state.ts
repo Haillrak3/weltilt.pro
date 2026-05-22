@@ -84,4 +84,5 @@ export const state = {
   appOrdersError: '',
   appOrdersPeriod: 'today' as AppOrderPeriod,
   appOrdersTotalCount: 0,
+  appOrderLinked: null as string | null,
 };

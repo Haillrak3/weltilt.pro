@@ -3716,6 +3716,29 @@ select:disabled {
 .stock-popup-price { color: var(--muted); font-size: .8rem; margin-left: auto; padding-left: 8px; }
 .stock-popup-loading { padding: 6px 0; color: var(--muted); font-size: .85rem; }
 
+/* ── Linked app order panel ─────────────────────────── */
+.linked-order-panel {
+  width: 200px;
+  flex-shrink: 0;
+  font-size: 0.85rem;
+}
+.linked-order-note {
+  color: var(--accent);
+  font-weight: 500;
+  margin-bottom: 10px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.linked-order-items {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.linked-order-item {
+  color: var(--text);
+  line-height: 1.4;
+}
+
 /* ── App orders page ────────────────────────────────── */
 .ao-page { padding: 0 16px 24px; }
 .ao-toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }

@@ -227,6 +227,7 @@ function bindEvents(): void {
       state.orderMode = newMode;
       saveOrderMode(newMode);
       state.cart = [];
+      if (newMode === 'phone') state.appOrderLinked = null;
       if (newMode === 'app') {
         const pkg = state.localProducts.find((lp) => /пакет/i.test(lp.name));
         if (pkg) {
@@ -465,6 +466,7 @@ function bindEvents(): void {
       );
 
       const rawPhone = order.user.phone_number.country_code + order.user.phone_number.phone_number;
+      state.appOrderLinked = order.number;
       state.client.phone = formatPhone(rawPhone) || rawPhone;
       saveClient(state.client);
       state.orderApp.orderNumber = order.number.slice(-6);
@@ -1016,6 +1018,28 @@ function bindEvents(): void {
   }, { once: true });
 }
 
+function renderLinkedAppOrder(): string {
+  if (state.orderMode !== 'app' || !state.appOrderLinked) return '';
+  const order = state.appOrders.find((o) => o.number === state.appOrderLinked);
+  if (!order) return '';
+
+  const items = order.cart_products.map((p) => {
+    const pack = p.pack_item && p.pack_item.volume > 0 ? ` ${p.pack_item.volume}л` : '';
+    return `<div class="linked-order-item">${escapeHtml(p.name)}${pack} × ${p.qty}</div>`;
+  }).join('');
+
+  const note = order.note
+    ? `<div class="linked-order-note">${escapeHtml(order.note)}</div>`
+    : '';
+
+  return `<aside class="panel linked-order-panel">
+    <div class="panel-body scroll">
+      ${note}
+      <div class="linked-order-items">${items}</div>
+    </div>
+  </aside>`;
+}
+
 async function loadAppOrders(): Promise<void> {
   state.appOrdersLoading = true;
   state.appOrdersError = '';
@@ -1119,6 +1143,8 @@ export function renderApp(): void {
           `}
           ${renderCartFooter()}
         </aside>
+
+        ${renderLinkedAppOrder()}
 
         <aside class="panel categories-panel">
           <header class="panel-head">

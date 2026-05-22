@@ -1,7 +1,9 @@
 import { ApiError, requestSms, signIn } from '../api/client';
-import { loadSettings } from '../config/settings';
+import { loadSettings, saveSettings, operatorFromSettings } from '../config/settings';
 import { completeSignIn } from '../data/auth';
 import { escapeHtml } from '../utils';
+import { state } from '../state';
+import { saveOrderMeta } from '../storage';
 
 export interface AuthModalContext {
   settings: ReturnType<typeof loadSettings>;
@@ -34,6 +36,7 @@ export function openAuthModal(ctx: AuthModalContext): void {
       </div>
       <div class="modal-actions modal-actions-left">
         <button type="button" class="btn btn-ghost" id="btn-request-sms">Получить код</button>
+        <button type="button" class="btn btn-ghost" id="btn-save-phone">Сохранить телефон</button>
       </div>
       <p id="sms-status" class="sms-status hidden"></p>
 
@@ -62,6 +65,22 @@ export function openAuthModal(ctx: AuthModalContext): void {
     overlay.querySelector('#btn-cancel')?.addEventListener('click', () => overlay.remove());
     overlay.addEventListener('click', (ev) => { if (ev.target === overlay) overlay.remove(); });
   }
+
+  overlay.querySelector('#btn-save-phone')?.addEventListener('click', () => {
+    const phoneNumber = (overlay.querySelector('#input-phone') as HTMLInputElement).value.trim();
+    if (!phoneNumber) { showSmsStatus('Укажите номер телефона', true); return; }
+    const digits = phoneNumber.replace(/\D/g, '');
+    const norm = digits.startsWith('8') && digits.length === 11 ? digits.slice(1) : digits;
+    ctx.settings.phoneNumber = norm;
+    state.settings.phoneNumber = norm;
+    saveSettings(state.settings);
+    if (!state.orderMeta.operator) {
+      state.orderMeta.operator = operatorFromSettings(state.settings);
+      saveOrderMeta(state.orderMeta);
+    }
+    showSmsStatus('Телефон сохранён ✓');
+    if (closeable) setTimeout(() => overlay.remove(), 800);
+  });
 
   overlay.querySelector('#btn-request-sms')?.addEventListener('click', async () => {
     const countryCode = '+7';

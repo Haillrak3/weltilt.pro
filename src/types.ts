@@ -98,10 +98,9 @@ export interface OrderApp {
   packageQty: number;
 }
 
-export type AppPage = 'products' | 'orders' | 'analytics' | 'refs' | 'search' | 'browser';
+export type AppPage = 'products' | 'orders' | 'analytics' | 'refs' | 'search';
 export type CartTab = 'cart' | 'client' | 'order';
 export type OrderMode = 'phone' | 'app';
-export type RefsTab = 'orders' | 'edit';
 export type AnalyticsTab = 'overview' | 'revenue';
 export type AnalyticsPeriod = 'day' | 'week' | 'month';
 

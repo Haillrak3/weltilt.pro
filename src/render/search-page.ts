@@ -10,7 +10,7 @@ interface StoreProduct {
   hasStock: boolean;         // есть хотя бы в одном складе
 }
 
-function buildStoreNumMap(): Map<string, string> {
+export function buildStoreNumMap(): Map<string, string> {
   const map = new Map<string, string>();
   for (const shop of state.storesList) {
     const id = String(shop.id);
@@ -92,6 +92,7 @@ function renderResults(): string {
     return `
       <div class="product-tile${tileClass}" data-add-id="${p.id}">
         ${cartBadge}
+        <button type="button" class="tile-stock-btn" data-stock-id="${p.id}" title="Остатки по магазинам">≡</button>
         <div class="tile-name">${formatProductName(p)}</div>
         ${stilHtml}
         <div class="tile-price">${oos ? '<span class="oos-label">Нет в наличии</span>' : escapeHtml(formatPrice(p))}</div>

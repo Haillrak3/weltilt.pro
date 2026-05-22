@@ -23,7 +23,7 @@ function getSearchAllProducts(): Product[] {
     list.forEach((p) => { if (!seen.has(p.id)) { seen.add(p.id); all.push(p); } });
   });
   for (const p of state.vendorProducts) {
-    if (p.is_blocked && !seen.has(p.id)) { seen.add(p.id); all.push(p); }
+    if (!seen.has(p.id)) { seen.add(p.id); all.push(p); }
   }
   state.localProducts.forEach((lp) => {
     const p = localToProduct(lp);

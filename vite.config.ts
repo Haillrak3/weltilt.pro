@@ -190,6 +190,7 @@ const _syncOrders = _db.transaction((orders: unknown[]) => {
 // ── Auth / Session ────────────────────────────────────────────────────────────
 
 const _ADMIN_PASS   = process.env['DESK_ADMIN_PASSWORD'] ?? 'Nikifor1';
+const _OP_PASS      = process.env['DESK_OPERATOR_PASSWORD'] ?? 'x228ye102';
 const _API_TOKEN    = process.env['DESK_API_TOKEN'] ?? '';   // static bearer token for scripts
 const _SESSION_TTL  = 12 * 60 * 60 * 1000; // 12 h
 const _sessions     = new Map<string, { phone: string; expires: number }>();
@@ -652,15 +653,33 @@ function makeClientsEndpoint(): Middleware {
         try { input = JSON.parse(body); } catch { err('Невалидный JSON'); return; }
         const d = normPhone(String(input['phone'] ?? ''));
         if (d.length < 7) { err('Некорректный номер телефона (минимум 7 цифр)'); return; }
-        const addresses_json = Array.isArray(input['addresses']) && (input['addresses'] as unknown[]).length
-          ? JSON.stringify(input['addresses']) : null;
-        const phones_json = Array.isArray(input['phones']) && (input['phones'] as unknown[]).length
-          ? JSON.stringify(input['phones']) : null;
+
+        const _addrKey = (a: Record<string, unknown>) =>
+          ['street','house','entrance','floor','apartment','intercom']
+            .map(k => String(a[k] ?? '').toLowerCase()).join('|');
+
+        const existingRow = _db.prepare('SELECT addresses_json, phones_json FROM clients WHERE phone = ?')
+          .get(d) as { addresses_json: string | null; phones_json: string | null } | undefined;
+
+        // Merge addresses: union of DB + incoming, deduped — never lose server-side entries
+        const dbAddrs  = existingRow?.addresses_json ? JSON.parse(existingRow.addresses_json) as Record<string, unknown>[] : [];
+        const inAddrs  = Array.isArray(input['addresses']) ? input['addresses'] as Record<string, unknown>[] : [];
+        const mergedAddrs = [...dbAddrs];
+        for (const a of inAddrs) {
+          if (!mergedAddrs.some(e => _addrKey(e) === _addrKey(a))) mergedAddrs.push(a);
+        }
+        const addresses_json = mergedAddrs.length > 0 ? JSON.stringify(mergedAddrs) : null;
+
+        // Merge phones: union deduped
+        const dbPhones  = existingRow?.phones_json ? JSON.parse(existingRow.phones_json) as string[] : [];
+        const inPhones  = Array.isArray(input['phones']) ? input['phones'] as string[] : [];
+        const mergedPhones = [...new Set([...dbPhones, ...inPhones])];
+        const phones_json = mergedPhones.length > 0 ? JSON.stringify(mergedPhones) : null;
+
         const entry = { phone:d, name:input['name']??'', street:input['street']??'', house:input['house']??'',
           entrance:input['entrance']??'', floor:input['floor']??'', apartment:input['apartment']??'',
           intercom:input['intercom']??'', notes:input['notes']??'', addresses_json, phones_json };
-        const exists = _db.prepare('SELECT phone FROM clients WHERE phone = ?').get(d);
-        if (exists) {
+        if (existingRow !== undefined) {
           _db.prepare(`UPDATE clients SET name=@name,street=@street,house=@house,entrance=@entrance,
             floor=@floor,apartment=@apartment,intercom=@intercom,notes=@notes,
             addresses_json=@addresses_json,phones_json=@phones_json WHERE phone=@phone`).run(entry);
@@ -766,6 +785,12 @@ function makeV1Endpoint(): Middleware {
           _db.transaction(() => {
             _db.prepare(`INSERT INTO orders (id,created_at,status,store_id,order_method,pay_method,operator,total,seq_num,order_number,delivery_price,order_amount,given,change_amt,deleted_at,client_phone,client_name,client_street,client_house,client_entrance,client_floor,client_apartment,client_intercom,client_notes) VALUES (@id,@created_at,@status,@store_id,@order_method,@pay_method,@operator,@total,@seq_num,@order_number,@delivery_price,@order_amount,@given,@change_amt,@deleted_at,@client_phone,@client_name,@client_street,@client_house,@client_entrance,@client_floor,@client_apartment,@client_intercom,@client_notes)`).run(row);
             insertItemsForOrder(id, items);
+            // Upsert client so /v1/clients/:phone/addresses works immediately after order creation
+            if (String(row.client_phone).length >= 7) _stmtUpsertClient.run({
+              phone: row.client_phone, name: row.client_name, street: row.client_street,
+              house: row.client_house, entrance: row.client_entrance, floor: row.client_floor,
+              apartment: row.client_apartment, intercom: row.client_intercom, notes: row.client_notes,
+            });
           })();
           ok(rowToOrder(_db.prepare('SELECT * FROM orders WHERE id = ?').get(id) as Record<string, unknown>), 201);
         } catch (e) { err(String(e), 500); }
@@ -1311,6 +1336,14 @@ function attachMiddlewares(middlewares: { use: (p: string, h: Middleware) => voi
     const s = res as ServerResponse;
     s.setHeader('Content-Type', 'application/json');
 
+    const origin = r.headers['origin'] as string | undefined;
+    if (origin === 'https://browser.weltilt.pro') {
+      s.setHeader('Access-Control-Allow-Origin', 'https://browser.weltilt.pro');
+      s.setHeader('Access-Control-Allow-Credentials', 'true');
+      s.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+      if (r.method === 'OPTIONS') { s.statusCode = 204; s.end(); return; }
+    }
+
     if (r.method === 'GET') {
       const sid  = _getSid(r);
       const sess = sid ? _sessions.get(sid) : null;
@@ -1379,6 +1412,28 @@ function attachMiddlewares(middlewares: { use: (p: string, h: Middleware) => voi
 
       s.statusCode = 403;
       s.end('{"ok":false,"error":"Не авторизован"}');
+    });
+  }) as Middleware);
+
+  // ── POST /desk-api/auth/password-login ────────────────────────────────────────
+  middlewares.use('/desk-api/auth/password-login', ((req, res, _next) => {
+    const r = req as IncomingMessage;
+    const s = res as ServerResponse;
+    s.setHeader('Content-Type', 'application/json');
+    if (r.method !== 'POST') { s.statusCode = 405; s.end('{"ok":false}'); return; }
+    let body = '';
+    r.on('data', (c: Buffer) => { body += c.toString(); });
+    r.on('end', () => {
+      try {
+        const { phone, password } = JSON.parse(body) as { phone?: string; password?: string };
+        const norm = _normWL(phone ?? '');
+        if (!norm || norm.length < 10) { s.statusCode = 400; s.end('{"ok":false,"error":"Укажите номер телефона"}'); return; }
+        if (!password || password !== _OP_PASS) { s.statusCode = 403; s.end('{"ok":false,"error":"Неверный пароль"}'); return; }
+        if (!_readWhitelist().has(norm)) { s.statusCode = 403; s.end('{"ok":false,"error":"Номер не найден"}'); return; }
+        const sid = _makeSession(norm);
+        s.setHeader('Set-Cookie', _sidCookie(sid));
+        s.end('{"ok":true}');
+      } catch { s.statusCode = 400; s.end('{"ok":false}'); }
     });
   }) as Middleware);
 
@@ -1501,8 +1556,12 @@ function attachMiddlewares(middlewares: { use: (p: string, h: Middleware) => voi
 
 const deskApi: Plugin = {
   name: 'desk-api',
-  configureServer(server) { attachMiddlewares(server.middlewares); },
-  configurePreviewServer(server) { attachMiddlewares(server.middlewares); },
+  configureServer(server) {
+    attachMiddlewares(server.middlewares);
+  },
+  configurePreviewServer(server) {
+    attachMiddlewares(server.middlewares);
+  },
 };
 
 const apiProxy = {

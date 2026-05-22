@@ -6,9 +6,9 @@
  * Default port: 3002
  */
 
-import http from 'node:http';
-import fs   from 'node:fs';
-import path from 'node:path';
+import http  from 'node:http';
+import fs    from 'node:fs';
+import path  from 'node:path';
 import { fileURLToPath } from 'node:url';
 import Database from 'better-sqlite3';
 
@@ -876,16 +876,17 @@ async function handleJsonFile(req, res, file, fallback) {
 
 // ── Main server ───────────────────────────────────────────────────────────────
 
-http.createServer(async (req, res) => {
+const server = http.createServer(async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin',  '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Auth-Token');
-  res.setHeader('Content-Type', 'application/json');
 
   if (req.method === 'OPTIONS') { res.statusCode = 204; res.end(); return; }
 
   const url      = new URL(req.url ?? '/', `http://localhost:${PORT}`);
   const pathname = url.pathname;
+
+  res.setHeader('Content-Type', 'application/json');
 
   try {
     if (pathname.startsWith('/desk-api/v1/'))    return await handleV1(req, res, pathname, url) ?? fail(res, 'Not found', 404);
@@ -900,7 +901,9 @@ http.createServer(async (req, res) => {
     console.error(e);
     fail(res, String(e), 500);
   }
-}).listen(PORT, '127.0.0.1', () => {
+});
+
+server.listen(PORT, '127.0.0.1', () => {
   console.log(`[desk-api] SQLite backend — http://127.0.0.1:${PORT}`);
   console.log(`[desk-api] DB: ${p('desk.db')}`);
 });

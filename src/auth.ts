@@ -1,6 +1,7 @@
 import { requestSms, signIn } from './api/client';
-import { loadSettings } from './config/settings';
+import { loadSettings, saveSettings } from './config/settings';
 import { completeSignIn } from './data/auth';
+import { state } from './state';
 
 const WHITELIST_KEY = 'orderdesk_whitelist';
 const OPERATOR_NAMES_KEY = 'orderdesk_operator_names';
@@ -380,42 +381,80 @@ function showCodeStep(overlay: HTMLElement, normalized: string): void {
 function showAuthForm(overlay: HTMLElement): void {
   const box = overlay.querySelector<HTMLElement>('.auth-box')!;
   box.innerHTML = `
-    <div class="auth-title">Введите номер телефона</div>
+    <div class="auth-title">Вход</div>
     <input type="tel" id="auth-phone" class="auth-input" placeholder="+7 ___ ___ __ __" autocomplete="tel" />
+    <input type="password" id="auth-pass" class="auth-input" placeholder="Пароль" autocomplete="current-password" />
     <div class="auth-error" id="auth-error"></div>
-    <button type="button" class="btn btn-primary auth-btn" id="auth-submit">Получить код</button>
+    <div class="auth-row">
+      <button type="button" class="btn btn-primary auth-btn" id="auth-submit">Войти</button>
+      <button type="button" class="btn btn-ghost auth-btn" id="auth-sms">Получить SMS-код</button>
+    </div>
     <button type="button" class="btn btn-ghost auth-btn auth-admin-btn" id="auth-admin">Администратор</button>`;
 
   const input = box.querySelector<HTMLInputElement>('#auth-phone')!;
+  const passInput = box.querySelector<HTMLInputElement>('#auth-pass')!;
   const errorEl = box.querySelector<HTMLElement>('#auth-error')!;
 
   applyPhoneMask(input);
   input.focus();
 
-  async function attempt(): Promise<void> {
+  async function attemptPassword(): Promise<void> {
+    const normalized = normalizePhone(input.value);
+    const password = passInput.value;
+    if (!normalized || normalized.length < 10) { errorEl.textContent = 'Укажите номер телефона'; return; }
+    if (!password) { errorEl.textContent = 'Укажите пароль'; passInput.focus(); return; }
+    const btn = box.querySelector<HTMLButtonElement>('#auth-submit')!;
+    btn.disabled = true; btn.textContent = 'Вход…';
+    errorEl.textContent = '';
+    try {
+      const res = await fetch('/desk-api/auth/password-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: normalized, password }),
+      });
+      const data = await res.json() as { ok?: boolean; error?: string };
+      if (!res.ok) { errorEl.textContent = data.error ?? 'Ошибка входа'; return; }
+      sessionStorage.setItem(SESSION_KEY, normalized);
+      // Cookie is now set — load shared settings so boot() finds isConfigured() = true
+      try {
+        const sRes = await fetch('/desk-api/settings');
+        if (sRes.ok) {
+          const shared = await sRes.json() as { authToken?: string; storeId?: string; storeLabel?: string };
+          if (shared.authToken) {
+            if (!state.settings.authToken) state.settings.authToken = shared.authToken;
+            if (!state.settings.storeId && shared.storeId) {
+              state.settings.storeId = shared.storeId;
+              state.settings.storeLabel = shared.storeLabel ?? '';
+            }
+            saveSettings(state.settings);
+          }
+        }
+      } catch { /* offline — boot() will retry */ }
+      overlay.remove();
+      (overlay as HTMLElement & { _onSuccess?: () => void })._onSuccess?.();
+    } catch { errorEl.textContent = 'Ошибка соединения'; }
+    finally { btn.disabled = false; btn.textContent = 'Войти'; }
+  }
+
+  async function attemptSms(): Promise<void> {
     const normalized = normalizePhone(input.value);
     const allowed = await checkPhoneAllowed(normalized);
-    if (!allowed) {
-      errorEl.textContent = 'Номер не найден';
-      input.select();
-      return;
-    }
+    if (!allowed) { errorEl.textContent = 'Номер не найден'; input.select(); return; }
     errorEl.textContent = '';
-    const submitBtn = box.querySelector<HTMLButtonElement>('#auth-submit')!;
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Отправка…';
+    const btn = box.querySelector<HTMLButtonElement>('#auth-sms')!;
+    btn.disabled = true; btn.textContent = 'Отправка…';
     try {
       await requestSms('+7', normalized.slice(1));
       showCodeStep(overlay, normalized);
     } catch (e) {
       errorEl.textContent = e instanceof Error ? e.message : 'Ошибка отправки SMS';
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Получить код';
-    }
+    } finally { btn.disabled = false; btn.textContent = 'Получить SMS-код'; }
   }
 
-  box.querySelector('#auth-submit')?.addEventListener('click', () => { void attempt(); });
-  input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { void attempt(); } });
+  box.querySelector('#auth-submit')?.addEventListener('click', () => { void attemptPassword(); });
+  box.querySelector('#auth-sms')?.addEventListener('click', () => { void attemptSms(); });
+  passInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') void attemptPassword(); });
+  input.addEventListener('keydown', (e) => { if (e.key === 'Enter') passInput.focus(); });
   box.querySelector('#auth-admin')?.addEventListener('click', () => showAdminLogin(overlay));
 }
 

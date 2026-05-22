@@ -1,10 +1,9 @@
 import { state } from '../state';
-import { saveClient, saveOrderMeta, saveActiveStoreId, saveOrderApp, saveOrderMode } from '../storage';
+import { saveClient, saveOrderMeta, saveOrderApp, saveOrderMode } from '../storage';
 import { saveSettings } from '../config/settings';
-import { openSettings } from '../ui/settings';
 import { openMangoAdmin } from '../ui/mango-admin';
-import { runAsAdmin } from '../auth';
-import { escapeHtml, formatPhone, todayGMT3, yesterdayGMT3, debounce } from '../utils';
+import { runAsAdmin, getOperatorName } from '../auth';
+import { escapeHtml, formatPhone, todayGMT3, yesterdayGMT3, debounce, formatQty, formatPrice } from '../utils';
 import { NO_CATEGORY_ID, PENDING_ID, LOCAL_CATEGORY_ID } from '../types';
 import type { SavedOrder } from '../types';
 
@@ -14,8 +13,7 @@ import { renderProducts, renderStorePicker, renderStoreZoneInfo, storeDisplayNum
 import { renderOrdersPage } from './orders-page';
 import { renderAnalyticsPage } from './analytics-page';
 import { renderRefsPage } from './refs-page';
-import { renderSearchPage, updateSearchDOM } from './search-page';
-import { renderBrowserPage } from './browser-page';
+import { renderSearchPage, updateSearchDOM, buildStoreNumMap } from './search-page';
 import { saveCountries } from '../data/countries';
 
 import { newOrder, createOrder, loadOrderToCart, changeOrderStatus, changeOrderStore,
@@ -24,6 +22,7 @@ import { newOrder, createOrder, loadOrderToCart, changeOrderStatus, changeOrderS
 import { openClientHistoryModal } from '../ui/order-preview-modal';
 import { addToCart, addDraftWithTara, removeDraftWithTara, changeCartQty, removeFromCart, roundQty, getCartSum } from '../data/cart';
 import { loadCategories, toggleCategory, selectSubcategory } from '../data/categories';
+import { getAllProducts } from '../api/client';
 import { selectStore } from '../data/stores';
 import { loadAllStoresProducts } from '../data/all-stores-search';
 import { addLocalProduct, deleteLocalProduct, localToProduct, moderatedToProduct, reorderLocalProduct, updateLocalProduct } from '../data/vendor';
@@ -39,6 +38,15 @@ const app = document.querySelector<HTMLDivElement>('#app')!;
 // Закрывать попап телефона при клике вне него (один раз, не накапливается)
 document.addEventListener('click', () => {
   document.querySelectorAll('.order-phone-popup').forEach(p => p.remove());
+});
+
+// Делегированный обработчик для кнопки остатков — вешается один раз, работает после любого updateSearchDOM()
+document.addEventListener('click', (e) => {
+  const btn = (e.target as Element).closest<HTMLButtonElement>('.tile-stock-btn');
+  if (!btn) return;
+  e.stopPropagation();
+  const productId = Number(btn.dataset.stockId);
+  void showStockPopup(btn, productId);
 });
 
 const THEME_KEY = 'orderdesk_theme';
@@ -113,6 +121,84 @@ export function triggerZoneDetection(debounce = 600): void {
     }
     updateZoneBadgeDOM();
   }, debounce);
+}
+
+// ── Попап остатков по магазинам ───────────────────────────────────────────────
+let _stockPopupEl: HTMLDivElement | null = null;
+
+function getStockPopupEl(): HTMLDivElement {
+  if (!_stockPopupEl) {
+    _stockPopupEl = document.createElement('div');
+    _stockPopupEl.className = 'stock-popup';
+    _stockPopupEl.style.display = 'none';
+    document.body.appendChild(_stockPopupEl);
+    document.addEventListener('click', () => { if (_stockPopupEl) _stockPopupEl.style.display = 'none'; });
+  }
+  return _stockPopupEl;
+}
+
+function positionPopup(popup: HTMLElement, btn: HTMLElement): void {
+  const rect = btn.getBoundingClientRect();
+  popup.style.display = 'block';
+  const pw = popup.offsetWidth;
+  const ph = popup.offsetHeight;
+  let left = rect.right - pw;
+  let top  = rect.bottom + 4;
+  if (left < 4) left = 4;
+  if (top + ph > window.innerHeight - 4) top = rect.top - ph - 4;
+  popup.style.left = `${left + window.scrollX}px`;
+  popup.style.top  = `${top  + window.scrollY}px`;
+}
+
+async function showStockPopup(btn: HTMLElement, productId: number): Promise<void> {
+  const popup = getStockPopupEl();
+  const storeNumMap = buildStoreNumMap();
+
+  // Find which stores have this product and its subcategory id
+  const storeEntries: Array<{ storeId: string; num: string; categoryId: number }> = [];
+  let categoryId = 0;
+  state.allStoresProducts.forEach((products, storeId) => {
+    const p = products.find((x) => x.id === productId);
+    if (!p) return;
+    const num = storeNumMap.get(storeId) ?? storeId;
+    if (!categoryId && p.subcategory?.id) categoryId = p.subcategory.id;
+    storeEntries.push({ storeId, num, categoryId: p.subcategory?.id ?? 0 });
+  });
+
+  if (!storeEntries.length) { popup.style.display = 'none'; return; }
+
+  // Show loading immediately
+  popup.innerHTML = `<div class="stock-popup-title">Остаток по магазинам</div><div class="stock-popup-loading">Загрузка…</div>`;
+  positionPopup(popup, btn);
+
+  // Fetch real quantities per store in parallel
+  const results = await Promise.allSettled(
+    storeEntries.map(async ({ storeId, num, categoryId: catId }) => {
+      const cid = catId || categoryId;
+      if (!cid) return { num, qty: undefined as number | undefined, price: '', inStock: false };
+      const products = await getAllProducts(storeId, cid, state.settings.authToken);
+      const found = products.find((x) => x.id === productId);
+      const qty = found?.available_qty ?? undefined;
+      const price = found ? formatPrice(found) : '';
+      const inStock = found != null && (found.available_qty == null || found.available_qty > 0);
+      return { num, qty, price, inStock };
+    }),
+  );
+
+  const rows = results
+    .filter((r): r is PromiseFulfilledResult<{ num: string; qty: number | undefined; price: string; inStock: boolean }> => r.status === 'fulfilled')
+    .map((r) => r.value)
+    .sort((a, b) => a.num.localeCompare(b.num, undefined, { numeric: true }));
+
+  popup.innerHTML = `
+    <div class="stock-popup-title">Остаток по магазинам</div>
+    ${rows.map((r) => `
+      <div class="stock-popup-row${r.inStock ? '' : ' stock-popup-row--oos'}">
+        <span class="stock-popup-num">№${escapeHtml(r.num)}</span>
+        <span class="stock-popup-qty">${r.qty != null ? `${escapeHtml(formatQty(r.qty))} шт` : r.inStock ? 'есть' : '—'}</span>
+        ${r.price ? `<span class="stock-popup-price">${escapeHtml(r.price)}</span>` : ''}
+      </div>`).join('')}`;
+  positionPopup(popup, btn);
 }
 
 function bindEvents(): void {
@@ -291,20 +377,28 @@ function bindEvents(): void {
   document.getElementById('btn-stores-collapse')?.addEventListener('click', () => { state.storesExpanded = false; renderApp(); });
   document.getElementById('btn-mango-admin')?.addEventListener('click', () => void runAsAdmin(() => openMangoAdmin()));
 
-  document.getElementById('btn-logout')?.addEventListener('click', () => {
-    saveSettings({ storeId: '', storeLabel: '', authToken: '', countryCode: '+7', phoneNumber: '' });
+  document.getElementById('mango-op-select')?.addEventListener('change', async (e) => {
+    const phone = (e.target as HTMLSelectElement).value;
+    if (!phone) return;
+    try {
+      await fetch('/desk-api/mango/bind-operator', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone }),
+      });
+      state.mangoMyPhone = phone;
+      state.orderMeta.operator = phone;
+      saveOrderMeta(state.orderMeta);
+      renderApp();
+    } catch { /* ignore */ }
+  });
+
+  document.getElementById('btn-logout')?.addEventListener('click', async () => {
+    sessionStorage.removeItem('orderdesk_auth');
+    await fetch('/desk-api/auth/session', { method: 'DELETE' }).catch(() => {});
     state.settings.authToken = '';
-    state.settings.storeId = '';
-    state.settings.storeLabel = '';
-    state.settings.phoneNumber = '';
-    state.activeStoreId = '';
-    saveActiveStoreId('');
-    state.categories = [];
-    state.products = [];
-    state.productsCache.clear();
-    state.storesList = [];
-    openSettings(false);
-    renderApp();
+    saveSettings(state.settings);
+    location.reload();
   });
   document.getElementById('btn-reload')?.addEventListener('click', () => { void loadCategories(); });
   (document.getElementById('theme-toggle') as HTMLInputElement | null)
@@ -344,45 +438,6 @@ function bindEvents(): void {
     state.currentPage = 'search';
     renderApp();
     void loadAllStoresProducts();
-  });
-
-  document.getElementById('btn-browser')?.addEventListener('click', () => {
-    state.currentPage = 'browser';
-    renderApp();
-  });
-
-  // ── Встроенный браузер ──────────────────────────────────────────────────────
-  const browserNavigate = (url: string) => {
-    let target = url.trim();
-    if (!target) return;
-    if (!/^https?:\/\//i.test(target)) target = 'https://' + target;
-    state.browserUrl = target;
-    renderApp();
-  };
-
-  document.getElementById('btn-browser-go')?.addEventListener('click', () => {
-    const inp = document.getElementById('browser-url-input') as HTMLInputElement | null;
-    if (inp) browserNavigate(inp.value);
-  });
-
-  (document.getElementById('browser-url-input') as HTMLInputElement | null)
-    ?.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') browserNavigate((e.target as HTMLInputElement).value);
-    });
-
-  document.getElementById('btn-browser-back')?.addEventListener('click', () => {
-    const frame = document.getElementById('browser-iframe') as HTMLIFrameElement | null;
-    try { frame?.contentWindow?.history.back(); } catch { /* cross-origin */ }
-  });
-
-  document.getElementById('btn-browser-forward')?.addEventListener('click', () => {
-    const frame = document.getElementById('browser-iframe') as HTMLIFrameElement | null;
-    try { frame?.contentWindow?.history.forward(); } catch { /* cross-origin */ }
-  });
-
-  document.getElementById('btn-browser-reload')?.addEventListener('click', () => {
-    const frame = document.getElementById('browser-iframe') as HTMLIFrameElement | null;
-    if (frame) { const src = frame.src; frame.src = ''; frame.src = src; }
   });
 
   (document.getElementById('search-all-input') as HTMLInputElement | null)?.addEventListener('input', (e) => {
@@ -504,7 +559,7 @@ function bindEvents(): void {
         cbBtn.textContent = '…';
         try {
           const digits = phone.replace(/\D/g, '');
-          const operatorPhone = state.orderMeta.operator.replace(/\D/g, '');
+          const operatorPhone = (state.orderMeta.operator || sessionStorage.getItem('orderdesk_auth') || state.settings.phoneNumber).replace(/\D/g, '');
           const res = await fetch('/desk-api/mango/callback', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -529,7 +584,7 @@ function bindEvents(): void {
     const btn = document.getElementById('btn-mango-callback') as HTMLButtonElement | null;
     if (btn) { btn.disabled = true; btn.textContent = '…'; }
     try {
-      const operatorPhone = state.orderMeta.operator.replace(/\D/g, '');
+      const operatorPhone = (state.orderMeta.operator || sessionStorage.getItem('orderdesk_auth') || state.settings.phoneNumber).replace(/\D/g, '');
       const res = await fetch('/desk-api/mango/callback', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -790,6 +845,7 @@ function bindEvents(): void {
     });
   });
 
+
   document.querySelectorAll<HTMLButtonElement>('[data-draft-id]').forEach((btn) => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -877,14 +933,19 @@ function bindEvents(): void {
     const pkg = state.localProducts.find((lp) => /пакет/i.test(lp.name));
     if (!pkg) return;
     const product = localToProduct(pkg);
-    const existing = state.cart.find((item) => item.product.id === product.id);
+    const isPkg = (item: { product: { id: number; name?: string } }) =>
+      item.product.id === product.id || /пакет/i.test(item.product.name ?? '');
     if (qty === 0) {
-      const idx = state.cart.findIndex((item) => item.product.id === product.id);
+      const idx = state.cart.findIndex(isPkg);
       if (idx !== -1) state.cart.splice(idx, 1);
-    } else if (existing) {
-      existing.qty = qty;
     } else {
-      state.cart.push({ product, qty });
+      const existing = state.cart.find(isPkg);
+      if (existing) {
+        existing.qty = qty;
+        existing.product = product; // нормализуем id на случай если был 0 из БД
+      } else {
+        state.cart.push({ product, qty });
+      }
     }
     renderApp();
   };
@@ -944,7 +1005,6 @@ export function renderApp(): void {
         <button type="button" class="tab${state.currentPage === 'refs' ? ' active' : ''}" id="tab-refs">Справочники</button>
         <button type="button" class="tab${state.currentPage === 'search' ? ' active' : ''}" id="tab-search">Поиск</button>
         <div class="tabs-actions">
-          <button type="button" class="btn btn-ghost${state.currentPage === 'browser' ? ' active' : ''}" id="btn-browser" title="Встроенный браузер">&#127760;</button>
           <button type="button" class="btn btn-ghost" id="btn-reload">Обновить</button>
           <label class="theme-toggle" title="Светлая / тёмная тема">
             <input type="checkbox" class="theme-toggle-input" id="theme-toggle"${isLightTheme() ? ' checked' : ''}>
@@ -954,6 +1014,10 @@ export function renderApp(): void {
               <span class="theme-toggle-thumb"></span>
             </span>
           </label>
+          ${state.mangoAccounts.length > 0 && !state.mangoMyPhone ? `<select class="mango-op-select" id="mango-op-select" title="Я — оператор">
+            <option value="">Выберите себя...</option>
+            ${state.mangoAccounts.map(a => `<option value="${escapeHtml(a.operatorPhone)}">${escapeHtml(getOperatorName(a.operatorPhone))}</option>`).join('')}
+          </select>` : ''}
           <button type="button" class="btn btn-ghost" id="btn-mango-admin" title="Mango SIP настройки">Манго</button>
           <button type="button" class="btn btn-ghost btn-logout" id="btn-logout" title="Выйти из аккаунта">Выход</button>
         </div>
@@ -963,7 +1027,6 @@ export function renderApp(): void {
       : state.currentPage === 'analytics' ? `<main class="orders-main scroll">${renderAnalyticsPage()}</main>`
       : state.currentPage === 'refs' ? `<main class="orders-main scroll">${renderRefsPage()}</main>`
       : state.currentPage === 'search' ? `<main class="orders-main scroll">${renderSearchPage()}</main>`
-      : state.currentPage === 'browser' ? `<main class="browser-main">${renderBrowserPage()}</main>`
       : `
       <main class="workspace mob-${state.mobilePanel}">
         <aside class="panel cart-panel">

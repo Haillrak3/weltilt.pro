@@ -2369,6 +2369,8 @@ select:disabled {
   font-size: 0.82rem;
   white-space: nowrap;
 }
+.order-item-row--summary { opacity: .65; padding-bottom: 2px; }
+.order-item-name--muted { color: var(--muted); font-style: italic; }
 
 .order-expanded-total {
   font-weight: 600;
@@ -3627,6 +3629,62 @@ select:disabled {
   color: var(--ok);
   white-space: nowrap;
 }
+
+/* ── Кнопка остатков в поиске ───────────────────────── */
+.tile-stock-btn {
+  position: absolute;
+  top: 5px;
+  right: 6px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0 2px;
+  line-height: 1;
+  border-radius: 3px;
+  z-index: 1;
+}
+.tile-stock-btn:hover {
+  color: var(--text);
+  background: var(--surface-2);
+}
+
+/* ── Попап остатков по магазинам ────────────────────── */
+.stock-popup {
+  position: fixed;
+  z-index: 9999;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0,0,0,.25);
+  padding: 8px 10px;
+  min-width: 160px;
+  font-size: 0.82rem;
+}
+.stock-popup-title {
+  font-weight: 600;
+  color: var(--muted);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  margin-bottom: 6px;
+}
+.stock-popup-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 3px 0;
+  border-bottom: 1px solid var(--border);
+}
+.stock-popup-row:last-child { border-bottom: none; }
+.stock-popup-row--oos { opacity: .45; }
+.stock-popup-num { font-weight: 600; }
+.stock-popup-qty { color: var(--ok); text-align: right; }
+.stock-popup-row--oos .stock-popup-qty { color: var(--muted); }
+.stock-popup-price { color: var(--muted); font-size: .8rem; margin-left: auto; padding-left: 8px; }
+.stock-popup-loading { padding: 6px 0; color: var(--muted); font-size: .85rem; }
 
 /* ── Theme toggle ───────────────────────────────────── */
 .theme-toggle {

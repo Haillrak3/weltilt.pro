@@ -1,8 +1,7 @@
-import { state } from '../state';
 import { escapeHtml } from '../utils';
 
 export function renderBrowserPage(): string {
-  const url = state.browserUrl;
+  const url = '';
   return `
     <div class="browser-page">
       <div class="browser-bar">
@@ -13,10 +12,11 @@ export function renderBrowserPage(): string {
           placeholder="Введите адрес сайта..."
           value="${escapeHtml(url)}" />
         <button type="button" class="btn btn-ghost browser-go-btn" id="btn-browser-go">Перейти</button>
+        <button type="button" class="btn btn-ghost browser-shortcut-btn" data-url="/desk-tg/" title="Telegram">&#9992; TG</button>
       </div>
       ${url
         ? `<iframe class="browser-frame" id="browser-iframe" src="${escapeHtml(url)}"
-             sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox"
+             sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-downloads"
              referrerpolicy="no-referrer"></iframe>`
         : `<div class="browser-empty">
              <span>&#127760;</span>

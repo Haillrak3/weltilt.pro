@@ -20,6 +20,19 @@ import { initMangoSse } from './ui/incoming-call';
 
 async function boot(): Promise<void> {
   Object.assign(state.settings, loadSettings());
+
+  // Автопривязка телефона по URL-параметру ?setup_phone=79XXXXXXXXX
+  const _setupPhone = new URLSearchParams(location.search).get('setup_phone');
+  if (_setupPhone) {
+    const _d = _setupPhone.replace(/\D/g, '');
+    const _norm = _d.startsWith('7') && _d.length === 11 ? _d.slice(1) : _d;
+    if (_norm.length >= 10) {
+      state.settings.phoneNumber = _norm;
+      saveSettings(state.settings);
+    }
+    history.replaceState({}, '', location.pathname);
+  }
+
   if (!state.orderMeta.operator && state.settings.phoneNumber) {
     state.orderMeta.operator = operatorFromSettings(state.settings);
     saveOrderMeta(state.orderMeta);
@@ -66,6 +79,47 @@ async function boot(): Promise<void> {
   void loadLocalProductsFromServer();
   void loadCountries();
   void syncOperatorNames();
+  void initMangoOperator();
+}
+
+async function initMangoOperator(): Promise<void> {
+  try {
+    const [myRes, accRes] = await Promise.all([
+      fetch('/desk-api/mango/my-operator'),
+      fetch('/desk-api/mango/accounts'),
+    ]);
+    if (accRes.ok) {
+      const accounts = await accRes.json() as Array<{ operatorPhone: string }>;
+      state.mangoAccounts = accounts;
+    }
+    if (!myRes.ok) return;
+    const data = await myRes.json() as { phone?: string };
+    let phone = (data.phone ?? '').replace(/\D/g, '');
+
+    // Автопривязка по SMS-сессии, если сервер ещё не знает оператора
+    if (!phone && state.mangoAccounts.length > 0) {
+      const sessionPhone = (sessionStorage.getItem('orderdesk_auth') ?? '').replace(/\D/g, '');
+      if (sessionPhone) {
+        const matched = state.mangoAccounts.find(a => a.operatorPhone.replace(/\D/g, '') === sessionPhone);
+        if (matched) {
+          await fetch('/desk-api/mango/bind-operator', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phone: matched.operatorPhone }),
+          });
+          phone = matched.operatorPhone.replace(/\D/g, '');
+        }
+      }
+    }
+
+    state.mangoMyPhone = phone;
+    // Обновляем оператора: всегда если пришёл телефон с сервера,
+    // чтобы заменить устаревший формат "имя" на телефон
+    if (phone && state.orderMeta.operator.replace(/\D/g, '') !== phone) {
+      state.orderMeta.operator = phone;
+      saveOrderMeta(state.orderMeta);
+    }
+  } catch { /* mango not configured */ }
 }
 
 if (isAuthorized()) {

@@ -40,6 +40,7 @@ export interface Product {
   availability?: 'IN_STOCK' | 'OUT_OF_STOCK';
   is_blocked?: boolean;
   status?: 'APPROVED' | 'REJECTED' | 'DELETED' | 'PENDING';
+  exchange_product?: { id: number };
 }
 
 export interface VendorItem {

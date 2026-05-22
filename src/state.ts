@@ -64,8 +64,6 @@ export const state = {
   orderApp: loadOrderApp() as OrderApp,
   orderMode: loadOrderMode() as OrderMode,
   appClientExpanded: false,
-  addrPickerOpen: false,
-  phonePickerOpen: false,
   clientInfoPanel: null as null | 'menu' | 'phones' | 'addresses',
   detectedZone: '' as string,
   detectedZoneKm: null as number | null,
@@ -78,6 +76,7 @@ export const state = {
   mobilePanel: 'products' as 'products' | 'cart' | 'cats',
   analyticsTab: 'overview' as AnalyticsTab,
   analyticsPeriod: 'day' as AnalyticsPeriod,
-  browserUrl: '',
   zoneGeoKey: '',
+  mangoAccounts: [] as Array<{ operatorPhone: string }>,
+  mangoMyPhone: '',
 };

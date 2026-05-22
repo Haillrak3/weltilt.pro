@@ -1,5 +1,5 @@
 import { state } from '../state';
-import { escapeHtml, dayKeyGMT3 } from '../utils';
+import { escapeHtml, dayKeyGMT3, formatPhone } from '../utils';
 import type { SavedOrder, SavedOrderItem } from '../types';
 
 function isDraftVolumeDetail(d?: string): boolean {
@@ -148,12 +148,12 @@ async function buildReceiptBlob(order: SavedOrder, orderNum: number | string): P
   if (cl.floor)     clientRows.push({ label: 'Этаж',       lines: preWrap('Этаж',       cl.floor) });
   if (cl.apartment) clientRows.push({ label: 'Кв. (офис)', lines: preWrap('Кв. (офис)', cl.apartment) });
   if (cl.intercom)  clientRows.push({ label: 'Домофон',    lines: preWrap('Домофон',    cl.intercom) });
-  if (cl.phone)     clientRows.push({ label: 'Телефон',    lines: preWrap('Телефон',    cl.phone) });
+  if (cl.phone)     clientRows.push({ label: 'Телефон',    lines: preWrap('Телефон',    formatPhone(cl.phone)) });
   if (cl.notes)     clientRows.push({ label: 'Примечание', lines: preWrap('Примечание', cl.notes) });
 
   // App: pre-wrap individual fields
   const appW = {
-    phone:     cl.phone     ? preWrap('Телефон',     cl.phone)     : null,
+    phone:     cl.phone     ? preWrap('Телефон',     formatPhone(cl.phone)) : null,
     name:      cl.name      ? preWrap('Имя',         cl.name)      : null,
     street:    cl.street    ? preWrap('Улица',       cl.street)    : null,
     house:     cl.house     ? preWrap('Дом',         cl.house)     : null,
@@ -369,7 +369,7 @@ export function showOrderReceipt(order: SavedOrder): void {
   ].filter(Boolean).join(', ');
   const clientBlock = [
     order.client.name && `<div class="rc-name">${escapeHtml(order.client.name)}</div>`,
-    order.client.phone && `<div class="rc-phone">${escapeHtml(order.client.phone)}</div>`,
+    order.client.phone && `<div class="rc-phone">${escapeHtml(formatPhone(order.client.phone))}</div>`,
     addrLine && `<div class="rc-addr">${escapeHtml(addrLine)}</div>`,
     addrExtra && `<div class="rc-addr-extra">${escapeHtml(addrExtra)}</div>`,
     order.client.notes && `<div class="rc-notes">Примечание: ${escapeHtml(order.client.notes)}</div>`,

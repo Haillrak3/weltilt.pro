@@ -178,8 +178,18 @@ export function renderOrdersPage(): string {
 
         const isExpanded = state.expandedOrderId === order.id;
 
+        const isAppOrder = order.orderMethod === 'app' && order.orderAmount !== undefined;
         const expandedHtml = isExpanded
           ? `<div class="order-expanded">
+              ${isAppOrder ? `
+                <div class="order-item-row order-item-row--summary">
+                  <span class="order-item-name order-item-name--muted">Товары (приложение)</span>
+                  <span class="order-item-price">${(order.orderAmount ?? 0).toLocaleString('ru-RU', { minimumFractionDigits: 0 })} ₽</span>
+                </div>
+                <div class="order-item-row order-item-row--summary">
+                  <span class="order-item-name order-item-name--muted">Доставка</span>
+                  <span class="order-item-price">${(order.deliveryPrice ?? 0).toLocaleString('ru-RU', { minimumFractionDigits: 0 })} ₽</span>
+                </div>` : ''}
               ${order.items.length
                 ? order.items.map((item, idx) => {
                     const lineTotal = ((item.price ?? 0) * item.qty).toLocaleString('ru-RU', { minimumFractionDigits: 0 });

@@ -42,11 +42,11 @@ export function localToProduct(lp: LocalProduct): Product {
 function findVendorPrice(exchangeId: number, name: string): number | undefined {
   // 1. По exchange_product.id — точное совпадение
   for (const p of state.vendorProducts) {
-    if ((p as any).exchange_product?.id === exchangeId && p.original_price != null) return p.original_price;
+    if (p.exchange_product?.id === exchangeId && p.original_price != null) return p.original_price;
   }
   for (const list of state.productsCache.values()) {
     for (const p of list) {
-      if ((p as any).exchange_product?.id === exchangeId && p.original_price != null) return p.original_price;
+      if (p.exchange_product?.id === exchangeId && p.original_price != null) return p.original_price;
     }
   }
   // 2. По имени — fallback

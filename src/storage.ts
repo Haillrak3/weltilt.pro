@@ -4,6 +4,19 @@ export const LOCAL_PRODUCTS_KEY = 'orderdesk_local_products';
 const CURRENT_PAGE_KEY = 'orderdesk_current_page';
 export function loadCurrentPage(): string { return localStorage.getItem(CURRENT_PAGE_KEY) ?? 'products'; }
 export function saveCurrentPage(page: string): void { localStorage.setItem(CURRENT_PAGE_KEY, page); }
+
+function handledOrdersKey(operator: string): string {
+  return `orderdesk_handled_orders_${operator.replace(/\D/g, '') || 'default'}`;
+}
+export function loadHandledOrders(operator: string): Set<string> {
+  try {
+    const raw = localStorage.getItem(handledOrdersKey(operator));
+    return raw ? new Set(JSON.parse(raw) as string[]) : new Set();
+  } catch { return new Set(); }
+}
+export function saveHandledOrders(operator: string, set: Set<string>): void {
+  localStorage.setItem(handledOrdersKey(operator), JSON.stringify([...set]));
+}
 export const EXTRA_CLIENTS_KEY = 'orderdesk_extra_clients';
 export const CLIENT_KEY = 'orderdesk_client';
 export const ORDER_META_KEY = 'orderdesk_order_meta';

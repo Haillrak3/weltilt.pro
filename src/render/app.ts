@@ -1,5 +1,5 @@
 import { state } from '../state';
-import { saveClient, saveOrderMeta, saveOrderApp, saveOrderMode, saveCurrentPage } from '../storage';
+import { saveClient, saveOrderMeta, saveOrderApp, saveOrderMode, saveCurrentPage, loadHandledOrders, saveHandledOrders } from '../storage';
 import { saveSettings } from '../config/settings';
 import { openMangoAdmin } from '../ui/mango-admin';
 import { runAsAdmin, getOperatorName } from '../auth';
@@ -1002,7 +1002,7 @@ function bindAppOrderButtons(): void {
     btn.addEventListener('click', () => {
       const full = btn.dataset.aoFull ?? '';
       const num = btn.dataset.aoNum ?? '';
-      if (full) _handledOrders.add(full);
+      if (full) markHandled(full);
       void navigator.clipboard.writeText(`#${num}`);
       btn.textContent = '✓ Скопировано';
       btn.classList.add('ao-copied');
@@ -1018,7 +1018,7 @@ function bindAppOrderButtons(): void {
       const num = btn.dataset.aoDeliver;
       const order = state.appOrders.find((o) => o.number === num);
       if (!order) return;
-      if (num) _handledOrders.add(num);
+      if (num) markHandled(num);
 
       const totalQty = order.cart_products.reduce((s, p) =>
         s + (p.pack_item && p.pack_item.volume > 0 ? p.qty : 0.5), 0);
@@ -1053,7 +1053,12 @@ const OUR_STORE_NUMS: Record<number, string> = {
   12: '1', 7: '2', 11: '3', 10: '4', 13: '5', 6: '6', 14: '7', 15: '8', 16: '9',
 };
 const ACTIVE_STATUSES = new Set(['CREATED', 'ACTIVE', 'PACKAGING', 'READY_FOR_PICK_UP']);
-const _handledOrders = new Set<string>();
+const _handledOrders: Set<string> = loadHandledOrders(state.orderMeta.operator);
+
+function markHandled(orderNum: string): void {
+  markHandled(orderNum);
+  saveHandledOrders(state.orderMeta.operator, _handledOrders);
+}
 let _appOrdersSearch = '';
 
 function renderInlineAppOrders(): string {

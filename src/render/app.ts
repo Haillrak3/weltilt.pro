@@ -453,13 +453,14 @@ function bindEvents(): void {
     renderApp();
   });
 
-  document.querySelectorAll<HTMLElement>('.ao-pickup-btn').forEach((el) => {
-    el.addEventListener('click', () => {
-      const num = el.dataset.aoNum ?? '';
-      const amount = el.dataset.aoAmount ?? '';
+  document.querySelectorAll<HTMLButtonElement>('.ao-pickup-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const num = btn.dataset.aoNum ?? '';
+      const amount = btn.dataset.aoAmount ?? '';
       void navigator.clipboard.writeText(`#${num}   ${amount}`);
-      el.classList.add('ao-copied');
-      setTimeout(() => el.classList.remove('ao-copied'), 1200);
+      btn.textContent = '✓ Скопировано';
+      btn.classList.add('ao-copied');
+      setTimeout(() => { btn.textContent = 'Самовывоз'; btn.classList.remove('ao-copied'); }, 1500);
     });
   });
 
@@ -1051,9 +1052,10 @@ function renderInlineAppOrders(): string {
     const note = o.note ? `<div class="ao-inline-note">${escapeHtml(o.note)}</div>` : '';
     return `<div class="ao-inline-row">
       <div class="ao-inline-store">Магазин №${storeNum}</div>
-      <div class="ao-inline-num ao-pickup-btn" data-ao-num="${escapeHtml(o.number.slice(-6))}" data-ao-amount="${o.total_price.toLocaleString('ru-RU', { minimumFractionDigits: 0 })} руб." title="Самовывоз — скопировать">#${escapeHtml(o.number.slice(-6))}</div>
+      <div class="ao-inline-num">#${escapeHtml(o.number.slice(-6))}</div>
       ${note}
       <div class="ao-inline-actions">
+        <button type="button" class="btn btn-sm btn-ghost ao-pickup-btn" data-ao-num="${escapeHtml(o.number.slice(-6))}" data-ao-amount="${o.total_price.toLocaleString('ru-RU', { minimumFractionDigits: 0 })} руб.">Самовывоз</button>
         <button type="button" class="btn btn-sm btn-primary ao-deliver-btn" data-ao-deliver="${escapeHtml(o.number)}">Доставка</button>
       </div>
     </div>`;

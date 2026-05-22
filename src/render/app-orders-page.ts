@@ -70,7 +70,7 @@ export function renderAppOrdersPage(): string {
   } else if (appOrdersError) {
     content = `<p class="panel-status panel-status--error">${escapeHtml(appOrdersError)}</p>`;
   } else {
-    const filtered = appOrders.filter((o) => OUR_STORE_IDS.has(o.store.id));
+    const filtered = appOrders.filter((o) => OUR_STORE_IDS.has(o.store.id) && o.status !== 'CANCELED' && o.status !== 'PICKED_UP');
     if (!filtered.length) {
       content = '<p class="panel-status">Заказов нет</p>';
     } else {

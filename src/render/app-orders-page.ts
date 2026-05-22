@@ -25,7 +25,29 @@ function formatTime(iso: string): string {
   return `${dd}.${mm} ${hh}:${min}`;
 }
 
-function renderOrder(o: AppOrder): string {
+function findDuplicates(orders: AppOrder[]): Set<string> {
+  const byPhone = new Map<string, AppOrder[]>();
+  for (const o of orders) {
+    const key = o.user.phone_number.phone_number;
+    if (!byPhone.has(key)) byPhone.set(key, []);
+    byPhone.get(key)!.push(o);
+  }
+  const dupes = new Set<string>();
+  byPhone.forEach((group) => {
+    if (group.length < 2) return;
+    const sorted = [...group].sort((a, b) => a.order_date.localeCompare(b.order_date));
+    for (let i = 1; i < sorted.length; i++) {
+      const diff = new Date(sorted[i].order_date).getTime() - new Date(sorted[i - 1].order_date).getTime();
+      if (diff < 15 * 60 * 1000) {
+        dupes.add(sorted[i].number);
+        dupes.add(sorted[i - 1].number);
+      }
+    }
+  });
+  return dupes;
+}
+
+function renderOrder(o: AppOrder, isDupe: boolean): string {
   const phone = `${o.user.phone_number.country_code}${o.user.phone_number.phone_number}`;
   const name = o.user.name || '—';
   const time = formatTime(o.order_date);
@@ -39,7 +61,7 @@ function renderOrder(o: AppOrder): string {
     .join(', ');
   const note = o.note ? `<div class="ao-note" title="${escapeHtml(o.note)}">💬 ${escapeHtml(o.note)}</div>` : '';
 
-  return `<div class="ao-row${o.status === 'CANCELED' ? ' ao-row--canceled' : ''}">
+  return `<div class="ao-row${isDupe ? ' ao-row--dupe' : ''}">
     <div class="ao-row-main">
       <span class="ao-num">#${escapeHtml(o.number.slice(-6))}</span>
       <span class="ao-time">${time}</span>
@@ -74,7 +96,8 @@ export function renderAppOrdersPage(): string {
     if (!filtered.length) {
       content = '<p class="panel-status">Заказов нет</p>';
     } else {
-      content = `<div class="ao-list">${filtered.map(renderOrder).join('')}</div>`;
+      const dupes = findDuplicates(filtered);
+      content = `<div class="ao-list">${filtered.map((o) => renderOrder(o, dupes.has(o.number))).join('')}</div>`;
     }
   }
 

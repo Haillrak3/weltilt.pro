@@ -3730,6 +3730,7 @@ select:disabled {
   font-size: 0.88rem;
 }
 .ao-row--canceled { opacity: 0.55; }
+.ao-row--dupe { border-left: 3px solid #e53935; background: color-mix(in srgb, #e53935 6%, var(--surface)); }
 
 .ao-row-main {
   display: grid;

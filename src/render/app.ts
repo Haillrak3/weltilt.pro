@@ -1055,7 +1055,7 @@ function renderInlineAppOrders(): string {
       <div class="ao-inline-num">#${escapeHtml(o.number.slice(-6))}</div>
       ${note}
       <div class="ao-inline-actions">
-        <button type="button" class="btn btn-sm btn-ghost ao-pickup-btn" data-ao-num="${escapeHtml(o.number.slice(-6))}" data-ao-amount="${o.total_price.toLocaleString('ru-RU', { minimumFractionDigits: 0 })} руб.">Самовывоз</button>
+        <button type="button" class="btn btn-sm btn-ghost ao-pickup-btn" data-ao-num="${escapeHtml(o.number.slice(-6))}" data-ao-amount="${Math.round(o.total_price)} руб.">Самовывоз</button>
         <button type="button" class="btn btn-sm btn-primary ao-deliver-btn" data-ao-deliver="${escapeHtml(o.number)}">Доставка</button>
       </div>
     </div>`;

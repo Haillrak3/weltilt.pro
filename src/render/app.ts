@@ -449,61 +449,18 @@ function bindEvents(): void {
   });
 
   document.getElementById('ao-refresh-btn')?.addEventListener('click', () => { void loadAppOrders(); });
+  document.getElementById('ao-orders-search')?.addEventListener('input', (e) => {
+    _appOrdersSearch = (e.target as HTMLInputElement).value;
+    const list = document.getElementById('ao-orders-list');
+    if (list) list.innerHTML = renderInlineAppOrders();
+    bindAppOrderButtons();
+  });
   document.getElementById('ao-back-btn')?.addEventListener('click', () => {
     state.appOrderLinked = null;
     renderApp();
   });
 
-  document.querySelectorAll<HTMLButtonElement>('.ao-pickup-btn').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const full = btn.dataset.aoFull ?? '';
-      const num = btn.dataset.aoNum ?? '';
-      const amount = btn.dataset.aoAmount ?? '';
-      if (full) _handledOrders.add(full);
-      void navigator.clipboard.writeText(`#${num}   ${amount}`);
-      btn.textContent = '✓ Скопировано';
-      btn.classList.add('ao-copied');
-      const row = btn.closest('.ao-inline-row');
-      row?.classList.remove('ao-inline-row--new');
-      row?.querySelector('.ao-new-badge')?.remove();
-      setTimeout(() => { btn.textContent = 'Самовывоз'; btn.classList.remove('ao-copied'); }, 1500);
-    });
-  });
-
-  document.querySelectorAll<HTMLButtonElement>('.ao-deliver-btn').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const num = btn.dataset.aoDeliver;
-      const order = state.appOrders.find((o) => o.number === num);
-      if (!order) return;
-      if (num) _handledOrders.add(num);
-
-      const totalQty = order.cart_products.reduce((s, p) =>
-        s + (p.pack_item && p.pack_item.volume > 0 ? p.qty : 0.5), 0);
-      const totalLiters = order.cart_products.reduce((s, p) =>
-        s + (p.pack_item && p.pack_item.volume > 0 ? p.qty * p.pack_item.volume : 0), 0);
-      const packages = Math.max(
-        Math.ceil(totalQty / 7),
-        totalLiters > 0 ? Math.ceil(totalLiters / 7) : 0,
-        1,
-      );
-
-      const rawPhone = order.user.phone_number.country_code + order.user.phone_number.phone_number;
-      state.appOrderLinked = order.number;
-      state.client.phone = formatPhone(rawPhone) || rawPhone;
-      saveClient(state.client);
-      state.orderApp.orderNumber = order.number.slice(-6);
-      state.orderApp.orderAmount = String(order.total_price);
-      state.orderApp.packageQty = packages;
-      saveOrderApp(state.orderApp);
-      state.orderMode = 'app';
-      saveOrderMode('app');
-      state.cart = [];
-      const pkg = state.localProducts.find((lp) => /пакет/i.test(lp.name));
-      if (pkg) state.cart.push({ product: localToProduct(pkg), qty: packages });
-      state.currentPage = 'products';
-      renderApp();
-    });
-  });
+  bindAppOrderButtons();
 
   document.querySelectorAll<HTMLButtonElement>('[data-ao-period]').forEach((btn) => {
     btn.addEventListener('click', () => {
@@ -1040,20 +997,78 @@ function bindEvents(): void {
   }, { once: true });
 }
 
+function bindAppOrderButtons(): void {
+  document.querySelectorAll<HTMLButtonElement>('.ao-pickup-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const full = btn.dataset.aoFull ?? '';
+      const num = btn.dataset.aoNum ?? '';
+      const amount = btn.dataset.aoAmount ?? '';
+      if (full) _handledOrders.add(full);
+      void navigator.clipboard.writeText(`#${num}   ${amount}`);
+      btn.textContent = '✓ Скопировано';
+      btn.classList.add('ao-copied');
+      const row = btn.closest('.ao-inline-row');
+      row?.classList.remove('ao-inline-row--new');
+      row?.querySelector('.ao-new-badge')?.remove();
+      setTimeout(() => { btn.textContent = 'Самовывоз'; btn.classList.remove('ao-copied'); }, 1500);
+    });
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('.ao-deliver-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const num = btn.dataset.aoDeliver;
+      const order = state.appOrders.find((o) => o.number === num);
+      if (!order) return;
+      if (num) _handledOrders.add(num);
+
+      const totalQty = order.cart_products.reduce((s, p) =>
+        s + (p.pack_item && p.pack_item.volume > 0 ? p.qty : 0.5), 0);
+      const totalLiters = order.cart_products.reduce((s, p) =>
+        s + (p.pack_item && p.pack_item.volume > 0 ? p.qty * p.pack_item.volume : 0), 0);
+      const packages = Math.max(
+        Math.ceil(totalQty / 7),
+        totalLiters > 0 ? Math.ceil(totalLiters / 7) : 0,
+        1,
+      );
+
+      const rawPhone = order.user.phone_number.country_code + order.user.phone_number.phone_number;
+      state.appOrderLinked = order.number;
+      state.client.phone = formatPhone(rawPhone) || rawPhone;
+      saveClient(state.client);
+      state.orderApp.orderNumber = order.number.slice(-6);
+      state.orderApp.orderAmount = String(order.total_price);
+      state.orderApp.packageQty = packages;
+      saveOrderApp(state.orderApp);
+      state.orderMode = 'app';
+      saveOrderMode('app');
+      state.cart = [];
+      const pkg = state.localProducts.find((lp) => /пакет/i.test(lp.name));
+      if (pkg) state.cart.push({ product: localToProduct(pkg), qty: packages });
+      state.currentPage = 'products';
+      renderApp();
+    });
+  });
+}
+
 const OUR_STORE_NUMS: Record<number, string> = {
   12: '1', 7: '2', 11: '3', 10: '4', 13: '5', 6: '6', 14: '7', 15: '8', 16: '9',
 };
 const ACTIVE_STATUSES = new Set(['CREATED', 'ACTIVE', 'PACKAGING', 'READY_FOR_PICK_UP']);
 const _handledOrders = new Set<string>();
+let _appOrdersSearch = '';
 
 function renderInlineAppOrders(): string {
   const { appOrders, appOrdersLoading } = state;
   if (appOrdersLoading) return `<div class="ao-inline-row ao-inline-status">Загружаем заказы…</div>`;
 
-  const waiting = appOrders.filter((o) =>
-    ACTIVE_STATUSES.has(o.status) && OUR_STORE_NUMS[o.store.id],
-  );
-  if (!waiting.length) return '';
+  const q = _appOrdersSearch.replace(/\D/g, '');
+  const waiting = appOrders.filter((o) => {
+    if (!ACTIVE_STATUSES.has(o.status) || !OUR_STORE_NUMS[o.store.id]) return false;
+    if (!q) return true;
+    const phone = (o.user.phone_number.country_code + o.user.phone_number.phone_number).replace(/\D/g, '');
+    return phone.includes(q) || o.number.replace(/\D/g, '').includes(q);
+  });
+  if (!waiting.length) return '<div class="ao-inline-row ao-inline-status">Не найдено</div>';
 
   const rows = waiting.map((o) => {
     const storeNum = OUR_STORE_NUMS[o.store.id];
@@ -1101,7 +1116,10 @@ function renderLinkedAppOrder(): string {
   }
 
   return `<aside class="panel linked-order-panel">
-    <div class="panel-body scroll">
+    <div class="ao-search-wrap">
+      <input type="text" class="ao-search-input" id="ao-orders-search" placeholder="Телефон или № заказа" value="${escapeHtml(_appOrdersSearch)}">
+    </div>
+    <div class="panel-body scroll" id="ao-orders-list">
       ${renderInlineAppOrders()}
     </div>
   </aside>`;

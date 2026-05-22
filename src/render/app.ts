@@ -1119,7 +1119,7 @@ export function renderApp(): void {
       : state.currentPage === 'search' ? `<main class="orders-main scroll">${renderSearchPage()}</main>`
       : state.currentPage === 'app-orders' ? `<main class="orders-main scroll">${renderAppOrdersPage()}</main>`
       : `
-      <main class="workspace mob-${state.mobilePanel}">
+      <main class="workspace mob-${state.mobilePanel}${state.orderMode === 'app' && state.appOrderLinked ? ' workspace--linked' : ''}">
         <aside class="panel cart-panel">
           <div class="order-mode-switcher">
             <button type="button" class="mode-btn${state.orderMode === 'phone' ? ' active' : ''}" data-mode="phone">Телефон</button>

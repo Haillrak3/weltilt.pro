@@ -1182,6 +1182,7 @@ function updateCartTotal(): void {
 }
 
 export function renderApp(): void {
+  if (state.currentPage !== 'products') stopAppOrdersPolling();
   const searchInput = document.getElementById('product-search') as HTMLInputElement | null;
   const hadFocus = searchInput === document.activeElement;
   const selStart = searchInput?.selectionStart ?? null;

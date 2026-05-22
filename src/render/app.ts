@@ -1,5 +1,5 @@
 import { state } from '../state';
-import { saveClient, saveOrderMeta, saveOrderApp, saveOrderMode } from '../storage';
+import { saveClient, saveOrderMeta, saveOrderApp, saveOrderMode, saveCurrentPage } from '../storage';
 import { saveSettings } from '../config/settings';
 import { openMangoAdmin } from '../ui/mango-admin';
 import { runAsAdmin, getOperatorName } from '../auth';
@@ -415,11 +415,11 @@ function bindEvents(): void {
     renderApp();
   });
   document.getElementById('tab-products')?.addEventListener('click', () => {
-    state.currentPage = 'products';
+    state.currentPage = 'products'; saveCurrentPage('products');
     newOrder();
     if (state.orderMode === 'app') { void loadAppOrders(); startAppOrdersPolling(); }
   });
-  document.getElementById('tab-orders')?.addEventListener('click', () => { state.currentPage = 'orders'; stopAppOrdersPolling(); renderApp(); void loadOrdersFromServer(); });
+  document.getElementById('tab-orders')?.addEventListener('click', () => { state.currentPage = 'orders'; saveCurrentPage('orders'); stopAppOrdersPolling(); renderApp(); void loadOrdersFromServer(); });
 
   document.querySelectorAll<HTMLButtonElement>('.mob-nav-btn[data-mob-panel]').forEach((btn) => {
     btn.addEventListener('click', () => {
@@ -427,7 +427,7 @@ function bindEvents(): void {
       renderApp();
     });
   });
-  document.getElementById('tab-analytics')?.addEventListener('click', () => { state.currentPage = 'analytics'; renderApp(); });
+  document.getElementById('tab-analytics')?.addEventListener('click', () => { state.currentPage = 'analytics'; saveCurrentPage('analytics'); renderApp(); });
 
   document.querySelectorAll<HTMLButtonElement>('[data-an-tab]').forEach((btn) => {
     btn.addEventListener('click', () => {
@@ -441,9 +441,9 @@ function bindEvents(): void {
       renderApp();
     });
   });
-  document.getElementById('tab-refs')?.addEventListener('click', () => { state.currentPage = 'refs'; renderApp(); });
+  document.getElementById('tab-refs')?.addEventListener('click', () => { state.currentPage = 'refs'; saveCurrentPage('refs'); renderApp(); });
   document.getElementById('tab-search')?.addEventListener('click', () => {
-    state.currentPage = 'search';
+    state.currentPage = 'search'; saveCurrentPage('search');
     renderApp();
     void loadAllStoresProducts();
   });

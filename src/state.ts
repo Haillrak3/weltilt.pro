@@ -2,7 +2,7 @@ import { loadSettings } from './config/settings';
 import {
   loadClient, loadExtraClients, loadLocalProducts,
   loadOrderMeta, loadOrderApp, loadOrders, loadActiveStoreId, loadOrderMode,
-  loadAllStoresCache, loadProductsCache,
+  loadAllStoresCache, loadProductsCache, loadCurrentPage,
 } from './storage';
 import { todayGMT3 } from './utils';
 import type {
@@ -39,7 +39,7 @@ export const state = {
   clientSuggestHidden: false,
   extraClients: loadExtraClients(),
   orderMeta: loadOrderMeta(),
-  currentPage: 'products' as AppPage,
+  currentPage: loadCurrentPage() as AppPage,
   orders: _orders,
   expandedOrderId: null as string | null,
   ordersFilterFrom: todayGMT3(),

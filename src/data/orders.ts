@@ -1,6 +1,7 @@
 import { state } from '../state';
-import { saveClient, saveOrderMeta, saveOrderApp, saveOrders, saveOrderMode, ORDERS_KEY } from '../storage';
+import { saveClient, saveOrderMeta, saveOrderApp, saveOrders, saveOrderMode, saveCurrentPage, ORDERS_KEY } from '../storage';
 import { render } from '../render/trigger';
+import { stopAppOrdersPolling } from '../render/app';
 import { upsertClientRecord } from './clients';
 import { buildCartItems, roundQty } from './cart';
 import { dayKeyGMT3, unitPrice } from '../utils';
@@ -132,7 +133,9 @@ export function createOrder(): void {
   state.clientSuggestHidden = false;
   state.orderApp = { orderNumber: '', orderAmount: '', deliveryPrice: 300, packageQty: 1 };
   saveOrderApp(state.orderApp);
+  if (isAppTab) { state.appOrderLinked = null; stopAppOrdersPolling(); }
   state.currentPage = 'orders';
+  saveCurrentPage('orders');
   render();
 
   if (order.payMethod === 'cash') {

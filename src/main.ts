@@ -97,11 +97,16 @@ async function initMangoOperator(): Promise<void> {
     const data = await myRes.json() as { phone?: string };
     let phone = (data.phone ?? '').replace(/\D/g, '');
 
-    // Автопривязка по SMS-сессии, если сервер ещё не знает оператора
+    // Автопривязка если сервер ещё не знает оператора — пробуем несколько источников
     if (!phone && state.mangoAccounts.length > 0) {
-      const sessionPhone = (sessionStorage.getItem('orderdesk_auth') ?? '').replace(/\D/g, '');
-      if (sessionPhone) {
-        const matched = state.mangoAccounts.find(a => a.operatorPhone.replace(/\D/g, '') === sessionPhone);
+      const candidates = [
+        sessionStorage.getItem('orderdesk_auth') ?? '',
+        state.orderMeta.operator,
+        state.settings.phoneNumber ?? '',
+      ].map(s => s.replace(/\D/g, '')).filter(Boolean);
+
+      for (const candidate of candidates) {
+        const matched = state.mangoAccounts.find(a => a.operatorPhone.replace(/\D/g, '') === candidate);
         if (matched) {
           await fetch('/desk-api/mango/bind-operator', {
             method: 'POST',
@@ -109,6 +114,7 @@ async function initMangoOperator(): Promise<void> {
             body: JSON.stringify({ phone: matched.operatorPhone }),
           });
           phone = matched.operatorPhone.replace(/\D/g, '');
+          break;
         }
       }
     }

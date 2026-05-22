@@ -1056,7 +1056,8 @@ const ACTIVE_STATUSES = new Set(['CREATED', 'ACTIVE', 'PACKAGING', 'READY_FOR_PI
 const _handledOrders: Set<string> = loadHandledOrders(state.orderMeta.operator);
 
 function markHandled(orderNum: string): void {
-  markHandled(orderNum);
+  _handledOrders.add(orderNum);
+  saveHandledOrders(state.orderMeta.operator, _handledOrders);
   saveHandledOrders(state.orderMeta.operator, _handledOrders);
 }
 let _appOrdersSearch = '';

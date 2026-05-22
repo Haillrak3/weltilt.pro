@@ -116,6 +116,11 @@ export function createOrder(): void {
     total,
     ...(isAppTab && state.orderApp.orderNumber ? { orderNumber: state.orderApp.orderNumber } : {}),
     ...(isAppTab ? { deliveryPrice: state.orderApp.deliveryPrice, orderAmount: parseFloat(state.orderApp.orderAmount.replaceAll(',', '.')) || 0 } : {}),
+    ...(isAppTab && state.appOrderLinked ? (() => {
+      const linked = state.appOrders.find((o) => o.number === state.appOrderLinked);
+      const hasW = linked?.cart_products.some((p) => !p.pack_item || p.pack_item.volume === 0) ?? false;
+      return hasW ? { hasWeightItems: true } : {};
+    })() : {}),
   };
   state.orders.unshift(order);
   saveOrders(state.orders);
@@ -325,19 +330,15 @@ export async function loadOrdersFromServer(): Promise<void> {
       }).catch(() => {});
     }
 
-    // Пересчитываем seqNum для сегодняшних заказов чтобы исправить возможные гонки
-    const todayKey = dayKeyGMT3(new Date().toISOString());
-    const todayOrders = merged
-      .filter(o => dayKeyGMT3(o.createdAt) === todayKey)
-      .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
-    let seq = 0;
-    for (const o of todayOrders) o.seqNum = ++seq;
+    const prevSnapshot = JSON.stringify(state.orders);
+    state.orders = merged;
+    // Назначаем seqNum только заказам у которых его нет (миграция старых данных)
+    migrateOrderSeqNums();
 
     // Кэшируем в localStorage чтобы следующий старт видел актуальные заказы
-    try { localStorage.setItem(ORDERS_KEY, JSON.stringify(merged)); } catch { /* quota */ }
+    try { localStorage.setItem(ORDERS_KEY, JSON.stringify(state.orders)); } catch { /* quota */ }
 
-    if (JSON.stringify(merged) !== JSON.stringify(state.orders)) {
-      state.orders = merged;
+    if (JSON.stringify(state.orders) !== prevSnapshot) {
       render();
     }
   } catch { /* сервер недоступен */ }

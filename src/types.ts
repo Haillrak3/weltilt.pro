@@ -89,6 +89,7 @@ export interface SavedOrder {
   given?: number;
   change?: number;
   deletedAt?: string;
+  hasWeightItems?: boolean;
 }
 
 export interface OrderApp {

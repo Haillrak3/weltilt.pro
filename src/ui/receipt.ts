@@ -459,7 +459,7 @@ export function showOrderReceipt(order: SavedOrder): void {
   const copyAmountBtn = overlay.querySelector<HTMLButtonElement>('#btn-copy-amount');
   if (copyAmountBtn) {
     copyAmountBtn.addEventListener('click', async () => {
-      const hasWeight = order.items.some((i) => i.productType === 'WEIGHT');
+      const hasWeight = order.hasWeightItems === true;
       const parts: string[] = [];
       if (order.orderNumber) parts.push(`№${order.orderNumber}`);
       parts.push(hasWeight ? 'руб.' : `${Math.round(order.total)} руб.`);

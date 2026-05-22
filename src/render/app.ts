@@ -1033,6 +1033,18 @@ function bindAppOrderButtons(): void {
       const rawPhone = order.user.phone_number.country_code + order.user.phone_number.phone_number;
       state.appOrderLinked = order.number;
       state.client.phone = formatPhone(rawPhone) || rawPhone;
+      if (order.user.name) state.client.name = order.user.name;
+      const dbClient = findClientByPhone(rawPhone);
+      const addrs = dbClient ? getClientAddresses(dbClient) : [];
+      if (addrs.length > 0 && !state.client.street && !state.client.house) {
+        const a = addrs[0];
+        state.client.street = a.street ?? '';
+        state.client.house = a.house ?? '';
+        state.client.entrance = a.entrance ?? '';
+        state.client.floor = a.floor ?? '';
+        state.client.apartment = a.apartment ?? '';
+        state.client.intercom = a.intercom ?? '';
+      }
       saveClient(state.client);
       state.orderApp.orderNumber = order.number.slice(-6);
       state.orderApp.orderAmount = String(order.total_price);

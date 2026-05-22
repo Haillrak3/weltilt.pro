@@ -4164,7 +4164,9 @@ select:disabled {
 .ao-inline-row:last-child { border-bottom: none; }
 .ao-inline-row.ao-inline-status { color: var(--muted); font-style: italic; flex-direction: row; }
 .ao-inline-store { font-weight: 700; color: var(--accent); }
+.ao-inline-num-row { display: flex; align-items: baseline; gap: 8px; }
 .ao-inline-num { font-family: monospace; color: var(--muted); }
+.ao-inline-phone { font-size: 0.8rem; color: var(--muted); }
 .ao-pickup-btn.ao-copied { background: var(--ok) !important; border-color: var(--ok) !important; color: #fff !important; }
 .ao-search-wrap { padding: 8px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
 .ao-search-input { width: 100%; padding: 5px 8px; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); font-size: 0.85rem; outline: none; }

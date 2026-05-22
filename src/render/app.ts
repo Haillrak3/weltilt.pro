@@ -1078,7 +1078,10 @@ function renderInlineAppOrders(): string {
       ${isNew ? '<div class="ao-new-badge">новый</div>' : ''}
       <div class="ao-inline-store">Магазин №${storeNum}</div>
       <div class="ao-inline-time">${formatTime(o.order_date)}</div>
-      <div class="ao-inline-num">#${escapeHtml(o.number.slice(-6))}</div>
+      <div class="ao-inline-num-row">
+        <span class="ao-inline-num">#${escapeHtml(o.number.slice(-6))}</span>
+        <span class="ao-inline-phone">${escapeHtml(o.user.phone_number.country_code + o.user.phone_number.phone_number)}</span>
+      </div>
       ${note}
       <div class="ao-inline-actions">
         <button type="button" class="btn btn-sm btn-ghost ao-pickup-btn" data-ao-full="${escapeHtml(o.number)}" data-ao-num="${escapeHtml(o.number.slice(-6))}" data-ao-amount="${Math.round(o.total_price)} руб.">Самовывоз</button>

@@ -454,8 +454,10 @@ function bindEvents(): void {
       const order = state.appOrders.find((o) => o.number === num);
       if (!order) return;
 
-      const totalQty = order.cart_products.reduce((s, p) => s + p.qty, 0);
-      const totalLiters = order.cart_products.reduce((s, p) => s + (p.pack_item ? p.qty * p.pack_item.volume : 0), 0);
+      const totalQty = order.cart_products.reduce((s, p) =>
+        s + (p.pack_item && p.pack_item.volume > 0 ? p.qty : 0.5), 0);
+      const totalLiters = order.cart_products.reduce((s, p) =>
+        s + (p.pack_item && p.pack_item.volume > 0 ? p.qty * p.pack_item.volume : 0), 0);
       const packages = Math.max(
         Math.ceil(totalQty / 7),
         totalLiters > 0 ? Math.ceil(totalLiters / 7) : 0,

@@ -1,0 +1,7002 @@
+[
+  {
+    "id": "1779360626713",
+    "createdAt": "2026-05-21T10:50:26.713Z",
+    "status": "done",
+    "storeId": "2",
+    "client": {
+      "phone": "8 (964) 515-68-47",
+      "name": "Андрей",
+      "street": "Маршала Кожедуба",
+      "house": "14",
+      "entrance": "3",
+      "floor": "13",
+      "apartment": "202",
+      "intercom": "202к5654",
+      "notes": ""
+    },
+    "orderMethod": "app",
+    "payMethod": "card",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 1577,
+    "orderNumber": "369297",
+    "deliveryPrice": 300,
+    "orderAmount": 1267
+  },
+  {
+    "id": "1779360507730",
+    "createdAt": "2026-05-21T10:48:27.730Z",
+    "status": "done",
+    "storeId": "2",
+    "client": {
+      "phone": "8 (985) 648-12-75",
+      "name": "Егор",
+      "street": "Верхние поля",
+      "house": "35к4",
+      "entrance": "4",
+      "floor": "5",
+      "apartment": "211",
+      "intercom": "",
+      "notes": ""
+    },
+    "orderMethod": "phone",
+    "payMethod": "cash",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": 2588,
+        "name": "МПК Чешский лежак",
+        "qty": 3,
+        "price": 232,
+        "productType": "DRAFT",
+        "details": "1 л"
+      },
+      {
+        "id": -1778887823941,
+        "name": "Бутылка 1л",
+        "qty": 4,
+        "price": 13,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      },
+      {
+        "id": 72115,
+        "name": "Таркос Бойлерное",
+        "qty": 1,
+        "price": 219,
+        "productType": "DRAFT",
+        "details": "1 л"
+      }
+    ],
+    "total": 1277
+  },
+  {
+    "id": "1779359353436",
+    "createdAt": "2026-05-21T10:29:13.436Z",
+    "status": "done",
+    "storeId": "6",
+    "client": {
+      "phone": "8 (909) 972-11-42",
+      "name": "Татьяна",
+      "street": "Шипиловский проезд",
+      "house": "55к1",
+      "entrance": "1",
+      "floor": "9",
+      "apartment": "",
+      "intercom": "",
+      "notes": "кв57  к57к0327"
+    },
+    "orderMethod": "app",
+    "payMethod": "card",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 1269,
+    "orderNumber": "544157",
+    "deliveryPrice": 300,
+    "orderAmount": 959
+  },
+  {
+    "id": "1779358674050",
+    "createdAt": "2026-05-21T10:17:54.050Z",
+    "status": "done",
+    "storeId": "5",
+    "client": {
+      "phone": "8 (901) 530-92-12",
+      "name": "Игорь",
+      "street": "Мячковский бульвар",
+      "house": "8к4",
+      "entrance": "2",
+      "floor": "4",
+      "apartment": "44",
+      "intercom": "",
+      "notes": "9876в"
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": 4113,
+        "name": "Коломенская Weiss berg",
+        "qty": 2,
+        "price": 322,
+        "productType": "DRAFT",
+        "details": "1 л"
+      },
+      {
+        "id": -1779358089007,
+        "name": "Бутылка 1л",
+        "qty": 2,
+        "price": 13,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 980
+  },
+  {
+    "id": "1779358614316",
+    "createdAt": "2026-05-21T10:16:54.316Z",
+    "status": "done",
+    "storeId": "6",
+    "client": {
+      "phone": "8 (905) 567-11-16",
+      "name": "Илья",
+      "street": "Кубанская",
+      "house": "14ст2",
+      "entrance": "1",
+      "floor": "5",
+      "apartment": "18",
+      "intercom": "",
+      "notes": "домоф 1234"
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      },
+      {
+        "id": 2569,
+        "name": "Томское Крюгер классическое",
+        "qty": 4,
+        "price": 385,
+        "productType": "DRAFT",
+        "details": "1 л"
+      },
+      {
+        "id": -1779358089007,
+        "name": "Бутылка 1л",
+        "qty": 4,
+        "price": 13,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 1902
+  },
+  {
+    "id": "1779357484581",
+    "createdAt": "2026-05-21T09:58:04.581Z",
+    "status": "done",
+    "storeId": "5",
+    "client": {
+      "phone": "8 (920) 706-94-37",
+      "name": "Елена",
+      "street": "Мячковский бульвар",
+      "house": "14к2",
+      "entrance": "2",
+      "floor": "10",
+      "apartment": "119",
+      "intercom": "128к8911",
+      "notes": ""
+    },
+    "orderMethod": "phone",
+    "payMethod": "cash",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": 4133,
+        "name": "Таркос Жигулевское Воронеж",
+        "qty": 3,
+        "price": 230,
+        "productType": "DRAFT",
+        "details": "1.5 л"
+      },
+      {
+        "id": -1778887836533,
+        "name": "Бутылка 1.5л",
+        "qty": 2,
+        "price": 15,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      },
+      {
+        "id": 4133,
+        "name": "Таркос Жигулевское Воронеж",
+        "qty": 1,
+        "price": 230,
+        "productType": "DRAFT",
+        "details": "1 л"
+      },
+      {
+        "id": -1778887823941,
+        "name": "Бутылка 1л",
+        "qty": 1,
+        "price": 13,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 1273
+  },
+  {
+    "id": "1779357305814",
+    "createdAt": "2026-05-21T09:55:05.814Z",
+    "status": "done",
+    "storeId": "2",
+    "client": {
+      "phone": "8 (964) 552-22-33",
+      "name": "Кирилл",
+      "street": "Таганрогская",
+      "house": "7",
+      "entrance": "1",
+      "floor": "3",
+      "apartment": "6",
+      "intercom": "6к0040",
+      "notes": "2 маг."
+    },
+    "orderMethod": "app",
+    "payMethod": "card",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 2,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 4085,
+    "orderNumber": "543903",
+    "deliveryPrice": 300,
+    "orderAmount": 3765
+  },
+  {
+    "id": "1779356704854",
+    "createdAt": "2026-05-21T09:45:04.856Z",
+    "status": "done",
+    "storeId": "5",
+    "client": {
+      "phone": "8 (916) 624-85-14",
+      "name": "Клиент",
+      "street": "Батайский проезд",
+      "house": "31",
+      "entrance": "1",
+      "floor": "4",
+      "apartment": "16",
+      "intercom": "",
+      "notes": ""
+    },
+    "orderMethod": "app",
+    "payMethod": "card",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 1657,
+    "orderNumber": "089931",
+    "deliveryPrice": 300,
+    "orderAmount": 1347
+  },
+  {
+    "id": "1779354568023",
+    "createdAt": "2026-05-21T09:09:28.023Z",
+    "status": "done",
+    "storeId": "5",
+    "client": {
+      "phone": "8 (985) 461-62-64",
+      "name": "Олег",
+      "street": "Новочеркасский бульвар",
+      "house": "20к1",
+      "entrance": "2",
+      "floor": "5",
+      "apartment": "",
+      "intercom": "",
+      "notes": "кв 77 домофон 77в"
+    },
+    "orderMethod": "app",
+    "payMethod": "card",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 1028,
+    "orderNumber": "201214",
+    "deliveryPrice": 300,
+    "orderAmount": 718
+  },
+  {
+    "id": "1779302887365",
+    "createdAt": "2026-05-20T18:48:07.365Z",
+    "status": "done",
+    "storeId": "4",
+    "client": {
+      "phone": "8 (965) 402-09-04",
+      "name": "",
+      "street": "Перервинский бульвар",
+      "house": "22к2",
+      "entrance": "1",
+      "floor": "2",
+      "apartment": "4",
+      "intercom": "",
+      "notes": ""
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "Роман",
+    "items": [
+      {
+        "id": 4561,
+        "name": "Коломенское Немецкое светлое",
+        "qty": 1.5,
+        "price": 295,
+        "productType": "DRAFT",
+        "details": "1.5 л"
+      },
+      {
+        "id": -1778887836533,
+        "name": "Бутылка 1.5л",
+        "qty": 2,
+        "price": 14,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      },
+      {
+        "id": 2588,
+        "name": "МПК Чешский лежак",
+        "qty": 1.5,
+        "price": 232,
+        "productType": "DRAFT",
+        "details": "1.5 л"
+      },
+      {
+        "id": 4075,
+        "name": "Форштадтская Бархатное Элитное",
+        "qty": 1,
+        "price": 260,
+        "productType": "DRAFT",
+        "details": "1 л"
+      },
+      {
+        "id": -1778887823941,
+        "name": "Бутылка 1л",
+        "qty": 1,
+        "price": 12,
+        "productType": "PIECE"
+      },
+      {
+        "id": 59351,
+        "name": "Крутоны со вкусом сметаны с зеленью",
+        "qty": 1,
+        "price": 125,
+        "productType": "PIECE",
+        "details": "100 г"
+      }
+    ],
+    "total": 1525.5
+  },
+  {
+    "id": "1779300312185",
+    "createdAt": "2026-05-20T18:05:12.185Z",
+    "status": "done",
+    "storeId": "4",
+    "client": {
+      "phone": "8 (968) 693-33-33",
+      "name": "Максим",
+      "street": "Мячковский бульвар",
+      "house": "8к4",
+      "entrance": "4",
+      "floor": "4",
+      "apartment": "108",
+      "intercom": "",
+      "notes": ""
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "Роман",
+    "items": [
+      {
+        "id": 2753,
+        "name": "Алтайские традиции Чешское белое",
+        "qty": 4.5,
+        "price": 297,
+        "productType": "DRAFT",
+        "details": "1.5 л"
+      },
+      {
+        "id": -1778887836533,
+        "name": "Бутылка 1.5л",
+        "qty": 3,
+        "price": 14,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      },
+      {
+        "id": 4542,
+        "name": "Курица вяленая с чесноком",
+        "qty": 2,
+        "price": 200,
+        "productType": "PIECE",
+        "details": "50 г"
+      }
+    ],
+    "total": 2088.5
+  },
+  {
+    "id": "1779300137146",
+    "createdAt": "2026-05-20T18:02:17.146Z",
+    "status": "done",
+    "storeId": "5",
+    "client": {
+      "phone": "8 (963) 699-22-77",
+      "name": "Клиент",
+      "street": "Перерва",
+      "house": "34",
+      "entrance": "6",
+      "floor": "12",
+      "apartment": "297",
+      "intercom": "",
+      "notes": ""
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "Роман",
+    "items": [
+      {
+        "id": 4140,
+        "name": "Форштадтская Ирландский Эль",
+        "qty": 3,
+        "price": 257,
+        "productType": "DRAFT"
+      },
+      {
+        "id": -1778887836533,
+        "name": "Бутылка 1.5л",
+        "qty": 3,
+        "price": 14,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      },
+      {
+        "id": 2559,
+        "name": "Очаково Жигулевское особая партия",
+        "qty": 1.5,
+        "price": 210,
+        "productType": "DRAFT"
+      },
+      {
+        "id": 2635,
+        "name": "Кольца кальмара",
+        "qty": 1,
+        "price": 339,
+        "productType": "PIECE",
+        "details": "100 г"
+      }
+    ],
+    "total": 1777
+  },
+  {
+    "id": "1779299021401",
+    "createdAt": "2026-05-20T17:43:41.401Z",
+    "status": "done",
+    "storeId": "2",
+    "client": {
+      "phone": "8 (926) 719-87-27",
+      "name": "Игорь",
+      "street": "Судакова",
+      "house": "23к2",
+      "entrance": "2",
+      "floor": "5",
+      "apartment": "52",
+      "intercom": "в1990",
+      "notes": ""
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "Роман",
+    "items": [
+      {
+        "id": 2566,
+        "name": "Коломенское Спецварка",
+        "qty": 2,
+        "price": 232,
+        "productType": "DRAFT",
+        "details": "1 л"
+      },
+      {
+        "id": -1778887823941,
+        "name": "Бутылка 1л",
+        "qty": 2,
+        "price": 12,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 798
+  },
+  {
+    "id": "1779298364458",
+    "createdAt": "2026-05-20T17:32:44.458Z",
+    "status": "done",
+    "storeId": "9",
+    "client": {
+      "phone": "8 (903) 596-86-43",
+      "name": "Наталья",
+      "street": "Пролетарский проспект",
+      "house": "33к4",
+      "entrance": "1",
+      "floor": "8",
+      "apartment": "414",
+      "intercom": "7328",
+      "notes": ""
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "Роман",
+    "items": [
+      {
+        "id": 4129,
+        "name": "Очаково Столичное премиум",
+        "qty": 2,
+        "price": 199,
+        "productType": "DRAFT",
+        "details": "1 л"
+      },
+      {
+        "id": -1778887823941,
+        "name": "Бутылка 1л",
+        "qty": 2,
+        "price": 12,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 732
+  },
+  {
+    "id": "1779297876007",
+    "createdAt": "2026-05-20T17:24:36.007Z",
+    "status": "done",
+    "storeId": "2",
+    "client": {
+      "phone": "8 (926) 227-81-91",
+      "name": "Антон",
+      "street": "Ставропольская",
+      "house": "27Ас1",
+      "entrance": "",
+      "floor": "",
+      "apartment": "",
+      "intercom": "",
+      "notes": ""
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "Роман",
+    "items": [
+      {
+        "id": 4141,
+        "name": "Хадыженское светлое",
+        "qty": 3,
+        "price": 290,
+        "productType": "DRAFT",
+        "details": "1.5 л"
+      },
+      {
+        "id": -1778887836533,
+        "name": "Бутылка 1.5л",
+        "qty": 2,
+        "price": 14,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 1208
+  },
+  {
+    "id": "1779296575945",
+    "createdAt": "2026-05-20T17:02:55.945Z",
+    "status": "done",
+    "storeId": "2",
+    "client": {
+      "phone": "8 (915) 288-24-84",
+      "name": "Влад",
+      "street": "Ставропольская",
+      "house": "76",
+      "entrance": "3",
+      "floor": "10",
+      "apartment": "133",
+      "intercom": "",
+      "notes": ""
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "Роман",
+    "items": [
+      {
+        "id": 4096,
+        "name": "Василеостровская Kriek de Lutin",
+        "qty": 2,
+        "price": 467,
+        "productType": "DRAFT"
+      },
+      {
+        "id": -1778887823941,
+        "name": "Бутылка 1л",
+        "qty": 2,
+        "price": 12,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      },
+      {
+        "id": 2837,
+        "name": "Кальмар по-шанхайски",
+        "qty": 1,
+        "price": 305,
+        "productType": "PIECE",
+        "details": "100 г"
+      }
+    ],
+    "total": 1573
+  },
+  {
+    "id": "1779295305525",
+    "createdAt": "2026-05-20T16:41:45.525Z",
+    "status": "done",
+    "storeId": "2",
+    "client": {
+      "phone": "8 (931) 988-78-88",
+      "name": "Игорь",
+      "street": "Маршала Баграмяна",
+      "house": "2",
+      "entrance": "5",
+      "floor": "7",
+      "apartment": "281",
+      "intercom": "",
+      "notes": "в281в1735"
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "Роман",
+    "items": [
+      {
+        "id": 2753,
+        "name": "Алтайские традиции Чешское белое",
+        "qty": 1,
+        "price": 297,
+        "productType": "DRAFT",
+        "details": "1 л"
+      },
+      {
+        "id": -1778887823941,
+        "name": "Бутылка 1л",
+        "qty": 2,
+        "price": 12,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      },
+      {
+        "id": 4074,
+        "name": "Форштадская Чешское премиум",
+        "qty": 1,
+        "price": 265,
+        "productType": "DRAFT",
+        "details": "1 л"
+      }
+    ],
+    "total": 896
+  },
+  {
+    "id": "1779294557874",
+    "createdAt": "2026-05-20T16:29:17.874Z",
+    "status": "done",
+    "storeId": "9",
+    "client": {
+      "phone": "8 (903) 777-40-18",
+      "name": "Ирина",
+      "street": "Кантемировская",
+      "house": "31к4",
+      "entrance": "1",
+      "floor": "12",
+      "apartment": "452",
+      "intercom": "",
+      "notes": "в452в5371 Звонок не работает."
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "Роман",
+    "items": [
+      {
+        "id": 4133,
+        "name": "Таркос Жигулевское Воронеж",
+        "qty": 1.5,
+        "price": 230,
+        "productType": "DRAFT",
+        "details": "1.5 л"
+      },
+      {
+        "id": -1778887836533,
+        "name": "Бутылка 1.5л",
+        "qty": 1,
+        "price": 14,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      },
+      {
+        "id": 4133,
+        "name": "Таркос Жигулевское Воронеж",
+        "qty": 1,
+        "price": 230,
+        "productType": "DRAFT",
+        "details": "1 л"
+      },
+      {
+        "id": -1778887823941,
+        "name": "Бутылка 1л",
+        "qty": 1,
+        "price": 12,
+        "productType": "PIECE"
+      },
+      {
+        "id": 5474,
+        "name": "Кукурузные чипсы начос со вкусом тайского перца",
+        "qty": 0.084,
+        "price": 770,
+        "productType": "WEIGHT"
+      }
+    ],
+    "total": 975.6800000000001
+  },
+  {
+    "id": "1779294301433",
+    "createdAt": "2026-05-20T16:25:01.433Z",
+    "status": "done",
+    "storeId": "2",
+    "client": {
+      "phone": "8 (916) 233-16-47",
+      "name": "Клиент",
+      "street": "Краснодарская",
+      "house": "7к1",
+      "entrance": "1",
+      "floor": "6",
+      "apartment": "24",
+      "intercom": "",
+      "notes": "24к3109"
+    },
+    "orderMethod": "phone",
+    "payMethod": "cash",
+    "operator": "Роман",
+    "items": [
+      {
+        "id": 26008,
+        "name": "Очаково Жигулевское оригинальное",
+        "qty": 5,
+        "price": 199,
+        "productType": "DRAFT",
+        "details": "1 л"
+      },
+      {
+        "id": -1778887823941,
+        "name": "Бутылка 1л",
+        "qty": 12,
+        "price": 12,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 3,
+        "price": 10,
+        "productType": "PIECE"
+      },
+      {
+        "id": 50841,
+        "name": "Каскад Яблочный Сад",
+        "qty": 7,
+        "price": 257,
+        "productType": "DRAFT",
+        "details": "1 л"
+      },
+      {
+        "id": 4413,
+        "name": "Алтайские Лимонады ГРУШЕВЫЙ",
+        "qty": 3,
+        "price": 129,
+        "productType": "BOTTLED",
+        "details": "1.5 л"
+      }
+    ],
+    "total": 3655,
+    "given": 5000,
+    "change": 1345
+  },
+  {
+    "id": "1779293917602",
+    "createdAt": "2026-05-20T16:18:37.602Z",
+    "status": "done",
+    "storeId": "2",
+    "client": {
+      "phone": "8 (925) 717-67-55",
+      "name": "Александр",
+      "street": "Верхние Поля",
+      "house": "28",
+      "entrance": "2",
+      "floor": "17",
+      "apartment": "148",
+      "intercom": "",
+      "notes": ""
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "Роман",
+    "items": [
+      {
+        "id": 2560,
+        "name": "МПК Жигули барное непастеризованное",
+        "qty": 3,
+        "price": 240,
+        "productType": "DRAFT",
+        "details": "1.5 л"
+      },
+      {
+        "id": -1778887836533,
+        "name": "Бутылка 1.5л",
+        "qty": 2,
+        "price": 14,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 1058
+  },
+  {
+    "id": "1779292313717",
+    "createdAt": "2026-05-20T15:51:53.717Z",
+    "status": "done",
+    "storeId": "4",
+    "client": {
+      "phone": "8 (910) 236-33-88",
+      "name": "Евгений",
+      "street": "Мячковский бульвар",
+      "house": "14к2",
+      "entrance": "1",
+      "floor": "21",
+      "apartment": "80",
+      "intercom": "",
+      "notes": "58к3155"
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "Роман",
+    "items": [
+      {
+        "id": 2588,
+        "name": "МПК Чешский лежак",
+        "qty": 4.5,
+        "price": 232,
+        "productType": "DRAFT",
+        "details": "1.5 л"
+      },
+      {
+        "id": -1778887836533,
+        "name": "Бутылка 1.5л",
+        "qty": 3,
+        "price": 14,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 1396
+  },
+  {
+    "id": "1779292284279",
+    "createdAt": "2026-05-20T15:51:24.279Z",
+    "status": "done",
+    "storeId": "2",
+    "client": {
+      "phone": "8 (985) 485-53-40",
+      "name": "Ксения",
+      "street": "Маршала Кожедуба",
+      "house": "4",
+      "entrance": "3",
+      "floor": "12",
+      "apartment": "146   117к9736",
+      "intercom": "",
+      "notes": ""
+    },
+    "orderMethod": "phone",
+    "payMethod": "cash",
+    "operator": "Роман",
+    "items": [
+      {
+        "id": 2569,
+        "name": "Томское Крюгер классическое",
+        "qty": 7.5,
+        "price": 385,
+        "productType": "DRAFT",
+        "details": "1.5 л"
+      },
+      {
+        "id": -1778887836533,
+        "name": "Бутылка 1.5л",
+        "qty": 5,
+        "price": 14,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      },
+      {
+        "id": 26213,
+        "name": "Сырный продукт паутинка классический",
+        "qty": 1,
+        "price": 184,
+        "productType": "PIECE",
+        "details": "100 г"
+      }
+    ],
+    "total": 3451.5,
+    "given": 5000,
+    "change": 1548.5
+  },
+  {
+    "id": "1779291509597",
+    "createdAt": "2026-05-20T15:38:29.597Z",
+    "status": "done",
+    "storeId": "5",
+    "client": {
+      "phone": "8 (915) 017-07-04",
+      "name": "Денис",
+      "street": "Новочеркасский бульвар",
+      "house": "20к2",
+      "entrance": "1",
+      "floor": "6",
+      "apartment": "390",
+      "intercom": "",
+      "notes": "5 маг"
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "Роман",
+    "items": [
+      {
+        "id": 4134,
+        "name": "Таркос White rabbit",
+        "qty": 3,
+        "price": 296,
+        "productType": "DRAFT",
+        "details": "1 л"
+      },
+      {
+        "id": -1778887823941,
+        "name": "Бутылка 1л",
+        "qty": 3,
+        "price": 12,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 1234
+  },
+  {
+    "id": "1779290099738",
+    "createdAt": "2026-05-20T15:14:59.738Z",
+    "status": "done",
+    "storeId": "9",
+    "client": {
+      "phone": "8 (916) 777-33-53",
+      "name": "Клиент",
+      "street": "Кантемировская",
+      "house": "22к3",
+      "entrance": "2",
+      "floor": "1",
+      "apartment": "832",
+      "intercom": "",
+      "notes": ""
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "Роман",
+    "items": [
+      {
+        "id": 4133,
+        "name": "Таркос Жигулевское Воронеж",
+        "qty": 2,
+        "price": 230,
+        "productType": "DRAFT",
+        "details": "1 л"
+      },
+      {
+        "id": -1778887823941,
+        "name": "Бутылка 1л",
+        "qty": 2,
+        "price": 12,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 794
+  },
+  {
+    "id": "1779288160376",
+    "createdAt": "2026-05-20T14:42:40.376Z",
+    "status": "done",
+    "storeId": "7",
+    "client": {
+      "phone": "8 (901) 904-77-54",
+      "name": "Михаил",
+      "street": "Братеевская",
+      "house": "35к3",
+      "entrance": "10",
+      "floor": "7",
+      "apartment": "466к",
+      "intercom": "",
+      "notes": ""
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "Роман",
+    "items": [
+      {
+        "id": 4561,
+        "name": "Коломенское Немецкое светлое",
+        "qty": 6,
+        "price": 295,
+        "productType": "DRAFT",
+        "details": "1.5 л"
+      },
+      {
+        "id": -1778887836533,
+        "name": "Бутылка 1.5л",
+        "qty": 4,
+        "price": 14,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 2136
+  },
+  {
+    "id": "1779287716589",
+    "createdAt": "2026-05-20T14:35:16.589Z",
+    "status": "done",
+    "storeId": "4",
+    "client": {
+      "phone": "8 (926) 160-60-45",
+      "name": "Евгений",
+      "street": "Перервинский бульвар",
+      "house": "21к1",
+      "entrance": "5",
+      "floor": "10",
+      "apartment": "276",
+      "intercom": "",
+      "notes": "276к1395 Звонка нет"
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "Роман",
+    "items": [
+      {
+        "id": 4125,
+        "name": "ОПХ Krusovice",
+        "qty": 3,
+        "price": 344,
+        "productType": "DRAFT",
+        "details": "1.5 л"
+      },
+      {
+        "id": -1778887836533,
+        "name": "Бутылка 1.5л",
+        "qty": 2,
+        "price": 14,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 1370
+  },
+  {
+    "id": "1779286492143",
+    "createdAt": "2026-05-20T14:14:52.143Z",
+    "status": "done",
+    "storeId": "9",
+    "client": {
+      "phone": "8 (903) 516-46-75",
+      "name": "Александр",
+      "street": "Кантемировская",
+      "house": "3к3",
+      "entrance": "1",
+      "floor": "10",
+      "apartment": "449",
+      "intercom": "",
+      "notes": ""
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "Роман",
+    "items": [
+      {
+        "id": 4137,
+        "name": "Томское Чешский джбанек",
+        "qty": 3,
+        "price": 389,
+        "productType": "DRAFT",
+        "details": "1.5 л"
+      },
+      {
+        "id": -1778887836533,
+        "name": "Бутылка 1.5л",
+        "qty": 2,
+        "price": 14,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      },
+      {
+        "id": 4171,
+        "name": "Сушка «Флотская» с солью",
+        "qty": 2,
+        "price": 95,
+        "productType": "PIECE",
+        "details": "60 г"
+      }
+    ],
+    "total": 1695
+  },
+  {
+    "id": "1779284602920",
+    "createdAt": "2026-05-20T13:43:22.920Z",
+    "status": "done",
+    "storeId": "9",
+    "client": {
+      "phone": "8 (964) 526-93-08",
+      "name": "Денис",
+      "street": "Бакинская",
+      "house": "8",
+      "entrance": "1",
+      "floor": "9",
+      "apartment": "64",
+      "intercom": "",
+      "notes": ""
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "Роман",
+    "items": [
+      {
+        "id": 65706,
+        "name": "Очаково Рижское",
+        "qty": 5,
+        "price": 205,
+        "productType": "DRAFT"
+      },
+      {
+        "id": -1778887836533,
+        "name": "Бутылка 1.5л",
+        "qty": 2,
+        "price": 14,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      },
+      {
+        "id": 4256,
+        "name": "Волковская Вишня",
+        "qty": 2,
+        "price": 314,
+        "productType": "DRAFT"
+      },
+      {
+        "id": -1778887823941,
+        "name": "Бутылка 1л",
+        "qty": 4,
+        "price": 12,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 2039
+  },
+  {
+    "id": "1779284054174",
+    "createdAt": "2026-05-20T13:34:14.174Z",
+    "status": "done",
+    "storeId": "5",
+    "client": {
+      "phone": "8 (999) 096-07-33",
+      "name": "Клиент",
+      "street": "Луговой проезд",
+      "house": "8к1",
+      "entrance": "2",
+      "floor": "11",
+      "apartment": "98в",
+      "intercom": "",
+      "notes": ""
+    },
+    "orderMethod": "phone",
+    "payMethod": "cash",
+    "operator": "Роман",
+    "items": [
+      {
+        "id": 4140,
+        "name": "Форштадтская Ирландский Эль",
+        "qty": 1,
+        "price": 257,
+        "productType": "DRAFT",
+        "details": "1 л"
+      },
+      {
+        "id": -1778887823941,
+        "name": "Бутылка 1л",
+        "qty": 3,
+        "price": 12,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      },
+      {
+        "id": 2588,
+        "name": "МПК Чешский лежак",
+        "qty": 2,
+        "price": 232,
+        "productType": "DRAFT",
+        "details": "1 л"
+      },
+      {
+        "id": 2629,
+        "name": "Чипсы из мяса курицы",
+        "qty": 1,
+        "price": 145,
+        "productType": "PIECE",
+        "details": "50 г"
+      },
+      {
+        "id": 9340,
+        "name": "Чечил жареный оригинальный",
+        "qty": 1,
+        "price": 345,
+        "productType": "PIECE",
+        "details": "100 г"
+      },
+      {
+        "id": 59352,
+        "name": "Крутоны со вкусом чеснока",
+        "qty": 1,
+        "price": 125,
+        "productType": "PIECE",
+        "details": "100 г"
+      },
+      {
+        "id": 4270,
+        "name": "Чипсы Lay’s рифленые со вкусом сметаны и лука",
+        "qty": 1,
+        "price": 271,
+        "productType": "PIECE",
+        "details": "140 г"
+      }
+    ],
+    "total": 1953,
+    "given": 2000,
+    "change": 47
+  },
+  {
+    "id": "1779282968046",
+    "createdAt": "2026-05-20T13:16:08.046Z",
+    "status": "done",
+    "storeId": "2",
+    "client": {
+      "phone": "8 (925) 442-61-33",
+      "name": "Маргарита",
+      "street": "Краснодонская",
+      "house": "23к1",
+      "entrance": "2",
+      "floor": "4",
+      "apartment": "64",
+      "intercom": "",
+      "notes": ""
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "Роман",
+    "items": [
+      {
+        "id": 4133,
+        "name": "Таркос Жигулевское Воронеж",
+        "qty": 3,
+        "price": 230,
+        "productType": "DRAFT"
+      },
+      {
+        "id": -1778887836533,
+        "name": "Бутылка 1.5л",
+        "qty": 2,
+        "price": 14,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      },
+      {
+        "id": 4147,
+        "name": "Камбала без икры",
+        "qty": 0.222,
+        "price": 1500,
+        "productType": "WEIGHT"
+      },
+      {
+        "id": 5493,
+        "name": "Арахис со вкусом холодца и хрена",
+        "qty": 1,
+        "price": 104,
+        "productType": "PIECE",
+        "details": "100 г"
+      }
+    ],
+    "total": 1465
+  },
+  {
+    "id": "1779282094826",
+    "createdAt": "2026-05-20T13:01:34.826Z",
+    "status": "done",
+    "storeId": "6",
+    "client": {
+      "phone": "8 (910) 288-47-01",
+      "name": "Светлана",
+      "street": "Генерала Белова",
+      "house": "28к3",
+      "entrance": "2",
+      "floor": "6",
+      "apartment": "76",
+      "intercom": "",
+      "notes": ""
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "Роман",
+    "items": [
+      {
+        "id": 2588,
+        "name": "МПК Чешский лежак",
+        "qty": 5,
+        "price": 232,
+        "productType": "DRAFT",
+        "details": "1 л"
+      },
+      {
+        "id": -1778887823941,
+        "name": "Бутылка 1л",
+        "qty": 5,
+        "price": 12,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 1530
+  },
+  {
+    "id": "1779279427468",
+    "createdAt": "2026-05-20T12:17:07.468Z",
+    "status": "done",
+    "storeId": "2",
+    "client": {
+      "phone": "8 (968) 420-88-00",
+      "name": "Егор",
+      "street": "Верхние поля",
+      "house": "35к4",
+      "entrance": "4",
+      "floor": "5",
+      "apartment": "211",
+      "intercom": "",
+      "notes": ""
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "Роман",
+    "items": [
+      {
+        "id": 2588,
+        "name": "МПК Чешский лежак",
+        "qty": 4,
+        "price": 232,
+        "productType": "DRAFT",
+        "details": "1 л"
+      },
+      {
+        "id": -1778887823941,
+        "name": "Бутылка 1л",
+        "qty": 4,
+        "price": 12,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 1286
+  },
+  {
+    "id": "1779278293321",
+    "createdAt": "2026-05-20T11:58:13.321Z",
+    "status": "done",
+    "storeId": "4",
+    "client": {
+      "phone": "8 (965) 153-66-58",
+      "name": "Анна",
+      "street": "Перервинский бульвар",
+      "house": "2к1",
+      "entrance": "1",
+      "floor": "14",
+      "apartment": "54",
+      "intercom": "",
+      "notes": ""
+    },
+    "orderMethod": "phone",
+    "payMethod": "cash",
+    "operator": "Роман",
+    "items": [
+      {
+        "id": 72115,
+        "name": "Таркос Бойлерное",
+        "qty": 1.5,
+        "price": 219,
+        "productType": "DRAFT",
+        "details": "1.5 л"
+      },
+      {
+        "id": -1778887836533,
+        "name": "Бутылка 1.5л",
+        "qty": 1,
+        "price": 14,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 652.5
+  },
+  {
+    "id": "1779275738542",
+    "createdAt": "2026-05-20T11:15:38.542Z",
+    "status": "done",
+    "storeId": "4",
+    "client": {
+      "phone": "8 (903) 129-69-49",
+      "name": "Екатерина",
+      "street": "Новочеркасский бульвар",
+      "house": "21",
+      "entrance": "3",
+      "floor": "12",
+      "apartment": "175",
+      "intercom": "",
+      "notes": "175к1752 на этаже набрать"
+    },
+    "orderMethod": "phone",
+    "payMethod": "cash",
+    "operator": "Роман",
+    "items": [
+      {
+        "id": 2566,
+        "name": "Коломенское Спецварка",
+        "qty": 3,
+        "price": 232,
+        "productType": "DRAFT",
+        "details": "1.5 л"
+      },
+      {
+        "id": -1778887836533,
+        "name": "Бутылка 1.5л",
+        "qty": 2,
+        "price": 14,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 1034,
+    "given": 1050,
+    "change": 16
+  },
+  {
+    "id": "1779271218591",
+    "createdAt": "2026-05-20T10:00:18.591Z",
+    "status": "done",
+    "storeId": "2",
+    "client": {
+      "phone": "8 (929) 534-17-03",
+      "name": "Анна",
+      "street": "Судакова",
+      "house": "15",
+      "entrance": "4",
+      "floor": "7",
+      "apartment": "131",
+      "intercom": "136#4263",
+      "notes": ""
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "Роман",
+    "items": [
+      {
+        "id": 2588,
+        "name": "МПК Чешский лежак",
+        "qty": 3,
+        "price": 232,
+        "productType": "DRAFT",
+        "details": "1.5 л"
+      },
+      {
+        "id": -1778887836533,
+        "name": "Бутылка 1.5л",
+        "qty": 2,
+        "price": 14,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 1034
+  },
+  {
+    "id": "1779267156655",
+    "createdAt": "2026-05-20T08:52:36.655Z",
+    "status": "done",
+    "storeId": "2",
+    "client": {
+      "phone": "8 (985) 212-05-39",
+      "name": "Игорь",
+      "street": "Новороссийская",
+      "house": "24к2",
+      "entrance": "6",
+      "floor": "7",
+      "apartment": "232",
+      "intercom": "",
+      "notes": ""
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "Роман",
+    "items": [
+      {
+        "id": 2569,
+        "name": "Томское Крюгер классическое",
+        "qty": 2,
+        "price": 385,
+        "productType": "DRAFT",
+        "details": "1 л"
+      },
+      {
+        "id": -1778887823941,
+        "name": "Бутылка 1л",
+        "qty": 2,
+        "price": 12,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 1104
+  },
+  {
+    "id": "1779264179391",
+    "createdAt": "2026-05-20T08:02:59.391Z",
+    "status": "done",
+    "storeId": "2",
+    "client": {
+      "phone": "8 (953) 617-76-57",
+      "name": "Мария",
+      "street": "Краснодарская",
+      "house": "20\\1",
+      "entrance": "3",
+      "floor": "4",
+      "apartment": "83",
+      "intercom": "",
+      "notes": "83к4018"
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "Роман",
+    "items": [
+      {
+        "id": 4140,
+        "name": "Форштадтская Ирландский Эль",
+        "qty": 1,
+        "price": 257,
+        "productType": "DRAFT",
+        "details": "1 л"
+      },
+      {
+        "id": -1778887823941,
+        "name": "Бутылка 1л",
+        "qty": 1,
+        "price": 12,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      },
+      {
+        "id": 4140,
+        "name": "Форштадтская Ирландский Эль",
+        "qty": 1.5,
+        "price": 257,
+        "productType": "DRAFT",
+        "details": "1.5 л"
+      },
+      {
+        "id": -1778887836533,
+        "name": "Бутылка 1.5л",
+        "qty": 1,
+        "price": 14,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 978.5
+  },
+  {
+    "id": "1779215357115",
+    "createdAt": "2026-05-19T18:29:17.115Z",
+    "status": "done",
+    "storeId": "2",
+    "client": {
+      "phone": "8 (999) 869-80-98",
+      "name": "Кирилл",
+      "street": "8-я улица Текстильщиков",
+      "house": "13к2",
+      "entrance": "2",
+      "floor": "7",
+      "apartment": "159",
+      "intercom": "",
+      "notes": ""
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 450,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      },
+      {
+        "id": 5531,
+        "name": "Starovar Non-Alco",
+        "qty": 2,
+        "price": 237,
+        "productType": "DRAFT"
+      },
+      {
+        "id": -1778887823941,
+        "name": "Бутылка 1л",
+        "qty": 2,
+        "price": 12,
+        "productType": "PIECE"
+      },
+      {
+        "id": 4416,
+        "name": "Алтайские Лимонады СИТРО",
+        "qty": 1,
+        "price": 129,
+        "productType": "BOTTLED",
+        "details": "1.5 л"
+      },
+      {
+        "id": 4144,
+        "name": "Тарань",
+        "qty": 0.23,
+        "price": 1300,
+        "productType": "WEIGHT"
+      }
+    ],
+    "total": 1386
+  },
+  {
+    "id": "1779212838007",
+    "createdAt": "2026-05-19T17:47:18.007Z",
+    "status": "done",
+    "storeId": "4",
+    "client": {
+      "phone": "8 (999) 111-00-01",
+      "name": "Тест Многоадресный",
+      "street": "Братиславская",
+      "house": "14к1",
+      "entrance": "2",
+      "floor": "7",
+      "apartment": "125",
+      "intercom": "789",
+      "notes": "тест: несколько адресов"
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": 72115,
+        "name": "Таркос Бойлерное",
+        "qty": 1.5,
+        "price": 219,
+        "productType": "DRAFT",
+        "details": "1.5 л"
+      },
+      {
+        "id": -1778887836533,
+        "name": "Бутылка 1.5л",
+        "qty": 1,
+        "price": 14,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 652.5
+  },
+  {
+    "id": "1779212779120",
+    "createdAt": "2026-05-19T17:46:19.120Z",
+    "status": "done",
+    "storeId": "5",
+    "client": {
+      "phone": "8 (999) 986-08-18",
+      "name": "Денис",
+      "street": "Новочеркасский бульвар",
+      "house": "20к2",
+      "entrance": "1",
+      "floor": "6",
+      "apartment": "390",
+      "intercom": "",
+      "notes": "5 маг"
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": 4134,
+        "name": "Таркос White rabbit",
+        "qty": 2,
+        "price": 296,
+        "productType": "DRAFT",
+        "details": "1 л"
+      },
+      {
+        "id": -1778887823941,
+        "name": "Бутылка 1л",
+        "qty": 2,
+        "price": 12,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 926
+  },
+  {
+    "id": "1779212626553",
+    "createdAt": "2026-05-19T17:43:46.553Z",
+    "status": "done",
+    "storeId": "7",
+    "client": {
+      "phone": "8 (906) 062-23-24",
+      "name": "Елена",
+      "street": "Братеевская",
+      "house": "33к1",
+      "entrance": "6",
+      "floor": "",
+      "apartment": "",
+      "intercom": "",
+      "notes": "Спустится"
+    },
+    "orderMethod": "phone",
+    "payMethod": "cash",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": 2559,
+        "name": "Очаково Жигулевское особая партия",
+        "qty": 2,
+        "price": 210,
+        "productType": "DRAFT",
+        "details": "1 л"
+      },
+      {
+        "id": -1778887823941,
+        "name": "Бутылка 1л",
+        "qty": 2,
+        "price": 12,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 754,
+    "given": 5000,
+    "change": 4246
+  },
+  {
+    "id": "1779212596857",
+    "createdAt": "2026-05-19T17:43:16.857Z",
+    "status": "done",
+    "storeId": "6",
+    "client": {
+      "phone": "8 (906) 713-96-84",
+      "name": "Ирина",
+      "street": "Ореховый бульвар",
+      "house": "10к1",
+      "entrance": "6",
+      "floor": "5",
+      "apartment": "197",
+      "intercom": "",
+      "notes": ""
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": 4080,
+        "name": "Konix Два путя",
+        "qty": 6,
+        "price": 325,
+        "productType": "DRAFT",
+        "details": "1.5 л"
+      },
+      {
+        "id": -1778887836533,
+        "name": "Бутылка 1.5л",
+        "qty": 4,
+        "price": 14,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 2,
+        "price": 10,
+        "productType": "PIECE"
+      },
+      {
+        "id": 4080,
+        "name": "Konix Два путя",
+        "qty": 2,
+        "price": 325,
+        "productType": "DRAFT",
+        "details": "1 л"
+      },
+      {
+        "id": -1778887823941,
+        "name": "Бутылка 1л",
+        "qty": 2,
+        "price": 12,
+        "productType": "PIECE"
+      },
+      {
+        "id": 55266,
+        "name": "Сухарики со вкусом пиццы 4 сыра",
+        "qty": 2,
+        "price": 125,
+        "productType": "PIECE",
+        "details": "100 г"
+      },
+      {
+        "id": 2600,
+        "name": "Вобла",
+        "qty": 0.096,
+        "price": 1540,
+        "productType": "WEIGHT"
+      }
+    ],
+    "total": 3397.84
+  },
+  {
+    "id": "1779212545994",
+    "createdAt": "2026-05-19T17:42:25.994Z",
+    "status": "done",
+    "storeId": "5",
+    "client": {
+      "phone": "8 (967) 233-67-77",
+      "name": "Алексей",
+      "street": "Перерва",
+      "house": "20",
+      "entrance": "1",
+      "floor": "11",
+      "apartment": "40",
+      "intercom": "",
+      "notes": ""
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": 2552,
+        "name": "Волковская IPA",
+        "qty": 1.5,
+        "price": 292,
+        "productType": "DRAFT",
+        "details": "1.5 л"
+      },
+      {
+        "id": -1778887836533,
+        "name": "Бутылка 1.5л",
+        "qty": 1,
+        "price": 14,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      },
+      {
+        "id": 2552,
+        "name": "Волковская IPA",
+        "qty": 1,
+        "price": 292,
+        "productType": "DRAFT",
+        "details": "1 л"
+      },
+      {
+        "id": -1778887823941,
+        "name": "Бутылка 1л",
+        "qty": 2,
+        "price": 12,
+        "productType": "PIECE"
+      },
+      {
+        "id": 17624,
+        "name": "Очаковский  Квас",
+        "qty": 1,
+        "price": 144,
+        "productType": "DRAFT",
+        "details": "1 л"
+      }
+    ],
+    "total": 1222
+  },
+  {
+    "id": "1779212393779",
+    "createdAt": "2026-05-19T17:39:53.779Z",
+    "status": "done",
+    "storeId": "4",
+    "client": {
+      "phone": "8 (968) 693-33-33",
+      "name": "Максим",
+      "street": "Мячковский бульвар",
+      "house": "8к4",
+      "entrance": "4",
+      "floor": "4",
+      "apartment": "108",
+      "intercom": "",
+      "notes": ""
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": 4133,
+        "name": "Таркос Жигулевское Воронеж",
+        "qty": 4.5,
+        "price": 230,
+        "productType": "DRAFT",
+        "details": "1.5 л"
+      },
+      {
+        "id": -1778887836533,
+        "name": "Бутылка 1.5л",
+        "qty": 3,
+        "price": 14,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      },
+      {
+        "id": 4543,
+        "name": "Свинина вяленая с чесноком",
+        "qty": 1,
+        "price": 200,
+        "productType": "PIECE",
+        "details": "50 г"
+      }
+    ],
+    "total": 1587
+  },
+  {
+    "id": "1779212355211",
+    "createdAt": "2026-05-19T17:39:15.211Z",
+    "status": "done",
+    "storeId": "5",
+    "client": {
+      "phone": "8 (963) 699-22-77",
+      "name": "Клиент",
+      "street": "Перерва",
+      "house": "34",
+      "entrance": "6",
+      "floor": "12",
+      "apartment": "297",
+      "intercom": "",
+      "notes": ""
+    },
+    "orderMethod": "phone",
+    "payMethod": "cash",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": 4140,
+        "name": "Форштадтская Ирландский Эль",
+        "qty": 3,
+        "price": 257,
+        "productType": "DRAFT",
+        "details": "1.5 л"
+      },
+      {
+        "id": -1778887836533,
+        "name": "Бутылка 1.5л",
+        "qty": 3,
+        "price": 14,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      },
+      {
+        "id": 2559,
+        "name": "Очаково Жигулевское особая партия",
+        "qty": 1.5,
+        "price": 210,
+        "productType": "DRAFT",
+        "details": "1.5 л"
+      }
+    ],
+    "total": 1438
+  },
+  {
+    "id": "1779212223636",
+    "createdAt": "2026-05-19T17:37:03.636Z",
+    "status": "done",
+    "storeId": "4",
+    "client": {
+      "phone": "8 (916) 392-45-01",
+      "name": "Анна",
+      "street": "Марьинский бульвар",
+      "house": "10",
+      "entrance": "5",
+      "floor": "11",
+      "apartment": "236",
+      "intercom": "",
+      "notes": ""
+    },
+    "orderMethod": "phone",
+    "payMethod": "cash",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      },
+      {
+        "id": 72115,
+        "name": "Таркос Бойлерное",
+        "qty": 3,
+        "price": 219,
+        "productType": "DRAFT"
+      },
+      {
+        "id": -1778887823941,
+        "name": "Бутылка 1л",
+        "qty": 3,
+        "price": 12,
+        "productType": "PIECE"
+      },
+      {
+        "id": 26213,
+        "name": "Сырный продукт паутинка классический",
+        "qty": 1,
+        "price": 184,
+        "productType": "PIECE",
+        "details": "100 г"
+      }
+    ],
+    "total": 1187,
+    "given": 2000,
+    "change": 813
+  },
+  {
+    "id": "1779212195228",
+    "createdAt": "2026-05-19T17:36:35.228Z",
+    "status": "done",
+    "storeId": "4",
+    "client": {
+      "phone": "8 (985) 212-08-74",
+      "name": "Юля",
+      "street": "Маршала Голованова",
+      "house": "12",
+      "entrance": "2",
+      "floor": "10",
+      "apartment": "103",
+      "intercom": "",
+      "notes": "домофон 103"
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": 2559,
+        "name": "Очаково Жигулевское особая партия",
+        "qty": 6,
+        "price": 210,
+        "productType": "DRAFT",
+        "details": "1.5 л"
+      },
+      {
+        "id": -1778887836533,
+        "name": "Бутылка 1.5л",
+        "qty": 4,
+        "price": 14,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 1626
+  },
+  {
+    "id": "1779212163109",
+    "createdAt": "2026-05-19T17:36:03.109Z",
+    "status": "done",
+    "storeId": "4",
+    "client": {
+      "phone": "8 (903) 249-34-77",
+      "name": "Алексей",
+      "street": "Перервинский бульвар",
+      "house": "25",
+      "entrance": "3",
+      "floor": "11",
+      "apartment": "158",
+      "intercom": "",
+      "notes": "158в4572"
+    },
+    "orderMethod": "phone",
+    "payMethod": "cash",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": 2559,
+        "name": "Очаково Жигулевское особая партия",
+        "qty": 6,
+        "price": 210,
+        "productType": "DRAFT",
+        "details": "1.5 л"
+      },
+      {
+        "id": -1778887836533,
+        "name": "Бутылка 1.5л",
+        "qty": 4,
+        "price": 14,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      },
+      {
+        "id": 2615,
+        "name": "Чипсы «Хрустящий картофель» со вкусом сметаны и лука",
+        "qty": 1,
+        "price": 210,
+        "productType": "PIECE",
+        "details": "160 г"
+      },
+      {
+        "id": 9335,
+        "name": "Гренки снапсы со вкусом аджики",
+        "qty": 1,
+        "price": 139,
+        "productType": "PIECE",
+        "details": "100 г"
+      }
+    ],
+    "total": 1975
+  },
+  {
+    "id": "1779212115997",
+    "createdAt": "2026-05-19T17:35:15.997Z",
+    "status": "done",
+    "storeId": "4",
+    "client": {
+      "phone": "8 (920) 706-94-37",
+      "name": "Елена",
+      "street": "Мячковский бульвар",
+      "house": "14к2",
+      "entrance": "2",
+      "floor": "10",
+      "apartment": "119",
+      "intercom": "128к8911",
+      "notes": ""
+    },
+    "orderMethod": "phone",
+    "payMethod": "cash",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": 4133,
+        "name": "Таркос Жигулевское Воронеж",
+        "qty": 3,
+        "price": 230,
+        "productType": "DRAFT",
+        "details": "1.5 л"
+      },
+      {
+        "id": -1778887836533,
+        "name": "Бутылка 1.5л",
+        "qty": 2,
+        "price": 14,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      },
+      {
+        "id": 4133,
+        "name": "Таркос Жигулевское Воронеж",
+        "qty": 2,
+        "price": 230,
+        "productType": "DRAFT",
+        "details": "1 л"
+      },
+      {
+        "id": -1778887823941,
+        "name": "Бутылка 1л",
+        "qty": 2,
+        "price": 12,
+        "productType": "PIECE"
+      },
+      {
+        "id": 13536,
+        "name": "Икра воблы",
+        "qty": 1,
+        "price": 450,
+        "productType": "PIECE",
+        "details": "100 г"
+      }
+    ],
+    "total": 1962,
+    "given": 2000,
+    "change": 38
+  },
+  {
+    "id": "1779212073166",
+    "createdAt": "2026-05-19T17:34:33.166Z",
+    "status": "done",
+    "storeId": "2",
+    "client": {
+      "phone": "8 (905) 716-70-10",
+      "name": "Клиент",
+      "street": "Тихорецкий бульвар",
+      "house": "14к2",
+      "entrance": "3",
+      "floor": "4",
+      "apartment": "109",
+      "intercom": "",
+      "notes": ""
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": 4094,
+        "name": "Бочкари Чешское светлое",
+        "qty": 2,
+        "price": 239,
+        "productType": "DRAFT",
+        "details": "1 л"
+      },
+      {
+        "id": -1778887823941,
+        "name": "Бутылка 1л",
+        "qty": 2,
+        "price": 12,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 812
+  },
+  {
+    "id": "1779212049278",
+    "createdAt": "2026-05-19T17:34:09.278Z",
+    "status": "done",
+    "storeId": "2",
+    "client": {
+      "phone": "8 (915) 425-69-40",
+      "name": "Ксения",
+      "street": "Краснодонская",
+      "house": "50",
+      "entrance": "7",
+      "floor": "18",
+      "apartment": "261",
+      "intercom": "",
+      "notes": "в2580в"
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": 4124,
+        "name": "Волковская Неправильный Мед",
+        "qty": 0.5,
+        "price": 278,
+        "productType": "DRAFT",
+        "details": "0.5 л"
+      },
+      {
+        "id": -1778887849577,
+        "name": "Бутылка 0,5л",
+        "qty": 1,
+        "price": 11,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      },
+      {
+        "id": 4079,
+        "name": "Konix Munich helles",
+        "qty": 2,
+        "price": 349,
+        "productType": "DRAFT",
+        "details": "1 л"
+      },
+      {
+        "id": -1778887823941,
+        "name": "Бутылка 1л",
+        "qty": 2,
+        "price": 12,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 1182
+  },
+  {
+    "id": "1779211900352",
+    "createdAt": "2026-05-19T17:31:40.352Z",
+    "status": "done",
+    "storeId": "9",
+    "client": {
+      "phone": "8 (903) 777-40-18",
+      "name": "Ирина",
+      "street": "Кантемировская",
+      "house": "31к4",
+      "entrance": "1",
+      "floor": "12",
+      "apartment": "452",
+      "intercom": "",
+      "notes": "в452в5371 Звонок не работает."
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      },
+      {
+        "id": 4133,
+        "name": "Таркос Жигулевское Воронеж",
+        "qty": 1.5,
+        "price": 230,
+        "productType": "DRAFT",
+        "details": "1.5 л"
+      },
+      {
+        "id": -1778887836533,
+        "name": "Бутылка 1.5л",
+        "qty": 1,
+        "price": 14,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 669
+  },
+  {
+    "id": "1779211733585",
+    "createdAt": "2026-05-19T17:28:53.585Z",
+    "status": "done",
+    "storeId": "2",
+    "client": {
+      "phone": "8 (916) 300-70-60",
+      "name": "Андрей",
+      "street": "Люблинская",
+      "house": "127\\1",
+      "entrance": "4",
+      "floor": "3",
+      "apartment": "37",
+      "intercom": "37в",
+      "notes": "В дверь не звонить! в ДВА пакетка!"
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": 2557,
+        "name": "Вятич Рижское",
+        "qty": 3,
+        "price": 280,
+        "productType": "DRAFT",
+        "details": "1.5 л"
+      },
+      {
+        "id": -1778887836533,
+        "name": "Бутылка 1.5л",
+        "qty": 2,
+        "price": 14,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 2,
+        "price": 10,
+        "productType": "PIECE"
+      },
+      {
+        "id": 2557,
+        "name": "Вятич Рижское",
+        "qty": 4,
+        "price": 280,
+        "productType": "DRAFT",
+        "details": "1 л"
+      },
+      {
+        "id": -1778887823941,
+        "name": "Бутылка 1л",
+        "qty": 4,
+        "price": 12,
+        "productType": "PIECE"
+      },
+      {
+        "id": 2557,
+        "name": "Вятич Рижское",
+        "qty": 1,
+        "price": 280,
+        "productType": "DRAFT",
+        "details": "0.5 л"
+      },
+      {
+        "id": -1778887849577,
+        "name": "Бутылка 0,5л",
+        "qty": 2,
+        "price": 11,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 2658
+  },
+  {
+    "id": "1779201329332",
+    "createdAt": "2026-05-19T14:35:29.332Z",
+    "status": "done",
+    "storeId": "2",
+    "client": {
+      "phone": "8 (929) 534-17-03",
+      "name": "Анна",
+      "street": "Судакова",
+      "house": "15",
+      "entrance": "4",
+      "floor": "7",
+      "apartment": "131",
+      "intercom": "136#4263",
+      "notes": ""
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": 2588,
+        "name": "МПК Чешский лежак",
+        "qty": 3,
+        "price": 232,
+        "productType": "DRAFT",
+        "details": "1.5 л"
+      },
+      {
+        "id": -1778887836533,
+        "name": "Бутылка 1.5л",
+        "qty": 2,
+        "price": 14,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 1034
+  },
+  {
+    "id": "1779201285397",
+    "createdAt": "2026-05-19T14:34:45.397Z",
+    "status": "done",
+    "storeId": "7",
+    "client": {
+      "phone": "8 (901) 904-77-54",
+      "name": "Михаил",
+      "street": "Братеевская",
+      "house": "35к3",
+      "entrance": "10",
+      "floor": "7",
+      "apartment": "466к",
+      "intercom": "",
+      "notes": ""
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": 4094,
+        "name": "Бочкари Чешское светлое",
+        "qty": 6,
+        "price": 239,
+        "productType": "DRAFT",
+        "details": "1.5 л"
+      },
+      {
+        "id": -1778887836533,
+        "name": "Бутылка 1.5л",
+        "qty": 4,
+        "price": 14,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 1800
+  },
+  {
+    "id": "1779193009611",
+    "createdAt": "2026-05-19T12:16:49.611Z",
+    "status": "done",
+    "storeId": "2",
+    "client": {
+      "phone": "8 (999) 971-84-57",
+      "name": "Максим",
+      "street": "Краснодарская",
+      "house": "65\\18к1",
+      "entrance": "1",
+      "floor": "9",
+      "apartment": "60",
+      "intercom": "",
+      "notes": ""
+    },
+    "orderMethod": "phone",
+    "payMethod": "cash",
+    "operator": "Роман",
+    "items": [
+      {
+        "id": 2552,
+        "name": "Волковская IPA",
+        "qty": 4.5,
+        "price": 292,
+        "productType": "DRAFT",
+        "details": "1.5 л"
+      },
+      {
+        "id": -1778887836533,
+        "name": "Бутылка 1.5л",
+        "qty": 3,
+        "price": 14,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 1666
+  },
+  {
+    "id": "1779186148426",
+    "createdAt": "2026-05-19T10:22:28.426Z",
+    "status": "done",
+    "storeId": "2",
+    "client": {
+      "phone": "8 (925) 001-17-71",
+      "name": "Александр",
+      "street": "Ставропольская",
+      "house": "23/1",
+      "entrance": "3",
+      "floor": "17",
+      "apartment": "316    В5319В",
+      "intercom": "",
+      "notes": ""
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "Роман",
+    "items": [
+      {
+        "id": 4561,
+        "name": "Коломенское Немецкое светлое",
+        "qty": 4,
+        "price": 295,
+        "productType": "DRAFT",
+        "details": "1 л"
+      },
+      {
+        "id": -1778887823941,
+        "name": "Бутылка 1л",
+        "qty": 4,
+        "price": 12,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 1538
+  },
+  {
+    "id": "1779183560581",
+    "createdAt": "2026-05-19T09:39:20.581Z",
+    "status": "done",
+    "storeId": "2",
+    "client": {
+      "name": "Татьяна",
+      "phone": "89036631789",
+      "street": "Новороссийская",
+      "house": "16к2",
+      "entrance": "2",
+      "floor": "3",
+      "apartment": "38",
+      "intercom": "",
+      "notes": ""
+    },
+    "orderMethod": "app",
+    "payMethod": "cash",
+    "operator": "Роман",
+    "items": [
+      {
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 1447,
+    "orderNumber": "234672",
+    "deliveryPrice": 300,
+    "orderAmount": 1137
+  },
+  {
+    "id": "1779182962465",
+    "createdAt": "2026-05-19T09:29:22.465Z",
+    "status": "done",
+    "storeId": "6",
+    "client": {
+      "name": "Татьяна",
+      "phone": "89099721142",
+      "street": "Шипиловский проезд",
+      "house": "55к1",
+      "entrance": "1",
+      "floor": "9",
+      "apartment": "",
+      "intercom": "",
+      "notes": "кв57  к57к0327"
+    },
+    "orderMethod": "app",
+    "payMethod": "cash",
+    "operator": "Роман",
+    "items": [
+      {
+        "name": "Пакет",
+        "qty": 1,
+        "price": 15,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 1205,
+    "orderNumber": "783718",
+    "deliveryPrice": 300,
+    "orderAmount": 890
+  },
+  {
+    "id": "1779179124265",
+    "createdAt": "2026-05-19T08:25:24.265Z",
+    "status": "done",
+    "storeId": "6",
+    "client": {
+      "phone": "8 (909) 972-11-42",
+      "name": "Татьяна",
+      "street": "Шипиловский проезд",
+      "house": "55к1",
+      "entrance": "1",
+      "floor": "9",
+      "apartment": "",
+      "intercom": "",
+      "notes": "кв57  к57к0327"
+    },
+    "orderMethod": "app",
+    "payMethod": "card",
+    "operator": "Роман",
+    "items": [
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 1200,
+    "orderNumber": "783718",
+    "deliveryPrice": 300,
+    "orderAmount": 890
+  },
+  {
+    "id": "1779179095786",
+    "createdAt": "2026-05-19T08:24:55.786Z",
+    "status": "done",
+    "storeId": "4",
+    "client": {
+      "phone": "8 (919) 729-48-11",
+      "name": "Александр",
+      "street": "Братиславская",
+      "house": "34к1",
+      "entrance": "4",
+      "floor": "6",
+      "apartment": "174",
+      "intercom": "169к7693",
+      "notes": ""
+    },
+    "orderMethod": "app",
+    "payMethod": "card",
+    "operator": "Роман",
+    "items": [
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 3797,
+    "orderNumber": "063040",
+    "deliveryPrice": 300,
+    "orderAmount": 3487
+  },
+  {
+    "id": "1779177924787",
+    "createdAt": "2026-05-19T08:05:24.787Z",
+    "status": "done",
+    "storeId": "6",
+    "client": {
+      "phone": "8 (910) 288-47-01",
+      "name": "Светлана",
+      "street": "Генерала Белова",
+      "house": "28к3",
+      "entrance": "2",
+      "floor": "6",
+      "apartment": "76",
+      "intercom": "",
+      "notes": ""
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "Роман",
+    "items": [
+      {
+        "id": 2588,
+        "name": "МПК Чешский лежак",
+        "qty": 5,
+        "price": 232,
+        "productType": "DRAFT",
+        "details": "1 л"
+      },
+      {
+        "id": -1778887823941,
+        "name": "Бутылка 1л",
+        "qty": 5,
+        "price": 12,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 1530
+  },
+  {
+    "id": "1779130174373",
+    "createdAt": "2026-05-18T18:49:34.373Z",
+    "status": "done",
+    "storeId": "7",
+    "client": {
+      "phone": "8 (951) 898-41-39",
+      "name": "",
+      "street": "Борисовские пруды",
+      "house": "34к1",
+      "entrance": "8",
+      "floor": "14",
+      "apartment": "518#266 на этаже набрать",
+      "intercom": "",
+      "notes": ""
+    },
+    "orderMethod": "app",
+    "payMethod": "card",
+    "operator": "+79651015841",
+    "items": [],
+    "total": 2490,
+    "orderNumber": "214902",
+    "deliveryPrice": 300,
+    "orderAmount": 2190
+  },
+  {
+    "id": "1779129185777",
+    "createdAt": "2026-05-18T18:33:05.777Z",
+    "status": "done",
+    "storeId": "6",
+    "client": {
+      "phone": "8 (903) 718-07-53",
+      "name": "Айман",
+      "street": "Каширское шоссе",
+      "house": "92к1",
+      "entrance": "1",
+      "floor": "16",
+      "apartment": "",
+      "intercom": "",
+      "notes": "В61В0126"
+    },
+    "orderMethod": "app",
+    "payMethod": "card",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 1385,
+    "orderNumber": "780589",
+    "deliveryPrice": 300,
+    "orderAmount": 1075
+  },
+  {
+    "id": "1779127881131",
+    "createdAt": "2026-05-18T18:11:21.131Z",
+    "status": "done",
+    "storeId": "6",
+    "client": {
+      "phone": "8 (926) 195-24-35",
+      "name": "Ольга",
+      "street": "Мусы Джалиля",
+      "house": "29к1",
+      "entrance": "5",
+      "floor": "13",
+      "apartment": "302",
+      "intercom": "",
+      "notes": ""
+    },
+    "orderMethod": "app",
+    "payMethod": "card",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 1526,
+    "orderNumber": "849499",
+    "deliveryPrice": 300,
+    "orderAmount": 1216
+  },
+  {
+    "id": "1779127684919",
+    "createdAt": "2026-05-18T18:08:04.919Z",
+    "status": "done",
+    "storeId": "5",
+    "client": {
+      "phone": "8 (916) 697-03-58",
+      "name": "Олег",
+      "street": "Новочеркасский бульвар",
+      "house": "26",
+      "entrance": "7",
+      "floor": "4",
+      "apartment": "227",
+      "intercom": "В227в8072",
+      "notes": "звонок не работает"
+    },
+    "orderMethod": "phone",
+    "payMethod": "cash",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": 2559,
+        "name": "Очаково Жигулевское особая партия",
+        "qty": 2,
+        "price": 210,
+        "productType": "DRAFT",
+        "details": "1 л"
+      },
+      {
+        "id": -1778887823941,
+        "name": "Бутылка 1л",
+        "qty": 2,
+        "price": 12,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 754,
+    "given": 1000,
+    "change": 246
+  },
+  {
+    "id": "1779127519450",
+    "createdAt": "2026-05-18T18:05:19.450Z",
+    "status": "done",
+    "storeId": "4",
+    "client": {
+      "phone": "8 (916) 392-45-01",
+      "name": "Анна",
+      "street": "Марьинский бульвар",
+      "house": "10",
+      "entrance": "5",
+      "floor": "11",
+      "apartment": "236",
+      "intercom": "",
+      "notes": ""
+    },
+    "orderMethod": "phone",
+    "payMethod": "cash",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      },
+      {
+        "id": 72115,
+        "name": "Таркос Бойлерное",
+        "qty": 3,
+        "price": 219,
+        "productType": "DRAFT",
+        "details": "1 л"
+      },
+      {
+        "id": -1778887823941,
+        "name": "Бутылка 1л",
+        "qty": 3,
+        "price": 12,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 1003
+  },
+  {
+    "id": "1779127217588",
+    "createdAt": "2026-05-18T18:00:17.588Z",
+    "status": "done",
+    "storeId": "7",
+    "client": {
+      "phone": "8 (985) 297-09-09",
+      "name": "Иван",
+      "street": "Братеевская",
+      "house": "21к4",
+      "entrance": "1",
+      "floor": "24",
+      "apartment": "222",
+      "intercom": "",
+      "notes": ""
+    },
+    "orderMethod": "app",
+    "payMethod": "card",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 944,
+    "orderNumber": "504594",
+    "deliveryPrice": 300,
+    "orderAmount": 634
+  },
+  {
+    "id": "1779127077254",
+    "createdAt": "2026-05-18T17:57:57.254Z",
+    "status": "done",
+    "storeId": "6",
+    "client": {
+      "phone": "",
+      "name": "",
+      "street": "",
+      "house": "",
+      "entrance": "",
+      "floor": "",
+      "apartment": "",
+      "intercom": "",
+      "notes": ""
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": 67681,
+        "name": "Коломенская Калачное",
+        "qty": 1.5,
+        "price": 265,
+        "productType": "DRAFT",
+        "details": "1.5 л"
+      },
+      {
+        "id": -1778887836533,
+        "name": "Бутылка 1.5л",
+        "qty": 1,
+        "price": 14,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 721.5
+  },
+  {
+    "id": "1779126948107",
+    "createdAt": "2026-05-18T17:55:48.107Z",
+    "status": "done",
+    "storeId": "4",
+    "client": {
+      "name": "Евгения",
+      "phone": "89261487805",
+      "street": "Перервинский бульвар",
+      "house": "27к1",
+      "entrance": "3",
+      "floor": "12",
+      "apartment": "143",
+      "intercom": "",
+      "notes": ""
+    },
+    "orderMethod": "app",
+    "payMethod": "cash",
+    "operator": "Роман",
+    "items": [],
+    "total": 1542,
+    "orderNumber": "905403",
+    "deliveryPrice": 0,
+    "orderAmount": 1542
+  },
+  {
+    "id": "1779126769738",
+    "createdAt": "2026-05-18T17:52:49.738Z",
+    "status": "done",
+    "storeId": "9",
+    "client": {
+      "name": "Ольга",
+      "phone": "89167423311",
+      "street": "Кантемировская",
+      "house": "29",
+      "entrance": "1",
+      "floor": "21",
+      "apartment": "88",
+      "intercom": "",
+      "notes": "домофон 113 либо 255"
+    },
+    "orderMethod": "app",
+    "payMethod": "cash",
+    "operator": "Роман",
+    "items": [],
+    "total": 1120,
+    "orderNumber": "880349",
+    "deliveryPrice": 0,
+    "orderAmount": 1120
+  },
+  {
+    "id": "1779126699216",
+    "createdAt": "2026-05-18T17:51:39.216Z",
+    "status": "done",
+    "storeId": "4",
+    "client": {
+      "phone": "8 (909) 915-96-05",
+      "name": "Кристина",
+      "street": "1-й квартал Капотни",
+      "house": "1",
+      "entrance": "3",
+      "floor": "5",
+      "apartment": "154",
+      "intercom": "",
+      "notes": "в0330в никуда не звонить, оставить под дверью"
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": 2588,
+        "name": "МПК Чешский лежак",
+        "qty": 2,
+        "price": 232,
+        "productType": "DRAFT",
+        "details": "1 л"
+      },
+      {
+        "id": -1778887823941,
+        "name": "Бутылка 1л",
+        "qty": 2,
+        "price": 12,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889872683,
+        "name": "Доставка Капотня",
+        "qty": 1,
+        "price": 750,
+        "productType": "PIECE"
+      },
+      {
+        "id": 26213,
+        "name": "Сырный продукт паутинка классический",
+        "qty": 1,
+        "price": 184,
+        "productType": "PIECE",
+        "details": "100 г"
+      }
+    ],
+    "total": 1432
+  },
+  {
+    "id": "1779126626089",
+    "createdAt": "2026-05-18T17:50:26.089Z",
+    "status": "done",
+    "storeId": "6",
+    "client": {
+      "phone": "8 (916) 735-29-50",
+      "name": "Никита",
+      "street": "Домодедовская",
+      "house": "8",
+      "entrance": "2",
+      "floor": "11",
+      "apartment": "107",
+      "intercom": "",
+      "notes": "Домофон тихий, набрать на телефон перед ним"
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": 2569,
+        "name": "Томское Крюгер классическое",
+        "qty": 1,
+        "price": 385,
+        "productType": "DRAFT",
+        "details": "1 л"
+      },
+      {
+        "id": -1778887823941,
+        "name": "Бутылка 1л",
+        "qty": 3,
+        "price": 12,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      },
+      {
+        "id": 4107,
+        "name": "Starovar Prazsky lezak",
+        "qty": 2,
+        "price": 299,
+        "productType": "DRAFT",
+        "details": "1 л"
+      }
+    ],
+    "total": 1329
+  },
+  {
+    "id": "1779124628986",
+    "createdAt": "2026-05-18T17:17:08.986Z",
+    "status": "done",
+    "storeId": "4",
+    "client": {
+      "phone": "8 (909) 904-00-77",
+      "name": "Дмитрий",
+      "street": "Перерва",
+      "house": "56\\2",
+      "entrance": "6",
+      "floor": "2",
+      "apartment": "209",
+      "intercom": "",
+      "notes": ""
+    },
+    "orderMethod": "app",
+    "payMethod": "card",
+    "operator": "+79784527921",
+    "items": [
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 2556,
+    "orderNumber": "291936",
+    "deliveryPrice": 300,
+    "orderAmount": 2246
+  },
+  {
+    "id": "1779123678840",
+    "createdAt": "2026-05-18T17:01:18.840Z",
+    "status": "done",
+    "storeId": "2",
+    "client": {
+      "phone": "8 (903) 562-32-98",
+      "name": "Андрей",
+      "street": "Маршала Кожедуба",
+      "house": "14",
+      "entrance": "3",
+      "floor": "13",
+      "apartment": "202",
+      "intercom": "202к5654",
+      "notes": ""
+    },
+    "orderMethod": "app",
+    "payMethod": "card",
+    "operator": "+79784527921",
+    "items": [
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 1392,
+    "orderNumber": "503828",
+    "deliveryPrice": 300,
+    "orderAmount": 1082
+  },
+  {
+    "id": "1779122958897",
+    "createdAt": "2026-05-18T16:49:18.897Z",
+    "status": "done",
+    "storeId": "6",
+    "client": {
+      "phone": "8 (915) 295-31-13",
+      "name": "Алексей",
+      "street": "Ореховый бульвар",
+      "house": "5",
+      "entrance": "1",
+      "floor": "8",
+      "apartment": "31",
+      "intercom": "",
+      "notes": "Набрать на этаже"
+    },
+    "orderMethod": "phone",
+    "payMethod": "cash",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": 2557,
+        "name": "Вятич Рижское",
+        "qty": 1.5,
+        "price": 280,
+        "productType": "DRAFT",
+        "details": "1.5 л"
+      },
+      {
+        "id": -1778887836533,
+        "name": "Бутылка 1.5л",
+        "qty": 4,
+        "price": 14,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      },
+      {
+        "id": 2552,
+        "name": "Волковская IPA",
+        "qty": 1.5,
+        "price": 292,
+        "productType": "DRAFT",
+        "details": "1.5 л"
+      },
+      {
+        "id": 4075,
+        "name": "Форштадтская Бархатное Элитное",
+        "qty": 1.5,
+        "price": 260,
+        "productType": "DRAFT",
+        "details": "1.5 л"
+      },
+      {
+        "id": 4134,
+        "name": "Таркос White rabbit",
+        "qty": 1.5,
+        "price": 296,
+        "productType": "DRAFT",
+        "details": "1.5 л"
+      },
+      {
+        "id": 4268,
+        "name": "Чипсы Lay’s с солью",
+        "qty": 1,
+        "price": 271,
+        "productType": "PIECE",
+        "details": "140 г"
+      }
+    ],
+    "total": 2329
+  },
+  {
+    "id": "1779122530893",
+    "createdAt": "2026-05-18T16:42:10.893Z",
+    "status": "done",
+    "storeId": "2",
+    "client": {
+      "phone": "8 (977) 451-29-41",
+      "name": "Ирина (Перепроверять заказ!)",
+      "street": "Новороссийская",
+      "house": "7",
+      "entrance": "1",
+      "floor": "5",
+      "apartment": "20",
+      "intercom": "",
+      "notes": "домофон 20в4590"
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": 2566,
+        "name": "Коломенское Спецварка",
+        "qty": 3,
+        "price": 232,
+        "productType": "DRAFT",
+        "details": "1.5 л"
+      },
+      {
+        "id": -1778887836533,
+        "name": "Бутылка 1.5л",
+        "qty": 2,
+        "price": 14,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      },
+      {
+        "id": 2566,
+        "name": "Коломенское Спецварка",
+        "qty": 2,
+        "price": 232,
+        "productType": "DRAFT",
+        "details": "1 л"
+      },
+      {
+        "id": -1778887823941,
+        "name": "Бутылка 1л",
+        "qty": 2,
+        "price": 12,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 1522
+  },
+  {
+    "id": "1779121413743",
+    "createdAt": "2026-05-18T16:23:33.743Z",
+    "status": "done",
+    "storeId": "2",
+    "client": {
+      "phone": "8 (903) 246-40-83",
+      "name": "Сергей",
+      "street": "Краснодонская",
+      "house": "24",
+      "entrance": "2",
+      "floor": "11",
+      "apartment": "62",
+      "intercom": "4691",
+      "notes": "2 маг"
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": 4075,
+        "name": "Форштадтская Бархатное Элитное",
+        "qty": 1.5,
+        "price": 260,
+        "productType": "DRAFT",
+        "details": "1.5 л"
+      },
+      {
+        "id": -1778887836533,
+        "name": "Бутылка 1.5л",
+        "qty": 1,
+        "price": 14,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      },
+      {
+        "id": 4124,
+        "name": "Волковская Неправильный Мед",
+        "qty": 0.5,
+        "price": 278,
+        "productType": "DRAFT",
+        "details": "0.5 л"
+      },
+      {
+        "id": -1778887849577,
+        "name": "Бутылка 0,5л",
+        "qty": 1,
+        "price": 11,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 864
+  },
+  {
+    "id": "1779117421338",
+    "createdAt": "2026-05-18T15:17:01.338Z",
+    "status": "done",
+    "storeId": "2",
+    "client": {
+      "phone": "8 (915) 288-24-84",
+      "name": "Влад",
+      "street": "Ставропольская",
+      "house": "76",
+      "entrance": "3",
+      "floor": "10",
+      "apartment": "133",
+      "intercom": "",
+      "notes": ""
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": 4096,
+        "name": "Василеостровская Kriek de Lutin",
+        "qty": 2,
+        "price": 467,
+        "productType": "DRAFT",
+        "details": "1 л"
+      },
+      {
+        "id": -1778887823941,
+        "name": "Бутылка 1л",
+        "qty": 2,
+        "price": 12,
+        "productType": "PIECE"
+      },
+      {
+        "id": 4219,
+        "name": "Фисташки «Еще парочку»",
+        "qty": 0.264,
+        "price": 3750,
+        "productType": "WEIGHT"
+      },
+      {
+        "id": 2824,
+        "name": "Креветка «Черноморская» сушеная с перцем",
+        "qty": 1,
+        "price": 185,
+        "productType": "PIECE",
+        "details": "25 г"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 2443
+  },
+  {
+    "id": "1779116184717",
+    "createdAt": "2026-05-18T14:56:24.717Z",
+    "status": "done",
+    "storeId": "7",
+    "client": {
+      "phone": "8 (901) 904-77-54",
+      "name": "Михаил",
+      "street": "Братеевская",
+      "house": "35к3",
+      "entrance": "10",
+      "floor": "7",
+      "apartment": "466к",
+      "intercom": "",
+      "notes": ""
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": 4561,
+        "name": "Коломенское Немецкое светлое",
+        "qty": 4.5,
+        "price": 295,
+        "productType": "DRAFT",
+        "details": "1.5 л"
+      },
+      {
+        "id": -1778887836533,
+        "name": "Бутылка 1.5л",
+        "qty": 3,
+        "price": 14,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 1679.5
+  },
+  {
+    "id": "1779115372164",
+    "createdAt": "2026-05-18T14:42:52.164Z",
+    "status": "done",
+    "storeId": "5",
+    "client": {
+      "phone": "8 (916) 499-00-55",
+      "name": "Клиент",
+      "street": "Иловайская",
+      "house": "2",
+      "entrance": "4",
+      "floor": "10",
+      "apartment": "1299",
+      "intercom": "",
+      "notes": "#2640# на этаже #0000#"
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": 4094,
+        "name": "Бочкари Чешское светлое",
+        "qty": 3,
+        "price": 239,
+        "productType": "DRAFT",
+        "details": "1 л"
+      },
+      {
+        "id": -1778887823941,
+        "name": "Бутылка 1л",
+        "qty": 3,
+        "price": 12,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 1063
+  },
+  {
+    "id": "1779112766761",
+    "createdAt": "2026-05-18T13:59:26.761Z",
+    "status": "done",
+    "storeId": "9",
+    "client": {
+      "phone": "8 (963) 697-89-83",
+      "name": "Петр",
+      "street": "Каспийская",
+      "house": "8",
+      "entrance": "4",
+      "floor": "3",
+      "apartment": "71",
+      "intercom": "",
+      "notes": "#71#3463"
+    },
+    "orderMethod": "app",
+    "payMethod": "card",
+    "operator": "+79784527921",
+    "items": [
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 789,
+    "orderNumber": "769994",
+    "deliveryPrice": 300,
+    "orderAmount": 479
+  },
+  {
+    "id": "1779112734190",
+    "createdAt": "2026-05-18T13:58:54.190Z",
+    "status": "done",
+    "storeId": "6",
+    "client": {
+      "phone": "8 (909) 972-11-42",
+      "name": "Татьяна",
+      "street": "Шипиловский проезд",
+      "house": "55к1",
+      "entrance": "1",
+      "floor": "9",
+      "apartment": "",
+      "intercom": "",
+      "notes": "кв57  к57к0327"
+    },
+    "orderMethod": "app",
+    "payMethod": "card",
+    "operator": "+79784527921",
+    "items": [
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 1196,
+    "orderNumber": "010590",
+    "deliveryPrice": 300,
+    "orderAmount": 886
+  },
+  {
+    "id": "1779111937113",
+    "createdAt": "2026-05-18T13:45:37.113Z",
+    "status": "done",
+    "storeId": "4",
+    "client": {
+      "phone": "8 (926) 225-17-74",
+      "name": "Александр",
+      "street": "Новомарьинская",
+      "house": "28",
+      "entrance": "4",
+      "floor": "11",
+      "apartment": "219",
+      "intercom": "",
+      "notes": "4 маг"
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "+79784527921",
+    "items": [
+      {
+        "id": 4137,
+        "name": "Томское Чешский джбанек",
+        "qty": 7.5,
+        "price": 389,
+        "productType": "DRAFT",
+        "details": "1.5 л"
+      },
+      {
+        "id": -1778887836533,
+        "name": "Бутылка 1.5л",
+        "qty": 5,
+        "price": 14,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 3297.5
+  },
+  {
+    "id": "1779110983073",
+    "createdAt": "2026-05-18T13:29:43.073Z",
+    "status": "done",
+    "storeId": "4",
+    "client": {
+      "phone": "8 (965) 152-61-37",
+      "name": "Оксана",
+      "street": "Верхние поля",
+      "house": "42к1",
+      "entrance": "5",
+      "floor": "16",
+      "apartment": "317",
+      "intercom": "",
+      "notes": "домоф в317в3381"
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "+79784527921",
+    "items": [
+      {
+        "id": 4137,
+        "name": "Томское Чешский джбанек",
+        "qty": 6,
+        "price": 389,
+        "productType": "DRAFT",
+        "details": "1.5 л"
+      },
+      {
+        "id": -1778887836533,
+        "name": "Бутылка 1.5л",
+        "qty": 4,
+        "price": 14,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      },
+      {
+        "id": 2629,
+        "name": "Чипсы из мяса курицы",
+        "qty": 4,
+        "price": 145,
+        "productType": "PIECE",
+        "details": "50 г"
+      }
+    ],
+    "total": 3280
+  },
+  {
+    "id": "1779106851920",
+    "createdAt": "2026-05-18T12:20:51.920Z",
+    "status": "done",
+    "storeId": "4",
+    "client": {
+      "phone": "8 (977) 292-32-63",
+      "name": "Артём",
+      "street": "Перерва",
+      "house": "74",
+      "entrance": "4",
+      "floor": "17",
+      "apartment": "254",
+      "intercom": "в229в0602в",
+      "notes": "постучать в дверь"
+    },
+    "orderMethod": "phone",
+    "payMethod": "cash",
+    "operator": "+79784527921",
+    "items": [
+      {
+        "id": 2588,
+        "name": "МПК Чешский лежак",
+        "qty": 4.5,
+        "price": 232,
+        "productType": "DRAFT",
+        "details": "1.5 л"
+      },
+      {
+        "id": -1778887836533,
+        "name": "Бутылка 1.5л",
+        "qty": 3,
+        "price": 14,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      },
+      {
+        "id": 5490,
+        "name": "Фисташки",
+        "qty": 2,
+        "price": 350,
+        "productType": "PIECE",
+        "details": "100 г"
+      }
+    ],
+    "total": 2096,
+    "given": 5000,
+    "change": 2904
+  },
+  {
+    "id": "1779104650280",
+    "createdAt": "2026-05-18T11:44:10.280Z",
+    "status": "done",
+    "storeId": "9",
+    "client": {
+      "phone": "8 (925) 888-68-48",
+      "name": "Клиент",
+      "street": "Бехтерева",
+      "house": "11к1",
+      "entrance": "1",
+      "floor": "8",
+      "apartment": "38",
+      "intercom": "",
+      "notes": "*5833 кв 58"
+    },
+    "orderMethod": "app",
+    "payMethod": "card",
+    "operator": "+79784527921",
+    "items": [
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 2332,
+    "orderNumber": "135030",
+    "deliveryPrice": 300,
+    "orderAmount": 2022
+  },
+  {
+    "id": "1779104179938",
+    "createdAt": "2026-05-18T11:36:19.938Z",
+    "status": "done",
+    "storeId": "2",
+    "client": {
+      "phone": "8 (968) 420-88-00",
+      "name": "Егор",
+      "street": "Верхние поля",
+      "house": "35к4",
+      "entrance": "4",
+      "floor": "5",
+      "apartment": "211",
+      "intercom": "",
+      "notes": ""
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "+79784527921",
+    "items": [
+      {
+        "id": 2588,
+        "name": "МПК Чешский лежак",
+        "qty": 5,
+        "price": 232,
+        "productType": "DRAFT",
+        "details": "1 л"
+      },
+      {
+        "id": -1778887823941,
+        "name": "Бутылка 1л",
+        "qty": 5,
+        "price": 12,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 1530
+  },
+  {
+    "id": "1779102468959",
+    "createdAt": "2026-05-18T11:07:48.959Z",
+    "status": "done",
+    "storeId": "2",
+    "client": {
+      "phone": "8 (929) 534-17-03",
+      "name": "Анна",
+      "street": "Судакова",
+      "house": "15",
+      "entrance": "4",
+      "floor": "7",
+      "apartment": "131",
+      "intercom": "136#4263",
+      "notes": ""
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "+79784527921",
+    "items": [
+      {
+        "id": 2588,
+        "name": "МПК Чешский лежак",
+        "qty": 3,
+        "price": 232,
+        "productType": "DRAFT",
+        "details": "1.5 л"
+      },
+      {
+        "id": -1778887836533,
+        "name": "Бутылка 1.5л",
+        "qty": 2,
+        "price": 14,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 1034
+  },
+  {
+    "id": "1778957650139",
+    "createdAt": "2026-05-16T18:54:10.139Z",
+    "status": "done",
+    "storeId": "9",
+    "client": {
+      "phone": "89037774018",
+      "name": "Ирина",
+      "street": "Кантемировская",
+      "house": "31к4",
+      "entrance": "1",
+      "floor": "12",
+      "apartment": "452",
+      "intercom": "",
+      "notes": "в452в5371 Звонок не работает."
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": 4133,
+        "name": "Таркос Жигулевское Воронеж",
+        "qty": 1,
+        "price": 230,
+        "productType": "DRAFT"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778887823941,
+        "name": "Бутылка 1л",
+        "qty": 1,
+        "price": 12,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778957755450,
+        "name": "Таркос Жигулевское 1970 0,45",
+        "qty": 1,
+        "price": 155,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 707
+  },
+  {
+    "id": "1778956876426",
+    "createdAt": "2026-05-16T18:41:16.426Z",
+    "status": "done",
+    "storeId": "2",
+    "client": {
+      "phone": "89854855340",
+      "name": "Ксения",
+      "street": "Краснодарская",
+      "house": "51к5",
+      "entrance": "1",
+      "floor": "9",
+      "apartment": "61",
+      "intercom": "100**1234",
+      "notes": ""
+    },
+    "orderMethod": "phone",
+    "payMethod": "cash",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": 2569,
+        "name": "Томское Крюгер классическое",
+        "qty": 7.5,
+        "price": 385,
+        "productType": "DRAFT"
+      },
+      {
+        "id": -1778887836533,
+        "name": "Бутылка 1.5л",
+        "qty": 5,
+        "price": 14,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      },
+      {
+        "id": 26213,
+        "name": "Сырный продукт паутинка классический",
+        "qty": 1,
+        "price": 184,
+        "productType": "PIECE",
+        "details": "100 г"
+      },
+      {
+        "id": 2836,
+        "name": "Стружка кальмара",
+        "qty": 1,
+        "price": 339,
+        "productType": "PIECE",
+        "details": "100 г"
+      }
+    ],
+    "total": 3790.5,
+    "given": 5000,
+    "change": 1209.5
+  },
+  {
+    "id": "1778956361127",
+    "createdAt": "2026-05-16T18:32:41.127Z",
+    "status": "done",
+    "storeId": "4",
+    "client": {
+      "phone": "89268127322",
+      "name": "Элеонора (Esse Blue)",
+      "street": "Перервинский бульвар",
+      "house": "22к2",
+      "entrance": "1",
+      "floor": "1",
+      "apartment": "",
+      "intercom": "",
+      "notes": "забирает из окна на 1 эт"
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": 4075,
+        "name": "Форштадтская Бархатное Элитное",
+        "qty": 3,
+        "price": 260,
+        "productType": "DRAFT"
+      },
+      {
+        "id": -1778887823941,
+        "name": "Бутылка 1л",
+        "qty": 3,
+        "price": 12,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 1126
+  },
+  {
+    "id": "1778956297143",
+    "createdAt": "2026-05-16T18:31:37.143Z",
+    "status": "done",
+    "storeId": "2",
+    "client": {
+      "phone": "89652095020",
+      "name": "Анжела Павловна",
+      "street": "Люблинская",
+      "house": "129\\2",
+      "entrance": "1",
+      "floor": "5",
+      "apartment": "40",
+      "intercom": "",
+      "notes": "2 маг"
+    },
+    "orderMethod": "phone",
+    "payMethod": "cash",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": 26008,
+        "name": "Очаково Жигулевское оригинальное",
+        "qty": 1.5,
+        "price": 199,
+        "productType": "DRAFT"
+      },
+      {
+        "id": -1778887836533,
+        "name": "Бутылка 1.5л",
+        "qty": 1,
+        "price": 14,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 622.5
+  },
+  {
+    "id": "1778955347065",
+    "createdAt": "2026-05-16T18:15:47.065Z",
+    "status": "done",
+    "storeId": "4",
+    "client": {
+      "phone": "89099159605",
+      "name": "Кристина",
+      "street": "1-й квартал Капотни",
+      "house": "1",
+      "entrance": "3",
+      "floor": "5",
+      "apartment": "154",
+      "intercom": "",
+      "notes": "в0330в никуда не звонить, оставить под дверью"
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": 2588,
+        "name": "МПК Чешский лежак",
+        "qty": 2,
+        "price": 232,
+        "productType": "DRAFT"
+      },
+      {
+        "id": -1778887823941,
+        "name": "Бутылка 1л",
+        "qty": 2,
+        "price": 12,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889872683,
+        "name": "Доставка Капотня",
+        "qty": 1,
+        "price": 750,
+        "productType": "PIECE"
+      },
+      {
+        "id": 5493,
+        "name": "Арахис со вкусом холодца и хрена",
+        "qty": 1,
+        "price": 104,
+        "productType": "PIECE",
+        "details": "100 г"
+      }
+    ],
+    "total": 1352
+  },
+  {
+    "id": "1778954908475",
+    "createdAt": "2026-05-16T18:08:28.475Z",
+    "status": "done",
+    "storeId": "6",
+    "client": {
+      "phone": "89102884701",
+      "name": "Светлана",
+      "street": "Генерала Белова",
+      "house": "28к3",
+      "entrance": "2",
+      "floor": "6",
+      "apartment": "76",
+      "intercom": "",
+      "notes": ""
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": 2588,
+        "name": "МПК Чешский лежак",
+        "qty": 5,
+        "price": 232,
+        "productType": "DRAFT"
+      },
+      {
+        "id": -1778887823941,
+        "name": "Бутылка 1л",
+        "qty": 5,
+        "price": 12,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 1530
+  },
+  {
+    "id": "1778954803860",
+    "createdAt": "2026-05-16T18:06:43.860Z",
+    "status": "done",
+    "storeId": "2",
+    "client": {
+      "phone": "89661351358",
+      "name": "Роман",
+      "street": "Марьинский Парк",
+      "house": "39к1",
+      "entrance": "5",
+      "floor": "2",
+      "apartment": "103",
+      "intercom": "",
+      "notes": ""
+    },
+    "orderMethod": "phone",
+    "payMethod": "cash",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": 27203,
+        "name": "Лысково Мюнхенское",
+        "qty": 2.5,
+        "price": 272,
+        "productType": "DRAFT"
+      },
+      {
+        "id": -1778887836533,
+        "name": "Бутылка 1.5л",
+        "qty": 1,
+        "price": 14,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778887823941,
+        "name": "Бутылка 1л",
+        "qty": 1,
+        "price": 12,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 1016
+  },
+  {
+    "id": "1778954564855",
+    "createdAt": "2026-05-16T18:02:44.855Z",
+    "status": "done",
+    "storeId": "6",
+    "client": {
+      "phone": "89266990855",
+      "name": "Владимир",
+      "street": "Ореховый бульвар",
+      "house": "10к2",
+      "entrance": "4",
+      "floor": "9",
+      "apartment": "569",
+      "intercom": "",
+      "notes": "домоф 569к1614"
+    },
+    "orderMethod": "phone",
+    "payMethod": "cash",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": 4122,
+        "name": "МПК Немецкий пилснер",
+        "qty": 2,
+        "price": 232,
+        "productType": "DRAFT"
+      },
+      {
+        "id": -1778887823941,
+        "name": "Бутылка 1л",
+        "qty": 4,
+        "price": 12,
+        "productType": "PIECE"
+      },
+      {
+        "id": 4129,
+        "name": "Очаково Столичное премиум",
+        "qty": 1,
+        "price": 199,
+        "productType": "DRAFT"
+      },
+      {
+        "id": 2560,
+        "name": "МПК Жигули барное непастеризованное",
+        "qty": 1,
+        "price": 240,
+        "productType": "DRAFT"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 1261,
+    "given": 2000,
+    "change": 739
+  },
+  {
+    "id": "1778952839351",
+    "createdAt": "2026-05-16T17:33:59.351Z",
+    "status": "done",
+    "storeId": "2",
+    "client": {
+      "phone": "89777171807",
+      "name": "Елена",
+      "street": "Судакова",
+      "house": "28",
+      "entrance": "2",
+      "floor": "2",
+      "apartment": "15",
+      "intercom": "",
+      "notes": "15в3855"
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": 4075,
+        "name": "Форштадтская Бархатное Элитное",
+        "qty": 1.5,
+        "price": 260,
+        "productType": "DRAFT"
+      },
+      {
+        "id": -1778887836533,
+        "name": "Бутылка 1.5л",
+        "qty": 1,
+        "price": 14,
+        "productType": "PIECE"
+      },
+      {
+        "id": 59351,
+        "name": "Крутоны со вкусом сметаны с зеленью",
+        "qty": 1,
+        "price": 125,
+        "productType": "PIECE",
+        "details": "100 г"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 839
+  },
+  {
+    "id": "1778951497036",
+    "createdAt": "2026-05-16T17:11:37.036Z",
+    "status": "done",
+    "storeId": "5",
+    "client": {
+      "phone": "89260146378",
+      "name": "Антон",
+      "street": "Маршала Голованова",
+      "house": "11",
+      "entrance": "7",
+      "floor": "6",
+      "apartment": "429",
+      "intercom": "",
+      "notes": "429к8472"
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": 2761,
+        "name": "Konix  Czech pilsner",
+        "qty": 2.5,
+        "price": 368,
+        "productType": "DRAFT"
+      },
+      {
+        "id": -1778887836533,
+        "name": "Бутылка 1.5л",
+        "qty": 1,
+        "price": 14,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778887823941,
+        "name": "Бутылка 1л",
+        "qty": 1,
+        "price": 12,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 1256
+  },
+  {
+    "id": "1778951434964",
+    "createdAt": "2026-05-16T17:10:34.964Z",
+    "status": "done",
+    "storeId": "2",
+    "client": {
+      "phone": "89252141333",
+      "name": "Татьяна",
+      "street": "Краснодонская",
+      "house": "27",
+      "entrance": "4",
+      "floor": "1",
+      "apartment": "109",
+      "intercom": "200",
+      "notes": "2 маг"
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": 2753,
+        "name": "Алтайские традиции Чешское белое",
+        "qty": 1.5,
+        "price": 297,
+        "productType": "DRAFT"
+      },
+      {
+        "id": -1778887836533,
+        "name": "Бутылка 1.5л",
+        "qty": 4,
+        "price": 14,
+        "productType": "PIECE"
+      },
+      {
+        "id": 2812,
+        "name": "Балтика Blanche biere",
+        "qty": 1.5,
+        "price": 326,
+        "productType": "DRAFT"
+      },
+      {
+        "id": 4122,
+        "name": "МПК Немецкий пилснер",
+        "qty": 3,
+        "price": 232,
+        "productType": "DRAFT"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 1996.5
+  },
+  {
+    "id": "1778949199544",
+    "createdAt": "2026-05-16T16:33:19.544Z",
+    "status": "done",
+    "storeId": "2",
+    "client": {
+      "phone": "89265300772",
+      "name": "Ольга",
+      "street": "Новороссийская",
+      "house": "30к1",
+      "entrance": "5",
+      "floor": "4",
+      "apartment": "282",
+      "intercom": "в282в0489",
+      "notes": ""
+    },
+    "orderMethod": "phone",
+    "payMethod": "cash",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": 4138,
+        "name": "Томское Крюгер бархатное",
+        "qty": 1.5,
+        "price": 371,
+        "productType": "DRAFT"
+      },
+      {
+        "id": -1778887836533,
+        "name": "Бутылка 1.5л",
+        "qty": 3,
+        "price": 14,
+        "productType": "PIECE"
+      },
+      {
+        "id": 4075,
+        "name": "Форштадтская Бархатное Элитное",
+        "qty": 1.5,
+        "price": 260,
+        "productType": "DRAFT"
+      },
+      {
+        "id": 4171,
+        "name": "Сушка «Флотская» с солью",
+        "qty": 3,
+        "price": 95,
+        "productType": "PIECE",
+        "details": "60 г"
+      },
+      {
+        "id": 17624,
+        "name": "Очаковский  Квас",
+        "qty": 1.5,
+        "price": 144,
+        "productType": "DRAFT"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 1799.5
+  },
+  {
+    "id": "1778948542829",
+    "createdAt": "2026-05-16T16:22:22.829Z",
+    "status": "done",
+    "storeId": "5",
+    "client": {
+      "phone": "89859053034",
+      "name": "Андрей",
+      "street": "Подольская",
+      "house": "1",
+      "entrance": "1",
+      "floor": "9",
+      "apartment": "36",
+      "intercom": "36",
+      "notes": "5 маг"
+    },
+    "orderMethod": "phone",
+    "payMethod": "cash",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": 2569,
+        "name": "Томское Крюгер классическое",
+        "qty": 5,
+        "price": 385,
+        "productType": "DRAFT"
+      },
+      {
+        "id": -1778887836533,
+        "name": "Бутылка 1.5л",
+        "qty": 2,
+        "price": 14,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778887823941,
+        "name": "Бутылка 1л",
+        "qty": 2,
+        "price": 12,
+        "productType": "PIECE"
+      },
+      {
+        "id": 4154,
+        "name": "Корюшка дальневосточная без икры",
+        "qty": 0.168,
+        "price": 4000,
+        "productType": "WEIGHT"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 2959
+  },
+  {
+    "id": "1778948120658",
+    "createdAt": "2026-05-16T16:15:20.658Z",
+    "status": "done",
+    "storeId": "2",
+    "client": {
+      "phone": "89154256940",
+      "name": "Ксения",
+      "street": "Краснодонская",
+      "house": "50",
+      "entrance": "7",
+      "floor": "18",
+      "apartment": "261",
+      "intercom": "",
+      "notes": "в2580в"
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": 4079,
+        "name": "Konix Munich helles",
+        "qty": 5,
+        "price": 349,
+        "productType": "DRAFT"
+      },
+      {
+        "id": -1778887836533,
+        "name": "Бутылка 1.5л",
+        "qty": 2,
+        "price": 14,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778887823941,
+        "name": "Бутылка 1л",
+        "qty": 3,
+        "price": 12,
+        "productType": "PIECE"
+      },
+      {
+        "id": 17617,
+        "name": "Традиции Предков Огненный Великан Сурт",
+        "qty": 1,
+        "price": 490,
+        "productType": "DRAFT"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 2609
+  },
+  {
+    "id": "1778946287657",
+    "createdAt": "2026-05-16T15:44:47.657Z",
+    "status": "done",
+    "storeId": "4",
+    "client": {
+      "phone": "89774223915",
+      "name": "Евгений",
+      "street": "Мячковский бульвар",
+      "house": "8к4",
+      "entrance": "",
+      "floor": "",
+      "apartment": "",
+      "intercom": "",
+      "notes": "За домом, между двух школ"
+    },
+    "orderMethod": "phone",
+    "payMethod": "cash",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": 4256,
+        "name": "Волковская Вишня",
+        "qty": 3,
+        "price": 314,
+        "productType": "DRAFT"
+      },
+      {
+        "id": -1778887836533,
+        "name": "Бутылка 1.5л",
+        "qty": 2,
+        "price": 14,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Дос��авка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 1280
+  },
+  {
+    "id": "1778945966700",
+    "createdAt": "2026-05-16T15:39:26.700Z",
+    "status": "done",
+    "storeId": "5",
+    "client": {
+      "phone": "89636992277",
+      "name": "Клиент",
+      "street": "Перерва",
+      "house": "34",
+      "entrance": "6",
+      "floor": "12",
+      "apartment": "297",
+      "intercom": "",
+      "notes": ""
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": 4140,
+        "name": "Форштадтская Ирландский Эль",
+        "qty": 3,
+        "price": 257,
+        "productType": "DRAFT"
+      },
+      {
+        "id": -1778887836533,
+        "name": "Бутылка 1.5л",
+        "qty": 4,
+        "price": 14,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      },
+      {
+        "id": 2559,
+        "name": "Очаково Жигулевское особая партия",
+        "qty": 3,
+        "price": 210,
+        "productType": "DRAFT"
+      },
+      {
+        "id": 2635,
+        "name": "Кольца кальмара",
+        "qty": 1,
+        "price": 339,
+        "productType": "PIECE",
+        "details": "100 г"
+      }
+    ],
+    "total": 2106
+  },
+  {
+    "id": "1778945302922",
+    "createdAt": "2026-05-16T15:28:22.922Z",
+    "status": "done",
+    "storeId": "2",
+    "client": {
+      "phone": "89854855340",
+      "name": "Ксения",
+      "street": "Краснодарская",
+      "house": "51к5",
+      "entrance": "1",
+      "floor": "9",
+      "apartment": "61",
+      "intercom": "100**1234",
+      "notes": ""
+    },
+    "orderMethod": "phone",
+    "payMethod": "cash",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": 2569,
+        "name": "Томское Крюгер классическое",
+        "qty": 9,
+        "price": 385,
+        "productType": "DRAFT"
+      },
+      {
+        "id": -1778887836533,
+        "name": "Бутылка 1.5л",
+        "qty": 6,
+        "price": 14,
+        "productType": "PIECE"
+      },
+      {
+        "id": 4257,
+        "name": "Пелядь",
+        "qty": 0.21,
+        "price": 2180,
+        "productType": "WEIGHT"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 2,
+        "price": 10,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 4326.8,
+    "given": 5000,
+    "change": 673.1999999999998
+  },
+  {
+    "id": "1778944736339",
+    "createdAt": "2026-05-16T15:18:56.339Z",
+    "status": "done",
+    "storeId": "2",
+    "client": {
+      "phone": "89015009070",
+      "name": "Клиент",
+      "street": "Краснодонская",
+      "house": "14к3",
+      "entrance": "13",
+      "floor": "2",
+      "apartment": "246",
+      "intercom": "",
+      "notes": "9999#7220"
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": -1778887836533,
+        "name": "Бутылка 1.5л",
+        "qty": 3,
+        "price": 14,
+        "productType": "PIECE"
+      },
+      {
+        "id": 67681,
+        "name": "Коломенская Калачное",
+        "qty": 4.5,
+        "price": 265,
+        "productType": "DRAFT"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 1544.5
+  },
+  {
+    "id": "1778944311452",
+    "createdAt": "2026-05-16T15:11:51.452Z",
+    "status": "done",
+    "storeId": "2",
+    "client": {
+      "phone": "89163007060",
+      "name": "Андрей",
+      "street": "Люблинская",
+      "house": "127\\1",
+      "entrance": "4",
+      "floor": "3",
+      "apartment": "37",
+      "intercom": "37в",
+      "notes": "В дверь не звонить! в ДВА пакетка!"
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": 2557,
+        "name": "Вятич Рижское",
+        "qty": 8,
+        "price": 280,
+        "productType": "DRAFT"
+      },
+      {
+        "id": -1778887836533,
+        "name": "Бутылка 1.5л",
+        "qty": 2,
+        "price": 14,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778887823941,
+        "name": "Бутылка 1л",
+        "qty": 4,
+        "price": 12,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778887849577,
+        "name": "Бутылка 0,5л",
+        "qty": 2,
+        "price": 11,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 2,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 2658
+  },
+  {
+    "id": "1778943806959",
+    "createdAt": "2026-05-16T15:03:26.959Z",
+    "status": "done",
+    "storeId": "4",
+    "client": {
+      "phone": "89261606045",
+      "name": "Евгений",
+      "street": "Перервинский бульвар",
+      "house": "21к1",
+      "entrance": "5",
+      "floor": "10",
+      "apartment": "276",
+      "intercom": "",
+      "notes": "276к1395 Звонка нет"
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": 4125,
+        "name": "ОПХ Krusovice",
+        "qty": 8,
+        "price": 344,
+        "productType": "DRAFT"
+      },
+      {
+        "id": -1778887836533,
+        "name": "Бутылка 1.5л",
+        "qty": 4,
+        "price": 14,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778887823941,
+        "name": "Бутылка 1л",
+        "qty": 2,
+        "price": 12,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 2,
+        "price": 10,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 3152
+  },
+  {
+    "id": "1778943584465",
+    "createdAt": "2026-05-16T14:59:44.465Z",
+    "status": "done",
+    "storeId": "7",
+    "client": {
+      "phone": "89671770797",
+      "name": "Роман",
+      "street": "Борисовские Пруды",
+      "house": "31с3",
+      "entrance": "",
+      "floor": "",
+      "apartment": "",
+      "intercom": "",
+      "notes": "Гаражи"
+    },
+    "orderMethod": "phone",
+    "payMethod": "cash",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": 4133,
+        "name": "Таркос Жигулевское Воронеж",
+        "qty": 6,
+        "price": 230,
+        "productType": "DRAFT"
+      },
+      {
+        "id": -1778887836533,
+        "name": "Бутылка 1.5л",
+        "qty": 4,
+        "price": 14,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": 4219,
+        "name": "Фисташки «Еще парочку»",
+        "qty": 0.2,
+        "price": 3750,
+        "productType": "WEIGHT"
+      }
+    ],
+    "total": 2496
+  },
+  {
+    "id": "1778943018623",
+    "createdAt": "2026-05-16T14:50:18.623Z",
+    "status": "done",
+    "storeId": "5",
+    "client": {
+      "phone": "89263033555",
+      "name": "Ксе��ия",
+      "street": "Перева",
+      "house": "26к2",
+      "entrance": "1",
+      "floor": "5",
+      "apartment": "320",
+      "intercom": "358к0116",
+      "notes": ""
+    },
+    "orderMethod": "phone",
+    "payMethod": "cash",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": 4096,
+        "name": "Василеостровская Kriek de Lutin",
+        "qty": 4,
+        "price": 467,
+        "productType": "DRAFT"
+      },
+      {
+        "id": -1778887823941,
+        "name": "Бутылка 1л",
+        "qty": 8,
+        "price": 12,
+        "productType": "PIECE"
+      },
+      {
+        "id": 4107,
+        "name": "Starovar Prazsky lezak",
+        "qty": 2,
+        "price": 299,
+        "productType": "DRAFT"
+      },
+      {
+        "id": 4113,
+        "name": "Коломенская Weiss berg",
+        "qty": 2,
+        "price": 322,
+        "productType": "DRAFT"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 2,
+        "price": 10,
+        "productType": "PIECE"
+      },
+      {
+        "id": 4257,
+        "name": "Пелядь",
+        "qty": 0.182,
+        "price": 2180,
+        "productType": "WEIGHT"
+      },
+      {
+        "id": 4539,
+        "name": "Пелядь х/к",
+        "qty": 0.15,
+        "price": 1940,
+        "productType": "WEIGHT"
+      }
+    ],
+    "total": 4213.76
+  },
+  {
+    "id": "1778942775888",
+    "createdAt": "2026-05-16T14:46:15.888Z",
+    "status": "done",
+    "storeId": "9",
+    "client": {
+      "phone": "89672574949",
+      "name": "Алексей",
+      "street": "Пролетарский проспект",
+      "house": "17к1",
+      "entrance": "6",
+      "floor": "3",
+      "apartment": "350",
+      "intercom": "472",
+      "notes": ""
+    },
+    "orderMethod": "app",
+    "payMethod": "card",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 1915,
+    "orderNumber": "852311",
+    "deliveryPrice": 300,
+    "orderAmount": 1605
+  },
+  {
+    "id": "1778942199541",
+    "createdAt": "2026-05-16T14:36:39.541Z",
+    "status": "done",
+    "storeId": "7",
+    "client": {
+      "phone": "89019047754",
+      "name": "Михаил",
+      "street": "Братеевская",
+      "house": "35к3",
+      "entrance": "10",
+      "floor": "7",
+      "apartment": "466к",
+      "intercom": "",
+      "notes": ""
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": 4561,
+        "name": "Коломенское Немецкое светлое",
+        "qty": 6,
+        "price": 295,
+        "productType": "DRAFT"
+      },
+      {
+        "id": -1778887836533,
+        "name": "Бутылка 1.5л",
+        "qty": 4,
+        "price": 14,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 2136
+  },
+  {
+    "id": "1778942105006",
+    "createdAt": "2026-05-16T14:35:05.006Z",
+    "status": "done",
+    "storeId": "2",
+    "client": {
+      "phone": "89199641703",
+      "name": "Елена",
+      "street": "Белореченская",
+      "house": "23",
+      "entrance": "1",
+      "floor": "2",
+      "apartment": "7",
+      "intercom": "",
+      "notes": "в12в6367"
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": 2559,
+        "name": "Очаково Жигулевское особая партия",
+        "qty": 2.5,
+        "price": 210,
+        "productType": "DRAFT"
+      },
+      {
+        "id": -1778887836533,
+        "name": "Бутылка 1.5л",
+        "qty": 1,
+        "price": 14,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778887823941,
+        "name": "Бутылка 1л",
+        "qty": 1,
+        "price": 12,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 861
+  },
+  {
+    "id": "1778941911719",
+    "createdAt": "2026-05-16T14:31:51.719Z",
+    "status": "done",
+    "storeId": "4",
+    "client": {
+      "phone": "89262648000",
+      "name": "Ирина",
+      "street": "Братиславская",
+      "house": "19к2",
+      "entrance": "5",
+      "floor": "8",
+      "apartment": "300",
+      "intercom": "",
+      "notes": "в300в7718в"
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": 4141,
+        "name": "Хадыженское светлое",
+        "qty": 4.5,
+        "price": 290,
+        "productType": "DRAFT"
+      },
+      {
+        "id": -1778887836533,
+        "name": "Бутылка 1.5л",
+        "qty": 3,
+        "price": 14,
+        "productType": "PIECE"
+      },
+      {
+        "id": 5488,
+        "name": "Арахис в глазури ассорти вкусов",
+        "qty": 1,
+        "price": 149,
+        "productType": "PIECE",
+        "details": "100 г"
+      },
+      {
+        "id": 65867,
+        "name": "7 вкусов моря",
+        "qty": 1,
+        "price": 400,
+        "productType": "PIECE",
+        "details": "100 г"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 2206
+  },
+  {
+    "id": "1778941773762",
+    "createdAt": "2026-05-16T14:29:33.762Z",
+    "status": "done",
+    "storeId": "6",
+    "client": {
+      "phone": "89857581056",
+      "name": "Александр",
+      "street": "Домодедовская",
+      "house": "20к3",
+      "entrance": "7",
+      "floor": "6",
+      "apartment": "211",
+      "intercom": "",
+      "notes": "домофон 211к5015"
+    },
+    "orderMethod": "phone",
+    "payMethod": "cash",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": 4137,
+        "name": "Томское Чешский джбанек",
+        "qty": 6,
+        "price": 389,
+        "productType": "DRAFT"
+      },
+      {
+        "id": -1778887836533,
+        "name": "Бутылка 1.5л",
+        "qty": 4,
+        "price": 14,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 2700,
+    "given": 5000,
+    "change": 2300
+  },
+  {
+    "id": "1778940965704",
+    "createdAt": "2026-05-16T14:16:05.704Z",
+    "status": "done",
+    "storeId": "7",
+    "client": {
+      "phone": "89265810211",
+      "name": "Николай",
+      "street": "Борисовские пруды",
+      "house": "48к1",
+      "entrance": "2",
+      "floor": "22",
+      "apartment": "174",
+      "intercom": "174к0738",
+      "notes": ""
+    },
+    "orderMethod": "phone",
+    "payMethod": "cash",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": 2761,
+        "name": "Konix  Czech pilsner",
+        "qty": 3,
+        "price": 368,
+        "productType": "DRAFT"
+      },
+      {
+        "id": -1778887836533,
+        "name": "Бутылка 1.5л",
+        "qty": 2,
+        "price": 14,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": 2635,
+        "name": "Кольца кальмара",
+        "qty": 1,
+        "price": 339,
+        "productType": "PIECE",
+        "details": "100 г"
+      }
+    ],
+    "total": 1781,
+    "given": 2000,
+    "change": 219
+  },
+  {
+    "id": "1778940449044",
+    "createdAt": "2026-05-16T14:07:29.044Z",
+    "status": "done",
+    "storeId": "2",
+    "client": {
+      "phone": "89295197979",
+      "name": "Александр",
+      "street": "Верхние Поля",
+      "house": "22к1",
+      "entrance": "5",
+      "floor": "20",
+      "apartment": "401",
+      "intercom": "2525",
+      "notes": ""
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": 4141,
+        "name": "Хадыже��ско�� светлое",
+        "qty": 3,
+        "price": 290,
+        "productType": "DRAFT"
+      },
+      {
+        "id": -1778887823941,
+        "name": "Бутылка 1л",
+        "qty": 3,
+        "price": 12,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 1216
+  },
+  {
+    "id": "1778940279807",
+    "createdAt": "2026-05-16T14:04:39.807Z",
+    "status": "done",
+    "storeId": "5",
+    "client": {
+      "phone": "89100842525",
+      "name": "Клиент",
+      "street": "Новочеркасский бульвар",
+      "house": "11",
+      "entrance": "2",
+      "floor": "4",
+      "apartment": "52",
+      "intercom": "",
+      "notes": "В52в0255в"
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": 4094,
+        "name": "Бочкари Чешское светлое",
+        "qty": 4,
+        "price": 239,
+        "productType": "DRAFT"
+      },
+      {
+        "id": -1778887836533,
+        "name": "Бутылка 1.5л",
+        "qty": 2,
+        "price": 14,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778887823941,
+        "name": "Бутылка 1л",
+        "qty": 1,
+        "price": 12,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 1306
+  },
+  {
+    "id": "1778940226711",
+    "createdAt": "2026-05-16T14:03:46.711Z",
+    "status": "done",
+    "storeId": "7",
+    "client": {
+      "phone": "89851601768",
+      "name": "Дамир",
+      "street": "Мусы Джалиля",
+      "house": "9к6",
+      "entrance": "1",
+      "floor": "17",
+      "apartment": "588",
+      "intercom": "в588в3984",
+      "notes": ""
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": 4129,
+        "name": "Очаково Столичное премиум",
+        "qty": 5,
+        "price": 199,
+        "productType": "DRAFT"
+      },
+      {
+        "id": -1778887836533,
+        "name": "Бут��лка 1.5л",
+        "qty": 2,
+        "price": 14,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778887823941,
+        "name": "Бутылка 1л",
+        "qty": 2,
+        "price": 12,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 1357
+  },
+  {
+    "id": "1778938914898",
+    "createdAt": "2026-05-16T13:41:54.898Z",
+    "status": "done",
+    "storeId": "4",
+    "client": {
+      "phone": "84956542084",
+      "name": "Екатерина",
+      "street": "Поречная",
+      "house": "27к1",
+      "entrance": "2",
+      "floor": "16",
+      "apartment": "144",
+      "intercom": "",
+      "notes": ""
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": 2552,
+        "name": "Волковская IPA",
+        "qty": 8,
+        "price": 292,
+        "productType": "DRAFT"
+      },
+      {
+        "id": -1778887836533,
+        "name": "Бутылка 1.5л",
+        "qty": 4,
+        "price": 14,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778887823941,
+        "name": "Бутылка 1л",
+        "qty": 3,
+        "price": 12,
+        "productType": "PIECE"
+      },
+      {
+        "id": 2516,
+        "name": "Plan B Ковбой Мальборо",
+        "qty": 1,
+        "price": 597,
+        "productType": "DRAFT"
+      },
+      {
+        "id": 4615,
+        "name": "Корюшка дальневосточная с икрой",
+        "qty": 0.216,
+        "price": 4200,
+        "productType": "WEIGHT"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 2,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 4252.2
+  },
+  {
+    "id": "1778938257248",
+    "createdAt": "2026-05-16T13:30:57.248Z",
+    "status": "done",
+    "storeId": "5",
+    "client": {
+      "phone": "89672336777",
+      "name": "Алексей",
+      "street": "Перерва",
+      "house": "20",
+      "entrance": "1",
+      "floor": "11",
+      "apartment": "40",
+      "intercom": "",
+      "notes": ""
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": 2552,
+        "name": "Волковская IPA",
+        "qty": 3.5,
+        "price": 292,
+        "productType": "DRAFT"
+      },
+      {
+        "id": -1778887836533,
+        "name": "Бутылка 1.5л",
+        "qty": 1,
+        "price": 14,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778887823941,
+        "name": "Бутылка 1л",
+        "qty": 3,
+        "price": 12,
+        "productType": "PIECE"
+      },
+      {
+        "id": 17624,
+        "name": "Очаковский  Квас",
+        "qty": 1,
+        "price": 144,
+        "productType": "DRAFT"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 1526
+  },
+  {
+    "id": "1778937612885",
+    "createdAt": "2026-05-16T13:20:12.885Z",
+    "status": "done",
+    "storeId": "4",
+    "client": {
+      "phone": "89774760413",
+      "name": "Кристина",
+      "street": "Мячковский бульвар",
+      "house": "19",
+      "entrance": "5",
+      "floor": "12",
+      "apartment": "165",
+      "intercom": "",
+      "notes": ""
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": 4080,
+        "name": "Konix Два путя",
+        "qty": 2.5,
+        "price": 325,
+        "productType": "DRAFT"
+      },
+      {
+        "id": -1778887836533,
+        "name": "Бутылка 1.5л",
+        "qty": 1,
+        "price": 14,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778887823941,
+        "name": "Бутылка 1л",
+        "qty": 1,
+        "price": 12,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 1148.5
+  },
+  {
+    "id": "1778937137381",
+    "createdAt": "2026-05-16T13:12:17.381Z",
+    "status": "done",
+    "storeId": "2",
+    "client": {
+      "phone": "89277808886",
+      "name": "Михаил",
+      "street": "Краснодонская",
+      "house": "34",
+      "entrance": "4",
+      "floor": "4",
+      "apartment": "123",
+      "intercom": "",
+      "notes": ""
+    },
+    "orderMethod": "phone",
+    "payMethod": "cash",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": 2569,
+        "name": "Томское Крюгер классическое",
+        "qty": 3,
+        "price": 385,
+        "productType": "DRAFT"
+      },
+      {
+        "id": -1778887836533,
+        "name": "Бутылка 1.5л",
+        "qty": 2,
+        "price": 14,
+        "productType": "PIECE"
+      },
+      {
+        "id": 2600,
+        "name": "Вобла",
+        "qty": 0.2,
+        "price": 1540,
+        "productType": "WEIGHT"
+      },
+      {
+        "id": 4270,
+        "name": "Чипсы Lay’s рифленые со вкусом сметаны и лука",
+        "qty": 1,
+        "price": 271,
+        "productType": "PIECE",
+        "details": "140 г"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 2072,
+    "given": 3000,
+    "change": 928
+  },
+  {
+    "id": "1778935615911",
+    "createdAt": "2026-05-16T12:46:55.911Z",
+    "status": "done",
+    "storeId": "2",
+    "client": {
+      "phone": "89257176755",
+      "name": "Александр",
+      "street": "Верхние Поля",
+      "house": "28",
+      "entrance": "2",
+      "floor": "17",
+      "apartment": "148",
+      "intercom": "",
+      "notes": ""
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": 2560,
+        "name": "МПК Жигули барное непастеризованное",
+        "qty": 3,
+        "price": 240,
+        "productType": "DRAFT"
+      },
+      {
+        "id": -1778887836533,
+        "name": "Бутылка 1.5л",
+        "qty": 2,
+        "price": 14,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 1058
+  },
+  {
+    "id": "1778932577547",
+    "createdAt": "2026-05-16T11:56:17.547Z",
+    "status": "done",
+    "storeId": "2",
+    "client": {
+      "phone": "89175907418",
+      "name": "Павел",
+      "street": "Таганрогская",
+      "house": "7",
+      "entrance": "2",
+      "floor": "3",
+      "apartment": "24  24к1850",
+      "intercom": "",
+      "notes": "2 маг."
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": 2588,
+        "name": "МПК Чешский лежак",
+        "qty": 3,
+        "price": 232,
+        "productType": "DRAFT"
+      },
+      {
+        "id": -1778887836533,
+        "name": "Бутылка 1.5л",
+        "qty": 2,
+        "price": 14,
+        "productType": "PIECE"
+      },
+      {
+        "id": 4219,
+        "name": "Фисташки «Еще парочку»",
+        "qty": 0.2,
+        "price": 3750,
+        "productType": "WEIGHT"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 1784
+  },
+  {
+    "id": "1778932232213",
+    "createdAt": "2026-05-16T11:50:32.213Z",
+    "status": "done",
+    "storeId": "2",
+    "client": {
+      "phone": "89684208800",
+      "name": "Егор",
+      "street": "Верхние поля",
+      "house": "35к4",
+      "entrance": "4",
+      "floor": "5",
+      "apartment": "211",
+      "intercom": "",
+      "notes": ""
+    },
+    "orderMethod": "phone",
+    "payMethod": "card",
+    "operator": "+79651015841",
+    "items": [
+      {
+        "id": 2588,
+        "name": "МПК Чешский лежак",
+        "qty": 4,
+        "price": 232,
+        "productType": "DRAFT"
+      },
+      {
+        "id": -1778887823941,
+        "name": "Бутылка 1л",
+        "qty": 4,
+        "price": 12,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889862139,
+        "name": "Доставка",
+        "qty": 1,
+        "price": 300,
+        "productType": "PIECE"
+      },
+      {
+        "id": -1778889848324,
+        "name": "Пакет",
+        "qty": 1,
+        "price": 10,
+        "productType": "PIECE"
+      }
+    ],
+    "total": 1286
+  }
+]

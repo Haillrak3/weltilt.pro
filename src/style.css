@@ -781,6 +781,7 @@ button {
   gap: 8px;
   flex-wrap: wrap;
 }
+.fish-warning { width: 100%; font-weight: 700; font-size: 1rem; color: var(--warn); letter-spacing: 0.05em; }
 
 .cart-total {
   display: flex;

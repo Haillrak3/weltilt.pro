@@ -312,10 +312,15 @@ export function renderCartFooter(): string {
 
   const totalLine = `<span class="cart-total-label">Итого</span><span>${escapeHtml(total.toLocaleString('ru-RU') + ' ₽')}</span>`;
 
+  const hasWeightItem = isApp && state.appOrderLinked
+    ? state.appOrders.find((o) => o.number === state.appOrderLinked)
+        ?.cart_products.some((p) => !p.pack_item || p.pack_item.volume === 0)
+    : false;
+
   const actionBtn = state.editingOrderId
     ? `<button type="button" class="btn btn-primary btn-create-order" id="btn-create-order">Сохранить изменения</button>
        <button type="button" class="btn btn-ghost" id="btn-cancel-edit">Отменить</button>`
-    : `<button type="button" class="btn btn-primary btn-create-order" id="btn-create-order">Создать заказ</button>`;
+    : `${hasWeightItem ? '<div class="fish-warning">🐟 РЫБА!</div>' : ''}<button type="button" class="btn btn-primary btn-create-order" id="btn-create-order">Создать заказ</button>`;
 
   return `
     <div class="cart-footer">

@@ -234,6 +234,7 @@ function bindEvents(): void {
           state.cart.push({ product: localToProduct(pkg), qty: state.orderApp.packageQty });
           saveOrderApp(state.orderApp);
         }
+        void loadAppOrders();
       }
       renderApp();
     });

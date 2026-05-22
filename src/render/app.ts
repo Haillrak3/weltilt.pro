@@ -455,11 +455,15 @@ function bindEvents(): void {
 
   document.querySelectorAll<HTMLButtonElement>('.ao-pickup-btn').forEach((btn) => {
     btn.addEventListener('click', () => {
+      const full = btn.dataset.aoFull ?? '';
       const num = btn.dataset.aoNum ?? '';
       const amount = btn.dataset.aoAmount ?? '';
+      if (full) _handledOrders.add(full);
       void navigator.clipboard.writeText(`#${num}   ${amount}`);
       btn.textContent = '✓ Скопировано';
       btn.classList.add('ao-copied');
+      btn.closest('.ao-inline-row')?.classList.remove('ao-inline-row--new');
+      btn.closest('.ao-inline-row')?.querySelector('.ao-new-badge')?.remove();
       setTimeout(() => { btn.textContent = 'Самовывоз'; btn.classList.remove('ao-copied'); }, 1500);
     });
   });
@@ -469,6 +473,7 @@ function bindEvents(): void {
       const num = btn.dataset.aoDeliver;
       const order = state.appOrders.find((o) => o.number === num);
       if (!order) return;
+      if (num) _handledOrders.add(num);
 
       const totalQty = order.cart_products.reduce((s, p) =>
         s + (p.pack_item && p.pack_item.volume > 0 ? p.qty : 0.5), 0);
@@ -1037,6 +1042,7 @@ const OUR_STORE_NUMS: Record<number, string> = {
   12: '1', 7: '2', 11: '3', 10: '4', 13: '5', 6: '6', 14: '7', 15: '8', 16: '9',
 };
 const ACTIVE_STATUSES = new Set(['CREATED', 'ACTIVE', 'PACKAGING', 'READY_FOR_PICK_UP']);
+const _handledOrders = new Set<string>();
 
 function renderInlineAppOrders(): string {
   const { appOrders, appOrdersLoading } = state;
@@ -1050,12 +1056,13 @@ function renderInlineAppOrders(): string {
   const rows = waiting.map((o) => {
     const storeNum = OUR_STORE_NUMS[o.store.id];
     const note = o.note ? `<div class="ao-inline-note">${escapeHtml(o.note)}</div>` : '';
-    return `<div class="ao-inline-row">
-      <div class="ao-inline-store">Магазин №${storeNum}</div>
+    const isNew = !_handledOrders.has(o.number);
+    return `<div class="ao-inline-row${isNew ? ' ao-inline-row--new' : ''}">
+      <div class="ao-inline-store">Магазин №${storeNum}${isNew ? ' <span class="ao-new-badge">новый</span>' : ''}</div>
       <div class="ao-inline-num">#${escapeHtml(o.number.slice(-6))}</div>
       ${note}
       <div class="ao-inline-actions">
-        <button type="button" class="btn btn-sm btn-ghost ao-pickup-btn" data-ao-num="${escapeHtml(o.number.slice(-6))}" data-ao-amount="${Math.round(o.total_price)} руб.">Самовывоз</button>
+        <button type="button" class="btn btn-sm btn-ghost ao-pickup-btn" data-ao-full="${escapeHtml(o.number)}" data-ao-num="${escapeHtml(o.number.slice(-6))}" data-ao-amount="${Math.round(o.total_price)} руб.">Самовывоз</button>
         <button type="button" class="btn btn-sm btn-primary ao-deliver-btn" data-ao-deliver="${escapeHtml(o.number)}">Доставка</button>
       </div>
     </div>`;

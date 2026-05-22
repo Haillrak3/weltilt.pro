@@ -1002,9 +1002,8 @@ function bindAppOrderButtons(): void {
     btn.addEventListener('click', () => {
       const full = btn.dataset.aoFull ?? '';
       const num = btn.dataset.aoNum ?? '';
-      const amount = btn.dataset.aoAmount ?? '';
       if (full) _handledOrders.add(full);
-      void navigator.clipboard.writeText(`#${num}   ${amount}`);
+      void navigator.clipboard.writeText(`#${num}`);
       btn.textContent = '✓ Скопировано';
       btn.classList.add('ao-copied');
       const row = btn.closest('.ao-inline-row');
@@ -1084,7 +1083,7 @@ function renderInlineAppOrders(): string {
       </div>
       ${note}
       <div class="ao-inline-actions">
-        <button type="button" class="btn btn-sm btn-ghost ao-pickup-btn" data-ao-full="${escapeHtml(o.number)}" data-ao-num="${escapeHtml(o.number.slice(-6))}" data-ao-amount="${Math.round(o.total_price)} руб.">Самовывоз</button>
+        <button type="button" class="btn btn-sm btn-ghost ao-pickup-btn" data-ao-full="${escapeHtml(o.number)}" data-ao-num="${escapeHtml(o.number.slice(-6))}">Самовывоз</button>
         <button type="button" class="btn btn-sm btn-primary ao-deliver-btn" data-ao-deliver="${escapeHtml(o.number)}">Доставка</button>
       </div>
     </div>`;

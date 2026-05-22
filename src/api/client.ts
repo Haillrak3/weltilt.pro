@@ -1,5 +1,8 @@
 import type {
   ApiResponse,
+  AppOrder,
+  AppOrderPeriod,
+  AppOrdersPage,
   Category,
   ModeratedProductsPage,
   Product,
@@ -251,6 +254,20 @@ export function signIn(
       },
     }),
   }, { publicEndpoint: true });
+}
+
+export function getAppOrders(
+  period: AppOrderPeriod = 'today',
+  page = 0,
+  perPage = 100,
+  authToken?: string,
+): Promise<AppOrdersPage> {
+  const q = new URLSearchParams({ period, page: String(page), per_page: String(perPage) });
+  return request<AppOrdersPage>(`/api/v1/vendor/orders?${q}`, undefined, { withAuth: true, authToken });
+}
+
+export function progressAppOrder(orderId: string, authToken?: string): Promise<{ order: AppOrder }> {
+  return request<{ order: AppOrder }>(`/api/v1/vendor/orders/${encodeURIComponent(orderId)}/progress`, { method: 'POST' }, { withAuth: true, authToken });
 }
 
 /** Просит сервер прогреть кэш каталога для указанных складов в фоне. Fire-and-forget. */

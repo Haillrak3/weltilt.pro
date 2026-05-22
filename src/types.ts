@@ -98,7 +98,7 @@ export interface OrderApp {
   packageQty: number;
 }
 
-export type AppPage = 'products' | 'orders' | 'analytics' | 'refs' | 'search';
+export type AppPage = 'products' | 'orders' | 'analytics' | 'refs' | 'search' | 'app-orders';
 export type CartTab = 'cart' | 'client' | 'order';
 export type OrderMode = 'phone' | 'app';
 export type AnalyticsTab = 'overview' | 'revenue';

@@ -14,6 +14,7 @@ import { renderOrdersPage } from './orders-page';
 import { renderAnalyticsPage } from './analytics-page';
 import { renderRefsPage } from './refs-page';
 import { renderSearchPage, updateSearchDOM, buildStoreNumMap } from './search-page';
+import { renderAppOrdersPage } from './app-orders-page';
 import { saveCountries } from '../data/countries';
 
 import { newOrder, createOrder, loadOrderToCart, changeOrderStatus, changeOrderStore,
@@ -22,7 +23,7 @@ import { newOrder, createOrder, loadOrderToCart, changeOrderStatus, changeOrderS
 import { openClientHistoryModal } from '../ui/order-preview-modal';
 import { addToCart, addDraftWithTara, removeDraftWithTara, changeCartQty, removeFromCart, roundQty, getCartSum } from '../data/cart';
 import { loadCategories, toggleCategory, selectSubcategory } from '../data/categories';
-import { getAllProducts } from '../api/client';
+import { getAllProducts, getAppOrders, progressAppOrder } from '../api/client';
 import { selectStore } from '../data/stores';
 import { loadAllStoresProducts } from '../data/all-stores-search';
 import { addLocalProduct, deleteLocalProduct, localToProduct, moderatedToProduct, reorderLocalProduct, updateLocalProduct } from '../data/vendor';
@@ -438,6 +439,35 @@ function bindEvents(): void {
     state.currentPage = 'search';
     renderApp();
     void loadAllStoresProducts();
+  });
+
+  document.getElementById('tab-app-orders')?.addEventListener('click', () => {
+    state.currentPage = 'app-orders';
+    void loadAppOrders();
+  });
+
+  document.getElementById('ao-refresh-btn')?.addEventListener('click', () => { void loadAppOrders(); });
+
+  document.querySelectorAll<HTMLButtonElement>('[data-ao-period]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      state.appOrdersPeriod = btn.dataset.aoPeriod as typeof state.appOrdersPeriod;
+      void loadAppOrders();
+    });
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('.ao-progress-btn').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const num = btn.dataset.aoNumber;
+      if (!num) return;
+      btn.disabled = true;
+      try {
+        await progressAppOrder(num);
+        void loadAppOrders();
+      } catch (e) {
+        btn.disabled = false;
+        alert(e instanceof Error ? e.message : 'Ошибка');
+      }
+    });
   });
 
   (document.getElementById('search-all-input') as HTMLInputElement | null)?.addEventListener('input', (e) => {
@@ -967,6 +997,22 @@ function bindEvents(): void {
   }, { once: true });
 }
 
+async function loadAppOrders(): Promise<void> {
+  state.appOrdersLoading = true;
+  state.appOrdersError = '';
+  renderApp();
+  try {
+    const page = await getAppOrders(state.appOrdersPeriod);
+    state.appOrders = page.list ?? [];
+    state.appOrdersTotalCount = page.total_count ?? 0;
+  } catch (e) {
+    state.appOrdersError = e instanceof Error ? e.message : 'Ошибка загрузки';
+  } finally {
+    state.appOrdersLoading = false;
+    renderApp();
+  }
+}
+
 function updateCartTotal(): void {
   const cartSum = getCartSum();
   const total = (parseFloat(state.orderApp.orderAmount.replaceAll(',', '.')) || 0) + state.orderApp.deliveryPrice + cartSum;
@@ -1004,6 +1050,7 @@ export function renderApp(): void {
         <button type="button" class="tab${state.currentPage === 'analytics' ? ' active' : ''}" id="tab-analytics">Аналитика</button>
         <button type="button" class="tab${state.currentPage === 'refs' ? ' active' : ''}" id="tab-refs">Справочники</button>
         <button type="button" class="tab${state.currentPage === 'search' ? ' active' : ''}" id="tab-search">Поиск</button>
+        <button type="button" class="tab${state.currentPage === 'app-orders' ? ' active' : ''}" id="tab-app-orders">Заказы с АПП</button>
         <div class="tabs-actions">
           <button type="button" class="btn btn-ghost" id="btn-reload">Обновить</button>
           <label class="theme-toggle" title="Светлая / тёмная тема">
@@ -1027,6 +1074,7 @@ export function renderApp(): void {
       : state.currentPage === 'analytics' ? `<main class="orders-main scroll">${renderAnalyticsPage()}</main>`
       : state.currentPage === 'refs' ? `<main class="orders-main scroll">${renderRefsPage()}</main>`
       : state.currentPage === 'search' ? `<main class="orders-main scroll">${renderSearchPage()}</main>`
+      : state.currentPage === 'app-orders' ? `<main class="orders-main scroll">${renderAppOrdersPage()}</main>`
       : `
       <main class="workspace mob-${state.mobilePanel}">
         <aside class="panel cart-panel">

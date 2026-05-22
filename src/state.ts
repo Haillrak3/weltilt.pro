@@ -9,7 +9,7 @@ import type {
   AnalyticsPeriod, AnalyticsTab, AppPage, CartItem, CartTab, CategoryNode, CountryEntry,
   OrderApp, OrderMode, Product, SavedOrder, Shop,
 } from './types';
-import type { ModeratedProduct } from './api/types';
+import type { AppOrder, AppOrderPeriod, ModeratedProduct } from './api/types';
 
 const _settings = loadSettings();
 const _orders = loadOrders();
@@ -79,4 +79,9 @@ export const state = {
   zoneGeoKey: '',
   mangoAccounts: [] as Array<{ operatorPhone: string }>,
   mangoMyPhone: '',
+  appOrders: [] as AppOrder[],
+  appOrdersLoading: false,
+  appOrdersError: '',
+  appOrdersPeriod: 'today' as AppOrderPeriod,
+  appOrdersTotalCount: 0,
 };

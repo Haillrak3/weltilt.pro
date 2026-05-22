@@ -129,3 +129,45 @@ export interface SignInData {
   name?: string;
   is_new?: boolean;
 }
+
+export type AppOrderStatus = 'ACTIVE' | 'CREATED' | 'PACKAGING' | 'READY_FOR_PICK_UP' | 'PICKED_UP' | 'CANCELED';
+export type AppOrderPeriod = 'today' | 'yesterday' | '7day' | '28day';
+
+export interface AppOrderPackItem {
+  id: number;
+  name: string;
+  volume: number;
+}
+
+export interface AppOrderCartProduct {
+  id: number;
+  name: string;
+  qty: number;
+  total_price: number;
+  pack_item?: AppOrderPackItem | null;
+}
+
+export interface AppOrder {
+  number: string;
+  status: AppOrderStatus;
+  note?: string | null;
+  order_date: string;
+  cart_products: AppOrderCartProduct[];
+  store: { id: number; name: string };
+  user: {
+    id: number;
+    name: string | null;
+    phone_number: { country_code: string; number: string };
+    orders_count?: number;
+  };
+  total_price: number;
+  chat_id?: number;
+}
+
+export interface AppOrdersPage {
+  list: AppOrder[];
+  page: number;
+  per_page: number;
+  has_more: boolean;
+  total_count: number;
+}

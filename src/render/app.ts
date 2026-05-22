@@ -1042,23 +1042,30 @@ function renderInlineAppOrders(): string {
 }
 
 function renderLinkedAppOrder(): string {
-  if (state.orderMode !== 'app' || !state.appOrderLinked) return '';
-  const order = state.appOrders.find((o) => o.number === state.appOrderLinked);
-  if (!order) return '';
+  if (state.orderMode !== 'app') return '';
 
-  const items = order.cart_products.map((p) => {
-    const pack = p.pack_item && p.pack_item.volume > 0 ? ` ${p.pack_item.volume}л` : '';
-    return `<div class="linked-order-item">${escapeHtml(p.name)}${pack} × ${p.qty}</div>`;
-  }).join('');
-
-  const note = order.note
-    ? `<div class="linked-order-note">${escapeHtml(order.note)}</div>`
-    : '';
+  if (state.appOrderLinked) {
+    const order = state.appOrders.find((o) => o.number === state.appOrderLinked);
+    if (order) {
+      const items = order.cart_products.map((p) => {
+        const pack = p.pack_item && p.pack_item.volume > 0 ? ` ${p.pack_item.volume}л` : '';
+        return `<div class="linked-order-item">${escapeHtml(p.name)}${pack} × ${p.qty}</div>`;
+      }).join('');
+      const note = order.note
+        ? `<div class="linked-order-note">${escapeHtml(order.note)}</div>`
+        : '';
+      return `<aside class="panel linked-order-panel">
+        <div class="panel-body scroll">
+          ${note}
+          <div class="linked-order-items">${items}</div>
+        </div>
+      </aside>`;
+    }
+  }
 
   return `<aside class="panel linked-order-panel">
     <div class="panel-body scroll">
-      ${note}
-      <div class="linked-order-items">${items}</div>
+      ${renderInlineAppOrders()}
     </div>
   </aside>`;
 }
@@ -1141,8 +1148,7 @@ export function renderApp(): void {
       : state.currentPage === 'search' ? `<main class="orders-main scroll">${renderSearchPage()}</main>`
       : `
       <div class="products-page">
-      <div class="ao-inline-strip">${renderInlineAppOrders()}</div>
-      <main class="workspace mob-${state.mobilePanel}${state.orderMode === 'app' && state.appOrderLinked ? ' workspace--linked' : ''}">
+      <main class="workspace mob-${state.mobilePanel}${state.orderMode === 'app' ? ' workspace--linked' : ''}">
         <aside class="panel cart-panel">
           <div class="order-mode-switcher">
             <button type="button" class="mode-btn${state.orderMode === 'phone' ? ' active' : ''}" data-mode="phone">Телефон</button>

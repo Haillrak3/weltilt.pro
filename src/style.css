@@ -4165,6 +4165,9 @@ select:disabled {
 .ao-inline-row.ao-inline-status { color: var(--muted); font-style: italic; flex-direction: row; }
 .ao-inline-store { font-weight: 700; color: var(--accent); }
 .ao-inline-num { font-family: monospace; color: var(--muted); }
+.ao-pickup-btn { cursor: pointer; transition: color 0.15s, transform 0.15s; }
+.ao-pickup-btn:hover { color: var(--accent); }
+.ao-pickup-btn.ao-copied { color: var(--ok); transform: scale(1.15); }
 .ao-inline-actions { display: flex; gap: 6px; }
 .ao-inline-note { color: var(--text); }
 .call-popup__btn--primary:hover { background: var(--accent-dim); border-color: var(--accent-dim); }

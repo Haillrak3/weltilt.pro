@@ -4148,4 +4148,21 @@ select:disabled {
   color: #fff;
   font-weight: 600;
 }
+
+/* Inline app orders strip inside products page */
+.products-page { display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: hidden; }
+.ao-inline-strip { flex-shrink: 0; display: flex; flex-direction: column; gap: 3px; padding: 4px 8px; border-bottom: 1px solid var(--border); background: var(--surface); }
+.ao-inline-strip:empty { display: none; }
+.ao-inline-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 0;
+  font-size: 0.85rem;
+  min-height: 28px;
+}
+.ao-inline-row.ao-inline-status { color: var(--muted); font-style: italic; }
+.ao-inline-store { font-weight: 700; color: var(--accent); flex-shrink: 0; min-width: 28px; }
+.ao-inline-num { font-family: monospace; color: var(--muted); flex-shrink: 0; }
+.ao-inline-note { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); }
 .call-popup__btn--primary:hover { background: var(--accent-dim); border-color: var(--accent-dim); }

@@ -14,7 +14,6 @@ import { renderOrdersPage } from './orders-page';
 import { renderAnalyticsPage } from './analytics-page';
 import { renderRefsPage } from './refs-page';
 import { renderSearchPage, updateSearchDOM, buildStoreNumMap } from './search-page';
-import { renderAppOrdersPage } from './app-orders-page';
 import { saveCountries } from '../data/countries';
 
 import { newOrder, createOrder, loadOrderToCart, changeOrderStatus, changeOrderStore,
@@ -412,7 +411,7 @@ function bindEvents(): void {
     state.currentPage = 'orders';
     renderApp();
   });
-  document.getElementById('tab-products')?.addEventListener('click', () => { state.currentPage = 'products'; newOrder(); });
+  document.getElementById('tab-products')?.addEventListener('click', () => { state.currentPage = 'products'; newOrder(); void loadAppOrders(); });
   document.getElementById('tab-orders')?.addEventListener('click', () => { state.currentPage = 'orders'; renderApp(); void loadOrdersFromServer(); });
 
   document.querySelectorAll<HTMLButtonElement>('.mob-nav-btn[data-mob-panel]').forEach((btn) => {
@@ -440,11 +439,6 @@ function bindEvents(): void {
     state.currentPage = 'search';
     renderApp();
     void loadAllStoresProducts();
-  });
-
-  document.getElementById('tab-app-orders')?.addEventListener('click', () => {
-    state.currentPage = 'app-orders';
-    void loadAppOrders();
   });
 
   document.getElementById('ao-refresh-btn')?.addEventListener('click', () => { void loadAppOrders(); });
@@ -1018,6 +1012,34 @@ function bindEvents(): void {
   }, { once: true });
 }
 
+const OUR_STORE_NUMS: Record<number, string> = {
+  12: '1', 7: '2', 11: '3', 10: '4', 13: '5', 6: '6', 14: '7', 15: '8', 16: '9',
+};
+const ACTIVE_STATUSES = new Set(['CREATED', 'ACTIVE', 'PACKAGING', 'READY_FOR_PICK_UP']);
+
+function renderInlineAppOrders(): string {
+  const { appOrders, appOrdersLoading } = state;
+  if (appOrdersLoading) return `<div class="ao-inline-row ao-inline-status">Загружаем заказы…</div>`;
+
+  const waiting = appOrders.filter((o) =>
+    ACTIVE_STATUSES.has(o.status) && OUR_STORE_NUMS[o.store.id],
+  );
+  if (!waiting.length) return '';
+
+  const rows = waiting.map((o) => {
+    const storeNum = OUR_STORE_NUMS[o.store.id];
+    const note = o.note ? escapeHtml(o.note) : '';
+    return `<div class="ao-inline-row">
+      <span class="ao-inline-store">№${storeNum}</span>
+      <span class="ao-inline-num">#${escapeHtml(o.number.slice(-6))}</span>
+      <span class="ao-inline-note">${note}</span>
+      <button type="button" class="btn btn-sm btn-primary ao-deliver-btn" data-ao-deliver="${escapeHtml(o.number)}">Оформить доставку</button>
+    </div>`;
+  }).join('');
+
+  return rows;
+}
+
 function renderLinkedAppOrder(): string {
   if (state.orderMode !== 'app' || !state.appOrderLinked) return '';
   const order = state.appOrders.find((o) => o.number === state.appOrderLinked);
@@ -1093,7 +1115,6 @@ export function renderApp(): void {
         <button type="button" class="tab${state.currentPage === 'analytics' ? ' active' : ''}" id="tab-analytics">Аналитика</button>
         <button type="button" class="tab${state.currentPage === 'refs' ? ' active' : ''}" id="tab-refs">Справочники</button>
         <button type="button" class="tab${state.currentPage === 'search' ? ' active' : ''}" id="tab-search">Поиск</button>
-        <button type="button" class="tab${state.currentPage === 'app-orders' ? ' active' : ''}" id="tab-app-orders">Заказы с АПП</button>
         <div class="tabs-actions">
           <button type="button" class="btn btn-ghost" id="btn-reload">Обновить</button>
           <label class="theme-toggle" title="Светлая / тёмная тема">
@@ -1117,8 +1138,9 @@ export function renderApp(): void {
       : state.currentPage === 'analytics' ? `<main class="orders-main scroll">${renderAnalyticsPage()}</main>`
       : state.currentPage === 'refs' ? `<main class="orders-main scroll">${renderRefsPage()}</main>`
       : state.currentPage === 'search' ? `<main class="orders-main scroll">${renderSearchPage()}</main>`
-      : state.currentPage === 'app-orders' ? `<main class="orders-main scroll">${renderAppOrdersPage()}</main>`
       : `
+      <div class="products-page">
+      <div class="ao-inline-strip">${renderInlineAppOrders()}</div>
       <main class="workspace mob-${state.mobilePanel}${state.orderMode === 'app' && state.appOrderLinked ? ' workspace--linked' : ''}">
         <aside class="panel cart-panel">
           <div class="order-mode-switcher">
@@ -1161,6 +1183,7 @@ export function renderApp(): void {
           <div class="panel-body scroll">${renderProducts()}</div>
         </section>
       </main>
+      </div>
       <nav class="mob-nav">
         <button type="button" class="mob-nav-btn${state.mobilePanel === 'products' ? ' active' : ''}" data-mob-panel="products">
           <span class="mob-nav-icon">🔍</span>Товары

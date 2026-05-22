@@ -1061,13 +1061,9 @@ function renderInlineAppOrders(): string {
   const { appOrders, appOrdersLoading } = state;
   if (appOrdersLoading) return `<div class="ao-inline-row ao-inline-status">Загружаем заказы…</div>`;
 
-  const todayStr = todayGMT3();
   const q = _appOrdersSearch.replace(/\D/g, '');
   const waiting = appOrders.filter((o) => {
     if (!ACTIVE_STATUSES.has(o.status) || !OUR_STORE_NUMS[o.store.id]) return false;
-    const orderDate = new Date(new Date(o.order_date).getTime() + 3 * 3600_000);
-    const ymd = orderDate.toISOString().slice(0, 10);
-    if (ymd !== todayStr) return false;
     if (!q) return true;
     const phone = (o.user.phone_number.country_code + o.user.phone_number.phone_number).replace(/\D/g, '');
     return phone.includes(q) || o.number.replace(/\D/g, '').includes(q);

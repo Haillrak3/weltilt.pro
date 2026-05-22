@@ -2,6 +2,8 @@ import { state } from '../state';
 import { escapeHtml } from '../utils';
 import type { AppOrder, AppOrderStatus } from '../api/types';
 
+const OUR_STORE_IDS = new Set([6, 7, 10, 11, 12, 13, 14, 15, 16]);
+
 const STATUS_LABEL: Record<AppOrderStatus, string> = {
   CREATED: 'Создан',
   ACTIVE: 'В работе',
@@ -85,10 +87,13 @@ export function renderAppOrdersPage(): string {
     content = '<p class="panel-status">Загружаем заказы…</p>';
   } else if (appOrdersError) {
     content = `<p class="panel-status panel-status--error">${escapeHtml(appOrdersError)}</p>`;
-  } else if (!appOrders.length) {
-    content = '<p class="panel-status">Заказов нет</p>';
   } else {
-    content = `<div class="ao-list">${appOrders.map(renderOrder).join('')}</div>`;
+    const filtered = appOrders.filter((o) => OUR_STORE_IDS.has(o.store.id));
+    if (!filtered.length) {
+      content = '<p class="panel-status">Заказов нет</p>';
+    } else {
+      content = `<div class="ao-list">${filtered.map(renderOrder).join('')}</div>`;
+    }
   }
 
   return `<div class="ao-page">

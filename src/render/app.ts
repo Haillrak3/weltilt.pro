@@ -1135,7 +1135,7 @@ function renderLinkedAppOrder(): string {
 
 let _appOrdersPollTimer: ReturnType<typeof setInterval> | null = null;
 
-async function loadAppOrders(silent = false): Promise<void> {
+export async function loadAppOrders(silent = false): Promise<void> {
   if (!silent) {
     state.appOrdersLoading = true;
     state.appOrdersError = '';

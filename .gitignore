@@ -25,6 +25,8 @@ src/clients.json
 mango-sip.py
 .env
 api.txt
+API.txt
+desk-operator-sessions.json
 
 # SQLite database
 *.db

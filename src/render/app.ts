@@ -443,6 +443,10 @@ function bindEvents(): void {
   });
 
   document.getElementById('ao-refresh-btn')?.addEventListener('click', () => { void loadAppOrders(); });
+  document.getElementById('ao-back-btn')?.addEventListener('click', () => {
+    state.appOrderLinked = null;
+    renderApp();
+  });
 
   document.querySelectorAll<HTMLButtonElement>('.ao-deliver-btn').forEach((btn) => {
     btn.addEventListener('click', () => {
@@ -1055,6 +1059,9 @@ function renderLinkedAppOrder(): string {
         ? `<div class="linked-order-note">${escapeHtml(order.note)}</div>`
         : '';
       return `<aside class="panel linked-order-panel">
+        <div class="panel-head" style="padding:8px 12px;border-bottom:1px solid var(--border)">
+          <button type="button" class="btn btn-ghost btn-sm" id="ao-back-btn">← Назад</button>
+        </div>
         <div class="panel-body scroll">
           ${note}
           <div class="linked-order-items">${items}</div>

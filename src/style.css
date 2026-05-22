@@ -3747,12 +3747,7 @@ select:disabled {
 .ao-total      { font-weight: 600; text-align: right; color: var(--text); }
 
 .ao-items {
-  margin-top: 4px;
-  color: var(--muted);
-  font-size: 0.82rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  display: none;
 }
 .ao-note {
   margin-top: 3px;

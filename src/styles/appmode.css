@@ -533,6 +533,18 @@
   flex: 1;
 }
 
+.refs-addr-edit-btn {
+  padding: 2px 6px;
+  font-size: 0.82rem;
+  color: var(--muted);
+  border-color: transparent;
+  margin-left: auto;
+}
+.refs-addr-edit-btn:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
 .refs-addr-del-btn {
   padding: 2px 6px;
   font-size: 0.76rem;

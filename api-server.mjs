@@ -92,6 +92,9 @@ db.exec(`
   );
 `);
 
+// ── Migrations ───────────────────────────────────────────────────────────────
+try { db.prepare("ALTER TABLE clients ADD COLUMN addresses_json TEXT NOT NULL DEFAULT '[]'").run(); } catch { /* already exists */ }
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 const respond = (res, data, status = 200) => {
@@ -636,9 +639,10 @@ async function handleV1(req, res, pathname, url) {
     });
   }
 
-  const orderIdMatch  = pathname.match(/^\/desk-api\/v1\/orders\/([^/]+)$/);
-  const clientIdMatch = pathname.match(/^\/desk-api\/v1\/clients\/([^/]+)$/);
-  const localIdMatch  = pathname.match(/^\/desk-api\/v1\/local-products\/([^/]+)$/);
+  const orderIdMatch    = pathname.match(/^\/desk-api\/v1\/orders\/([^/]+)$/);
+  const clientIdMatch   = pathname.match(/^\/desk-api\/v1\/clients\/([^/]+)$/);
+  const clientAddrMatch = pathname.match(/^\/desk-api\/v1\/clients\/([^/]+)\/addresses(?:\/(\d+))?$/);
+  const localIdMatch    = pathname.match(/^\/desk-api\/v1\/local-products\/([^/]+)$/);
 
   // ── Orders ────────────────────────────────────────────────────────────────
 
@@ -754,6 +758,36 @@ async function handleV1(req, res, pathname, url) {
     if (!db.prepare('SELECT id FROM orders WHERE id = ?').get(id)) return fail(res, 'Заказ не найден', 404);
     db.prepare('DELETE FROM orders WHERE id = ?').run(id);
     return respond(res, { deleted: 1 });
+  }
+
+  // ── Client addresses ─────────────────────────────────────────────────────
+
+  if (clientAddrMatch) {
+    const d = normPhone(decodeURIComponent(clientAddrMatch[1]));
+    const row = db.prepare('SELECT * FROM clients WHERE phone = ?').get(d);
+    if (!row) return fail(res, 'Клиент не найден', 404);
+
+    const parseAddrs = (r) => { try { return JSON.parse(r.addresses_json || '[]'); } catch { return []; } };
+    const addrKey = (a) => [a.street,a.house,a.entrance,a.floor,a.apartment,a.intercom].map(s=>(s||'').trim().toLowerCase()).join('|');
+
+    if (method === 'POST' && !clientAddrMatch[2]) {
+      let b; try { b = await readBody(req); } catch (e) { return fail(res, e.message); }
+      const addresses = parseAddrs(row);
+      const newAddr = { street:b.street??'', house:b.house??'', entrance:b.entrance??'', floor:b.floor??'', apartment:b.apartment??'', intercom:b.intercom??'' };
+      if (!addresses.some(a => addrKey(a) === addrKey(newAddr))) addresses.push(newAddr);
+      db.prepare('UPDATE clients SET addresses_json=? WHERE phone=?').run(JSON.stringify(addresses), d);
+      return respond(res, rowToClient(db.prepare('SELECT * FROM clients WHERE phone=?').get(d)));
+    }
+
+    if (method === 'PATCH' && clientAddrMatch[2] !== undefined) {
+      let b; try { b = await readBody(req); } catch (e) { return fail(res, e.message); }
+      const idx = parseInt(clientAddrMatch[2], 10);
+      const addresses = parseAddrs(row);
+      if (idx < 0 || idx >= addresses.length) return fail(res, 'Индекс адреса вне диапазона', 400);
+      addresses[idx] = { street:b.street??addresses[idx].street, house:b.house??addresses[idx].house, entrance:b.entrance??addresses[idx].entrance, floor:b.floor??addresses[idx].floor, apartment:b.apartment??addresses[idx].apartment, intercom:b.intercom??addresses[idx].intercom };
+      db.prepare('UPDATE clients SET addresses_json=? WHERE phone=?').run(JSON.stringify(addresses), d);
+      return respond(res, rowToClient(db.prepare('SELECT * FROM clients WHERE phone=?').get(d)));
+    }
   }
 
   // ── Clients ───────────────────────────────────────────────────────────────

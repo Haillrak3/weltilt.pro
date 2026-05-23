@@ -58,6 +58,7 @@ export const state = {
   // ── Client ─────────────────────────────────────────────────────────────────
   client: loadClient(),
   clientSuggestHidden: false,
+  activeAddrIdx: -1,
   extraClients: loadExtraClients(),
   clientInfoPanel: null as null | 'menu' | 'phones' | 'addresses',
 

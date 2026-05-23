@@ -8,6 +8,7 @@ interface StoreProduct {
   product: Product;          // версия товара (предпочтительно в наличии)
   storesInStock: string[];   // склады где товар В НАЛИЧИИ
   hasStock: boolean;         // есть хотя бы в одном складе
+  activeStoreOos: boolean;   // OOS именно в активном магазине
 }
 
 export function buildStoreNumMap(): Map<string, string> {
@@ -28,7 +29,7 @@ function mergeResults(query: string): StoreProduct[] {
     for (const p of products) {
       if (!fuzzyMatch(p.name, query)) continue;
       if (!byId.has(p.id)) {
-        byId.set(p.id, { product: p, storesInStock: [], hasStock: false });
+        byId.set(p.id, { product: p, storesInStock: [], hasStock: false, activeStoreOos: false });
       }
       const entry = byId.get(p.id)!;
       const inStock = !isOutOfStock(p);
@@ -36,6 +37,8 @@ function mergeResults(query: string): StoreProduct[] {
         if (!entry.storesInStock.includes(num)) entry.storesInStock.push(num);
         if (!entry.hasStock || storeId === state.activeStoreId) entry.product = p;
         entry.hasStock = true;
+      } else if (storeId === state.activeStoreId) {
+        entry.activeStoreOos = true;
       }
     }
   });
@@ -81,7 +84,9 @@ function renderResults(): string {
 
   if (!results.length) return pendingSection;
 
-  return `<div class="product-grid">${results.map(({ product: p, storesInStock, hasStock }) => {
+  const storeNumMap2 = buildStoreNumMap();
+  const activeNum = storeNumMap2.get(state.activeStoreId) ?? state.activeStoreId;
+  return `<div class="product-grid">${results.map(({ product: p, storesInStock, hasStock, activeStoreOos }) => {
     const oos = !hasStock;
     const isBeerType = p.product_type === 'DRAFT' || p.product_type === 'BOTTLED';
     const stil = isBeerType ? p.properties?.find((pr) => pr.code === 'STIL')?.value : undefined;
@@ -89,6 +94,9 @@ function renderResults(): string {
     const showCountry = Boolean(country) && !/россия|россий/i.test(country);
     const stilHtml = (stil || showCountry)
       ? `<div class="tile-stil">${stil ? escapeHtml(stil) : ''}${stil && showCountry ? ' · ' : ''}${showCountry ? escapeHtml(country) : ''}</div>`
+      : '';
+    const oosBadge = activeStoreOos
+      ? `<span class="search-store-badge search-store-badge-oos">№${escapeHtml(activeNum)} нет</span>`
       : '';
     const storeBadges = storesInStock
       .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
@@ -104,7 +112,7 @@ function renderResults(): string {
         <div class="tile-name">${formatProductName(p)}</div>
         ${stilHtml}
         <div class="tile-price">${oos ? '<span class="oos-label">Нет в наличии</span>' : escapeHtml(formatPrice(p))}</div>
-        <div class="search-store-badges">${storeBadges}</div>
+        <div class="search-store-badges">${oosBadge}${storeBadges}</div>
       </div>`;
   }).join('')}</div>${pendingSection}`;
 }

@@ -2,6 +2,7 @@ import { state } from '../state';
 import { getAllVendorProducts } from '../api/client';
 import { updateSearchDOM } from '../render/search-page';
 import { saveAllStoresCache } from '../storage';
+import { remergeCurrentCategory } from './categories';
 
 export async function loadAllStoresProducts(): Promise<void> {
   if (state.allStoresLoading || !state.storesList.length) return;
@@ -18,6 +19,7 @@ export async function loadAllStoresProducts(): Promise<void> {
         const all = await getAllVendorProducts(id, state.settings.authToken);
         state.allStoresProducts.set(id, all);
         saveAllStoresCache(state.allStoresProducts);
+        if (id === state.activeStoreId) remergeCurrentCategory();
         updateSearchDOM();
       } catch { /* склад недоступен */ }
     }),

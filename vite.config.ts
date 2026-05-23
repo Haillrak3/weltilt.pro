@@ -18,7 +18,7 @@ const OPERATOR_NAMES_FILE = p('desk-operator-names.json');
 const CATALOG_CACHE_FILE  = p('desk-cache-catalog.json');
 const VENDOR_CACHE_FILE   = p('desk-cache-vendor.json');
 
-const CATALOG_TTL = 15 * 60 * 1000;
+const CATALOG_TTL = 5 * 60 * 1000;
 const VENDOR_TTL  = 4 * 60 * 60 * 1000;
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -325,14 +325,12 @@ async function warmCatalogInBackground(token: string, storeIds: string[]): Promi
 
       await Promise.all(allIds.map(async (catId) => {
         const key = `${storeId}_${catId}`;
-        const cached = catalogCache.get(key);
-        if (cached && now - cached.ts < CATALOG_TTL) return;
         try {
           const list = await fetchAllPages(
             `https://api.0-5.ru/api/v1/catalog/products?store_id=${storeId}&category_id=${catId}`,
             token,
           );
-          catalogCache.set(key, { ts: now, list });
+          if (list.length > 0) catalogCache.set(key, { ts: now, list });
         } catch { /* skip */ }
       }));
 

@@ -168,7 +168,11 @@ export async function getAllVendorProducts(
   const page = await request<ProductsPage>(`/desk-api/vendor-catalog?${q}`, undefined, {
     withAuth: true, authToken,
   });
-  return page.list ?? [];
+  // Server proxy returns raw API data where vendor catalog uses "type" instead of "product_type"
+  return (page.list ?? []).map(p => ({
+    ...p,
+    product_type: p.product_type ?? (p as unknown as Record<string, string>)['type'],
+  }));
 }
 
 /** GET /api/v1/vendor/catalog/products — все товары магазина включая OUT_OF_STOCK */

@@ -27,7 +27,7 @@ import { getAllProducts, getAppOrders } from '../api/client';
 import { selectStore } from '../data/stores';
 import { loadAllStoresProducts } from '../data/all-stores-search';
 import { addLocalProduct, deleteLocalProduct, localToProduct, moderatedToProduct, reorderLocalProduct, updateLocalProduct } from '../data/vendor';
-import { searchClients, findClientByPhone, getClientAddresses, getAllClientPhones, addAddressToClient } from '../data/clients';
+import { searchClients, findClientByPhone, getClientAddresses, getAllClientPhones, addAddressToClient, updateClientAddress, findAddrIdx, addrKey } from '../data/clients';
 import { openClientModal } from '../ui/client-modal';
 import { openProductModal, findProductInCache } from '../ui/product-modal';
 import { showOrderReceipt } from '../ui/receipt';
@@ -35,6 +35,38 @@ import { showToast } from '../ui/toast';
 import { geocodeAddress, detectZones, nearestZone } from '../utils/geo';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
+
+function updateAddrButtons(): void {
+  const wrap = document.getElementById('addr-action-wrap');
+  if (!wrap) return;
+  const c = state.client;
+  const digits = c.phone.replace(/\D/g, '');
+  const existingClient = digits.length >= 7 ? findClientByPhone(digits) : undefined;
+  if (!existingClient) { wrap.innerHTML = ''; return; }
+  const currentAddr = { street: c.street.trim(), house: c.house.trim(), entrance: c.entrance.trim(), floor: c.floor.trim(), apartment: c.apartment.trim(), intercom: c.intercom.trim() };
+  const hasCurrentAddr = !!(currentAddr.street || currentAddr.house);
+  const isNewAddr = hasCurrentAddr && !getClientAddresses(existingClient).some(a => addrKey(a) === addrKey(currentAddr));
+  if (!isNewAddr) { wrap.innerHTML = ''; return; }
+  if (state.activeAddrIdx >= 0) {
+    wrap.innerHTML = `<div class="addr-action-row">
+      <button type="button" class="btn-save-addr" id="btn-update-addr" title="Обновить сохранённый адрес">Обновить адрес</button>
+      <button type="button" class="btn-save-addr" id="btn-save-addr" title="Добавить как новый адрес">Добавить адрес</button>
+    </div>`;
+  } else {
+    wrap.innerHTML = `<button type="button" class="btn-save-addr" id="btn-save-addr" title="Добавить этот адрес в список адресов клиента">Добавить адрес</button>`;
+  }
+  document.getElementById('btn-update-addr')?.addEventListener('click', () => {
+    const idx = state.activeAddrIdx;
+    if (idx < 0) return;
+    updateClientAddress(c.phone, idx, { street: c.street.trim(), house: c.house.trim(), entrance: c.entrance.trim(), floor: c.floor.trim(), apartment: c.apartment.trim(), intercom: c.intercom.trim() });
+    showToast('Адрес обновлён');
+    renderApp();
+  });
+  document.getElementById('btn-save-addr')?.addEventListener('click', () => {
+    void addAddressToClient(c.phone, { street: c.street.trim(), house: c.house.trim(), entrance: c.entrance.trim(), floor: c.floor.trim(), apartment: c.apartment.trim(), intercom: c.intercom.trim() })
+      .then(updated => { if (updated) { showToast('Адрес сохранён'); renderApp(); } else showToast('Не удалось сохранить адрес'); });
+  });
+};
 
 // Закрывать попап телефона при клике вне него (один раз, не накапливается)
 document.addEventListener('click', () => {
@@ -321,6 +353,7 @@ function bindClientEvents(): void {
         entrance: s.entrance, floor: s.floor, apartment: s.apartment, intercom: s.intercom, notes: s.notes,
       });
       state.clientSuggestHidden = true;
+      state.activeAddrIdx = findAddrIdx(s, s);
       saveClient(state.client);
       renderApp();
       triggerZoneDetection();
@@ -356,9 +389,11 @@ function bindClientEvents(): void {
       const idx = Number(btn.dataset.addrIdx);
       if (idx === -1) {
         Object.assign(state.client, { street: '', house: '', entrance: '', floor: '', apartment: '', intercom: '' });
+        state.activeAddrIdx = -1;
       } else {
         const addr = getClientAddresses(client)[idx];
         if (addr) Object.assign(state.client, { street: addr.street, house: addr.house, entrance: addr.entrance, floor: addr.floor, apartment: addr.apartment, intercom: addr.intercom });
+        state.activeAddrIdx = idx;
       }
       state.clientInfoPanel = null;
       saveClient(state.client);
@@ -379,8 +414,10 @@ function bindClientEvents(): void {
         if (found) {
           Object.assign(state.client, { name: found.name, street: found.street, house: found.house, entrance: found.entrance, floor: found.floor, apartment: found.apartment, intercom: found.intercom, notes: found.notes ?? '' });
           state.clientSuggestHidden = true;
+          state.activeAddrIdx = findAddrIdx(found, found);
         } else {
           state.clientSuggestHidden = false;
+          state.activeAddrIdx = -1;
         }
         saveClient(state.client);
         if (found) triggerZoneDetection();
@@ -389,20 +426,13 @@ function bindClientEvents(): void {
         const persistedKeys = ['name','street','house','entrance','floor','apartment','intercom'];
         if (persistedKeys.includes(key)) saveClient(state.client);
         if (key === 'street' || key === 'house') triggerZoneDetection();
+        const addrKeys = ['street','house','entrance','floor','apartment','intercom'];
+        if (addrKeys.includes(key)) updateAddrButtons();
       }
     });
   });
 
-  document.getElementById('btn-save-addr')?.addEventListener('click', () => {
-    const c = state.client;
-    void addAddressToClient(c.phone, {
-      street: c.street.trim(), house: c.house.trim(), entrance: c.entrance.trim(),
-      floor: c.floor.trim(), apartment: c.apartment.trim(), intercom: c.intercom.trim(),
-    }).then(updated => {
-      if (updated) { showToast('Адрес сохранён'); renderApp(); }
-      else showToast('Не удалось сохранить адрес');
-    });
-  });
+  updateAddrButtons();
 
   document.getElementById('btn-mango-callback')?.addEventListener('click', async () => {
     const phone = state.client.phone.replace(/\D/g, '');
@@ -825,6 +855,9 @@ function bindAppOrderButtons(): void {
         state.client.floor = a.floor ?? '';
         state.client.apartment = a.apartment ?? '';
         state.client.intercom = a.intercom ?? '';
+        state.activeAddrIdx = 0;
+      } else {
+        state.activeAddrIdx = -1;
       }
       saveClient(state.client);
       state.orderApp.orderNumber = order.number.slice(-6);
@@ -836,8 +869,10 @@ function bindAppOrderButtons(): void {
       state.cart = [];
       const pkg = state.localProducts.find((lp) => RE_PKG.test(lp.name));
       if (pkg) state.cart.push({ product: localToProduct(pkg), qty: packages });
+      state.clientSuggestHidden = true;
       state.currentPage = 'products';
       renderApp();
+      triggerZoneDetection();
     });
   });
 }

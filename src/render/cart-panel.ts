@@ -134,7 +134,12 @@ export function renderClientForm(): string {
   const existingAddrs = existingClient ? getClientAddresses(existingClient) : [];
   const isNewAddr = hasCurrentAddr && !existingAddrs.some(a => addrKey(a) === addrKey(currentAddr));
   const saveAddrBtn = isNewAddr && existingClient
-    ? `<button type="button" class="btn-save-addr" id="btn-save-addr" title="Добавить этот адрес в список адресов клиента">Сохранить адрес</button>`
+    ? state.activeAddrIdx >= 0
+      ? `<div class="addr-action-row">
+          <button type="button" class="btn-save-addr" id="btn-update-addr" title="Обновить сохранённый адрес">Обновить адрес</button>
+          <button type="button" class="btn-save-addr" id="btn-save-addr" title="Добавить как новый адрес">Добавить адрес</button>
+         </div>`
+      : `<button type="button" class="btn-save-addr" id="btn-save-addr" title="Добавить этот адрес в список адресов клиента">Добавить адрес</button>`
     : '';
 
   const suggestions = state.clientSuggestHidden ? [] : searchClients(c.phone);
@@ -167,7 +172,7 @@ export function renderClientForm(): string {
       ${f('floor', 'Этаж', c.floor)}
       ${f('apartment', 'Квартира', c.apartment)}
       ${f('intercom', 'Код домофона', c.intercom)}
-      ${saveAddrBtn}
+      <div id="addr-action-wrap">${saveAddrBtn}</div>
       <label class="client-field">
         <span>Примечания</span>
         <textarea id="cl-notes" class="client-input client-textarea" data-cl="notes" rows="3">${escapeHtml(c.notes)}</textarea>
@@ -266,7 +271,7 @@ export function renderAppMode(): string {
           <button type="button" class="btn btn-ghost app-client-toggle" id="btn-app-client-expand">▼ Подробнее</button>
         </div>
         ${suggestionsHtml}
-        ${addrPart ? `<div class="app-client-addr">${escapeHtml(addrPart)}</div>` : ''}
+        ${!suggestions.length && addrPart ? `<div class="app-client-addr">${escapeHtml(addrPart)}</div>` : ''}
       </div>`;
 
   return editBanner + `

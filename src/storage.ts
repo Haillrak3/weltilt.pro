@@ -134,13 +134,12 @@ export function saveOrders(orders: SavedOrder[]): void {
 
 // ── Кэш товаров ─────────────────────────────────────────────────────────────
 
-const ALL_STORES_CACHE_KEY = 'orderdesk_allstores_cache';
+const ALL_STORES_CACHE_KEY = 'orderdesk_allstores_cache_v2';
 const ALL_STORES_CACHE_TTL = 4 * 60 * 60 * 1000; // 4 ч
 
-const PRODUCTS_CACHE_TTL = 60 * 60 * 1000; // 1 ч
 
 function productsCacheKey(storeId: string): string {
-  return `orderdesk_products_${storeId}`;
+  return `orderdesk_products_v2_${storeId}`;
 }
 
 /** Загружает кэш всех складов для поиска. Возвращает пустую Map если кэш устарел или отсутствует. */
@@ -162,6 +161,8 @@ export function saveAllStoresCache(map: Map<string, Product[]>): void {
     localStorage.setItem(ALL_STORES_CACHE_KEY, JSON.stringify({ ts: Date.now(), stores }));
   } catch { /* QuotaExceededError — не критично */ }
 }
+
+const PRODUCTS_CACHE_TTL = 7 * 24 * 60 * 60 * 1000; // 7 дней (имена стабильны, volatile обновляются при prefetch)
 
 /** Загружает кэш товаров по категориям для конкретного магазина. */
 export function loadProductsCache(storeId: string): Map<number, Product[]> {

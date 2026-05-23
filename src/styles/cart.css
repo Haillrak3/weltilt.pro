@@ -1074,6 +1074,14 @@
 }
 .btn-save-addr:hover { background: var(--accent); color: #fff; }
 
+.addr-action-row {
+  display: flex;
+  gap: 6px;
+}
+.addr-action-row .btn-save-addr {
+  flex: 1;
+}
+
 .client-name-right {
   display: flex;
   flex-direction: column;

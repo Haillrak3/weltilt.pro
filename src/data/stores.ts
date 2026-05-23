@@ -4,6 +4,7 @@ import { saveActiveStoreId, loadProductsCache } from '../storage';
 import { render } from '../render/trigger';
 import { isConfigured } from '../config/settings';
 import { loadCategories } from './categories';
+import { loadAllStoresProducts } from './all-stores-search';
 
 export async function loadStoresList(): Promise<void> {
   if (!isConfigured(state.settings)) return;
@@ -11,7 +12,7 @@ export async function loadStoresList(): Promise<void> {
   try {
     const shops = await getStores(state.settings.authToken);
     state.storesList = shops;
-    // storesList is only used for tooltips — never override activeStoreId
+    void loadAllStoresProducts();
   } catch { /* fail silently — stores list is supplementary */ }
   finally { state.storesLoading = false; render(); }
 }

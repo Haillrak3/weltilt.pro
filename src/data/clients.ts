@@ -175,6 +175,49 @@ export function upsertClientRecord(client: ClientInfo & { notes: string }): void
   syncClientToServer(state.extraClients.find((c) => c.phone.replace(/\D/g, '') === digits)!);
 }
 
+export function findAddrIdx(client: DbClient, addr: { street: string; house: string; entrance: string; floor: string; apartment: string; intercom: string }): number {
+  const addresses = getClientAddresses(client);
+  const k = (a: { street: string; house: string; entrance: string; floor: string; apartment: string; intercom: string }) =>
+    [a.street, a.house, a.entrance, a.floor, a.apartment, a.intercom].map((s) => s.trim().toLowerCase()).join('|');
+  return addresses.findIndex((a) => k(a) === k(addr));
+}
+
+export function updateClientAddress(phone: string, idx: number, addr: ClientAddress): void {
+  const digits = normPhone(phone);
+  console.log('[updateAddr] phone:', phone, '→ digits:', digits, 'idx:', idx, 'addr:', addr);
+  if (digits.length < 7 || idx < 0) { console.log('[updateAddr] EARLY EXIT: bad digits or idx'); return; }
+  let clientIdx = state.extraClients.findIndex((c) => normPhone(c.phone) === digits);
+  console.log('[updateAddr] clientIdx in extraClients:', clientIdx);
+  if (clientIdx < 0) {
+    const dbClient = findClientByPhone(digits);
+    console.log('[updateAddr] dbClient from findClientByPhone:', dbClient);
+    if (!dbClient) { console.log('[updateAddr] EARLY EXIT: dbClient not found'); return; }
+    state.extraClients.push({ ...dbClient });
+    clientIdx = state.extraClients.length - 1;
+    console.log('[updateAddr] pushed to extraClients, new clientIdx:', clientIdx);
+  }
+  const existing = state.extraClients[clientIdx];
+  const addresses = [...getClientAddresses(existing)];
+  console.log('[updateAddr] addresses before update:', addresses, 'will update idx', idx);
+  if (idx >= addresses.length) { console.log('[updateAddr] EARLY EXIT: idx >= addresses.length', idx, addresses.length); return; }
+  addresses[idx] = addr;
+  // Синхронизируем плоские поля — автоподстановка по телефону читает именно их
+  const flatUpdate = idx === 0
+    ? { street: addr.street, house: addr.house, entrance: addr.entrance, floor: addr.floor, apartment: addr.apartment, intercom: addr.intercom }
+    : {};
+  state.extraClients[clientIdx] = { ...existing, ...flatUpdate, addresses };
+  saveExtraClients(state.extraClients);
+  console.log('[updateAddr] DONE, saved. extraClients[clientIdx]:', state.extraClients[clientIdx]);
+  syncClientToServer(state.extraClients[clientIdx]);
+  void fetch(`/desk-api/v1/clients/${encodeURIComponent(digits)}/addresses/${idx}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(addr),
+  }).then((r) => r.json() as Promise<{ ok: boolean; data?: DbClient }>)
+    .then(({ ok: ok_, data }) => { if (ok_ && data && mergeServerClient(data)) saveExtraClients(state.extraClients); })
+    .catch(() => {});
+}
+
 export async function addAddressToClient(phone: string, addr: ClientAddress): Promise<DbClient | null> {
   const digits = normPhone(phone);
   if (digits.length < 7) return null;

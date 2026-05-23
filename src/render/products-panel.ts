@@ -14,15 +14,32 @@ import type { ModeratedProduct } from '../api/types';
 let _searchAllCache: Product[] | null = null;
 let _searchAllCacheSize = 0;
 
+export function invalidateSearchCache(): void {
+  _searchAllCache = null;
+}
+
 function getSearchAllProducts(): Product[] {
-  const cacheSize = state.productsCache.size + state.localProducts.length + state.vendorProducts.length;
+  // allStoresProducts is loaded at startup and is more complete than vendorProducts
+  const activeVendor = state.allStoresProducts.get(state.activeStoreId) ?? state.vendorProducts;
+  const cacheSize = state.productsCache.size + state.localProducts.length + activeVendor.length;
   if (_searchAllCache && _searchAllCacheSize === cacheSize) return _searchAllCache;
+  // Vendor catalog has correct availability; regular catalog has correct qty — merge both
+  const vendorById = new Map(activeVendor.map(p => [p.id, p]));
   const seen = new Set<number>();
   const all: Product[] = [];
   state.productsCache.forEach((list) => {
-    list.forEach((p) => { if (!seen.has(p.id)) { seen.add(p.id); all.push(p); } });
+    list.forEach((p) => {
+      if (!seen.has(p.id)) {
+        seen.add(p.id);
+        const vp = vendorById.get(p.id);
+        // Vendor says OOS but catalog has no availability info → mark as OOS
+        all.push(vp?.availability === 'OUT_OF_STOCK' && p.availability == null
+          ? { ...p, availability: 'OUT_OF_STOCK' }
+          : p);
+      }
+    });
   });
-  for (const p of state.vendorProducts) {
+  for (const p of activeVendor) {
     if (!seen.has(p.id)) { seen.add(p.id); all.push(p); }
   }
   state.localProducts.forEach((lp) => {
@@ -332,6 +349,7 @@ export function renderProducts(): string {
   if (q) {
     const all = getSearchAllProducts();
     const filtered = all.filter((p) => fuzzyMatch(p.name, q));
+    filtered.sort((a, b) => Number(isOutOfStock(a)) - Number(isOutOfStock(b)));
     const filteredModerated = state.pendingProducts.filter((p) => fuzzyMatch(p.name.trim(), q));
     if (!filtered.length && !filteredModerated.length) {
       return statusEl + `<p class="panel-status">Ничего не найдено по «${escapeHtml(q)}»</p>`;
@@ -375,7 +393,8 @@ export function renderProducts(): string {
   }
 
   if (state.selectedSubcategoryId === NO_CATEGORY_ID) {
-    const nocat = state.vendorProducts.filter((p) => !p.subcategory);
+    const vendorSource = state.allStoresProducts.get(state.activeStoreId) ?? state.vendorProducts;
+    const nocat = vendorSource.filter((p) => !p.subcategory);
     if (!nocat.length) {
       return statusEl + (state.vendorProductsLoading
         ? '<p class="panel-status">Загрузка…</p>'
@@ -392,9 +411,10 @@ export function renderProducts(): string {
   }
 
   const catId = state.selectedSubcategoryId;
+  const vendorSource = state.allStoresProducts.get(state.activeStoreId) ?? state.vendorProducts;
   const inStockIds = new Set(state.products.map((p) => p.id));
   const extraSeen = new Set<number>();
-  const extra = state.vendorProducts.filter((p) => {
+  const extra = vendorSource.filter((p) => {
     if (p.subcategory?.id !== catId) return false;
     if (inStockIds.has(p.id) || extraSeen.has(p.id)) return false;
     if (!isOutOfStock(p) && !p.is_blocked) return false;

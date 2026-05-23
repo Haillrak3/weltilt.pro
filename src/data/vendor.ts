@@ -40,20 +40,27 @@ export function localToProduct(lp: LocalProduct): Product {
 }
 
 function findVendorPrice(exchangeId: number, name: string): number | undefined {
+  const vendorLists: Product[][] = [state.vendorProducts, ...state.allStoresProducts.values()];
+
   // 1. По exchange_product.id — точное совпадение
-  for (const p of state.vendorProducts) {
-    if (p.exchange_product?.id === exchangeId && p.original_price != null) return p.original_price;
+  for (const list of vendorLists) {
+    for (const p of list) {
+      if (p.exchange_product?.id === exchangeId && p.original_price != null) return p.original_price;
+    }
   }
   for (const list of state.productsCache.values()) {
     for (const p of list) {
       if (p.exchange_product?.id === exchangeId && p.original_price != null) return p.original_price;
     }
   }
+
   // 2. По имени — fallback
   const norm = (s: string) => s.toLowerCase().replace(/\s+/g, ' ').trim();
   const target = norm(name);
-  for (const p of state.vendorProducts) {
-    if (norm(p.name) === target && p.original_price != null) return p.original_price;
+  for (const list of vendorLists) {
+    for (const p of list) {
+      if (norm(p.name) === target && p.original_price != null) return p.original_price;
+    }
   }
   for (const list of state.productsCache.values()) {
     for (const p of list) {

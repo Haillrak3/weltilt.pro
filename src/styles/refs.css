@@ -1,0 +1,120 @@
+/* ── Справочники ──────────────────────────────────────────────── */
+.refs-page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.refs-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.refs-toolbar .search-input {
+  flex: 1;
+}
+
+.refs-count {
+  color: var(--muted);
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.refs-clients-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.refs-client-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  transition: border-color 0.15s, background 0.12s;
+}
+.refs-client-row:hover {
+  border-color: var(--accent-dim);
+  background: var(--surface-2);
+}
+
+.refs-client-name {
+  font-weight: 600;
+  min-width: 140px;
+  color: var(--text);
+}
+
+.refs-client-phone {
+  color: var(--muted);
+  font-size: 0.9rem;
+  min-width: 120px;
+}
+
+.refs-client-addr {
+  color: var(--muted);
+  font-size: 0.85rem;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.refs-client-notes {
+  font-size: 0.8rem;
+  color: var(--muted);
+  font-style: italic;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.refs-client-detail {
+  border-top: 1px solid var(--border);
+}
+
+.refs-client-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--border);
+  padding: 0 12px;
+}
+
+.refs-ctab {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--muted);
+  padding: 8px 14px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  margin-bottom: -1px;
+}
+
+.refs-ctab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+.refs-ctab:hover:not(.active) {
+  color: var(--text);
+}
+
+.refs-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 480px;
+}
+
+.refs-edit-actions {
+  margin-top: 8px;
+}

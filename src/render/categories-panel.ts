@@ -19,9 +19,8 @@ export function noCategoryBtn(): string {
 
 export function pendingBtn(): string {
   const items = state.pendingProducts;
-  if (!items.length && !state.pendingProductsLoading) return '';
   const count = items.length ? ` <span class="muted">(${items.length})</span>` : '';
-  const loading = state.pendingProductsLoading && !items.length ? ' <span class="muted">…</span>' : '';
+  const loading = state.pendingProductsLoading ? ' <span class="muted">…</span>' : '';
   const active = state.selectedSubcategoryId === PENDING_ID ? ' active' : '';
   return `
     <div class="cat-group cat-group-pending">

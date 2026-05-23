@@ -1,0 +1,380 @@
+:root {
+  --bg: #0f1419;
+  --surface: #1a222d;
+  --surface-2: #232d3b;
+  --border: #2e3a4a;
+  --text: #e8edf4;
+  --muted: #8b9cb3;
+  --accent: #3d8bfd;
+  --accent-dim: #2a5fad;
+  --ok: #3ecf8e;
+  --warn: #f0b429;
+  --error: #f07178;
+  --radius: 8px;
+  font-family:
+    'Segoe UI',
+    system-ui,
+    -apple-system,
+    sans-serif;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--text);
+  background: var(--bg);
+}
+
+html[data-theme="light"] {
+  --bg: #f0f4f8;
+  --surface: #ffffff;
+  --surface-2: #e8eef4;
+  --border: #c8d4df;
+  --text: #111827;
+  --muted: #4a5e72;
+  --accent: #2b7de9;
+  --accent-dim: #1a5dbf;
+  --ok: #15956a;
+  --warn: #b86e00;
+  --error: #cc2f35;
+  --radius: 8px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+#app {
+  height: 100%;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+}
+
+.shell {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.topbar {
+  display: none;
+}
+
+.brand {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  gap: 6px;
+  margin-right: auto;
+}
+
+.brand-name {
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+}
+
+.brand-sub {
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+
+.status {
+  font-size: 0.8rem;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--surface-2);
+}
+
+.status.ok {
+  color: var(--ok);
+}
+
+.status.warn {
+  color: var(--warn);
+}
+
+.btn {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 14px;
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.btn:hover {
+  border-color: var(--muted);
+}
+
+.btn-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: var(--accent-dim);
+}
+
+.btn-ghost {
+  background: transparent;
+}
+
+.tabs {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  padding: 6px 14px 0;
+  background: var(--surface);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+  position: relative;
+  z-index: 1;
+}
+
+.tabs-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-bottom: 6px;
+  flex-shrink: 0;
+}
+
+.tab {
+  border: none;
+  border-radius: var(--radius) var(--radius) 0 0;
+  padding: 10px 18px;
+  background: transparent;
+  color: var(--muted);
+}
+
+.tab.active {
+  background: var(--bg);
+  color: var(--text);
+  font-weight: 600;
+}
+
+.tab.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.workspace {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 334px 200px 1fr;
+  gap: 0;
+  min-height: 0;
+}
+.workspace--linked {
+  grid-template-columns: 334px 200px 200px 1fr;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.cart-panel {
+  background: var(--surface);
+  box-shadow: 3px 0 10px rgba(0,0,0,0.22);
+  position: relative;
+  z-index: 2;
+}
+
+.categories-panel {
+  background: var(--surface);
+  box-shadow: 3px 0 10px rgba(0,0,0,0.18);
+  position: relative;
+  z-index: 1;
+}
+
+.categories-panel .panel-head {
+  padding-top: 31px;
+  padding-bottom: 31px;
+}
+
+.products-panel {
+  background: var(--bg);
+}
+
+.panel-head {
+  padding: 14px 18px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.18);
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.btn-new-order {
+  font-size: 0.78rem;
+  padding: 4px 10px;
+  opacity: 0.7;
+}
+
+.btn-new-order:hover {
+  opacity: 1;
+}
+
+.panel-head h1,
+.panel-head h2 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.products-head {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.products-head .search-input {
+  width: 100%;
+}
+
+.store-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.store-picker-label {
+  width: 100%;
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-bottom: -2px;
+}
+
+.store-zone-badge {
+  width: 100%;
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  border: 1.5px solid;
+  font-size: 0.78rem;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.store-zone-badge-loading {
+  border-color: var(--muted);
+  color: var(--muted);
+}
+
+.store-zone-badge-out {
+  border-color: var(--error);
+  color: var(--error);
+}
+
+.store-picker-loading {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.store-btn {
+  font: inherit;
+  font-size: 0.78rem;
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.store-btn:hover {
+  background: var(--hover);
+  border-color: var(--primary);
+}
+
+.store-btn.active {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+  font-weight: 600;
+}
+
+.store-more-btn {
+  font: inherit;
+  font-size: 0.78rem;
+  padding: 4px 10px;
+  border: 1px dashed var(--border);
+  border-radius: 20px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.store-more-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.search-input {
+  flex: 1;
+  font: inherit;
+  font-size: 0.9rem;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text);
+  outline: none;
+}
+
+.search-input:focus {
+  border-color: var(--accent);
+}
+
+.search-input::-webkit-search-cancel-button {
+  cursor: pointer;
+}
+
+.panel-body {
+  flex: 1;
+  padding: 12px 18px;
+}
+
+.scroll {
+  overflow: auto;
+}
+
+.panel-status {
+  color: var(--muted);
+  margin: 24px 0;
+}
+
+.panel-status.error {
+  color: var(--error);
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.strength {
+  color: var(--muted);
+  font-size: 0.85em;
+}

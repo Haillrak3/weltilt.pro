@@ -1,0 +1,197 @@
+/* ── Analytics page ──────────────────────────────────── */
+
+.analytics-page {
+  max-width: 1100px;
+}
+
+.stat-summary {
+  margin-bottom: 20px;
+  font-size: 0.95rem;
+  color: var(--muted);
+}
+
+.stat-summary strong {
+  color: var(--text);
+  font-size: 1.05rem;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.stat-card-title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.stat-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stat-rows-scroll {
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.stat-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  transition: background 0.1s;
+}
+
+.stat-row:hover {
+  background: var(--surface-2);
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.stat-count {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--accent);
+  flex-shrink: 0;
+  min-width: 28px;
+  text-align: right;
+}
+
+.stat-empty {
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin: 0;
+  padding: 6px 8px;
+}
+
+/* ── Analytics sub-tabs ─────────────────────────────── */
+
+.an-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 16px;
+}
+
+.an-tab {
+  padding: 6px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.an-tab:hover { background: var(--surface-2); color: var(--text); }
+
+.an-tab.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+
+/* ── Revenue tab ─────────────────────────────────────── */
+
+.rev-period-picker {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.rev-period-btn {
+  padding: 5px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.rev-period-btn:hover { background: var(--surface-2); color: var(--text); }
+
+.rev-period-btn.active {
+  background: var(--surface-2);
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.rev-table-wrap {
+  overflow-x: auto;
+}
+
+.rev-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.rev-th {
+  text-align: left;
+  padding: 8px 12px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  border-bottom: 2px solid var(--border);
+  white-space: nowrap;
+}
+
+.rev-td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.rev-num {
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.rev-period-cell {
+  font-weight: 500;
+}
+
+.rev-accent {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.rev-total-row .rev-td {
+  font-weight: 700;
+  border-top: 2px solid var(--border);
+  border-bottom: none;
+}

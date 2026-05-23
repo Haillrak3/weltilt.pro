@@ -60,7 +60,7 @@ export async function geocodeAddress(street: string, house: string): Promise<{ l
   const q = encodeURIComponent(`Москва, ${street}, ${house}`);
   try {
     const res = await fetch(
-      `https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=1&countrycodes=ru`,
+      `https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=1&countrycodes=ru&bounded=1&viewbox=37.55,55.73,37.86,55.57`,
       { headers: { 'Accept-Language': 'ru', 'User-Agent': 'OrderDesk/1.0' } },
     );
     if (!res.ok) return null;

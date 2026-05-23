@@ -229,8 +229,16 @@ export function renderPendingTiles(items: ModeratedProduct[]): string {
     if (item.draftVolume === undefined)
       cartQtyMap.set(item.product.id, (cartQtyMap.get(item.product.id) ?? 0) + item.qty);
   }
-  return `<div class="product-grid">${items.map((item) => {
+
+  const sorted = [...items].sort((a, b) => {
+    const aOos = isOutOfStock(moderatedToProduct(a));
+    const bOos = isOutOfStock(moderatedToProduct(b));
+    return Number(aOos) - Number(bOos);
+  });
+
+  return `<div class="product-grid">${sorted.map((item) => {
     const product = moderatedToProduct(item);
+    const oos = isOutOfStock(product);
     const isRejected = item.status === 'REJECTED';
     const statusClass = isRejected ? 'rejected-label' : 'pending-label';
     const statusLabel = isRejected ? 'Отклонён' : 'На модерации';
@@ -241,15 +249,17 @@ export function renderPendingTiles(items: ModeratedProduct[]): string {
     const priceStr = product.price != null
       ? `${product.price.toLocaleString('ru-RU')} ₽`
       : '—';
-    const qtyHtml = item.formatted_qty ? `Кол-во: ${escapeHtml(item.formatted_qty)}` : '';
-    return `<div class="product-tile tile-pending${isRejected ? ' tile-rejected' : ''}" data-add-id="${product.id}">
+    const stockHtml = oos
+      ? '<span class="oos-label">Нет в наличии</span>'
+      : item.formatted_qty ? `Кол-во: ${escapeHtml(item.formatted_qty)}` : '';
+    return `<div class="product-tile tile-pending${oos ? ' tile-oos' : ''}" data-add-id="${product.id}">
       ${cartBadge}
       <div class="tile-name">${escapeHtml(item.name.trim())}</div>
       <div class="tile-price">
         <span class="${statusClass}">${statusLabel}</span>
-        <span class="pending-price">${escapeHtml(priceStr)}</span>
+        ${oos ? '' : `<span class="pending-price">${escapeHtml(priceStr)}</span>`}
       </div>
-      <div class="tile-stock">${qtyHtml}</div>
+      <div class="tile-stock">${stockHtml}</div>
     </div>`;
   }).join('')}</div>`;
 }

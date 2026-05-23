@@ -1,0 +1,217 @@
+/* ── Поиск по всем складам ─────────────────────────── */
+.search-all-page {
+  padding: 16px;
+}
+
+.search-all-header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.search-all-input {
+  width: 100%;
+  max-width: 480px;
+  font-size: 1rem;
+  padding: 8px 12px;
+}
+
+.search-all-status {
+  font-size: 0.82rem;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.search-all-status--warn {
+  color: var(--warn);
+}
+
+.search-all-status--ok {
+  color: var(--ok);
+}
+
+.search-spinner {
+  flex-shrink: 0;
+  width: 11px;
+  height: 11px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.prefetch-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  margin-bottom: 6px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.prefetch-bar {
+  flex: 1;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.prefetch-bar-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 2px;
+  transition: width 0.2s ease;
+}
+
+.search-store-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.search-store-badge {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--ok);
+  white-space: nowrap;
+}
+
+/* ── Кнопка остатков в поиске ───────────────────────── */
+.tile-stock-btn {
+  position: absolute;
+  top: 5px;
+  right: 6px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0 2px;
+  line-height: 1;
+  border-radius: 3px;
+  z-index: 1;
+}
+.tile-stock-btn:hover {
+  color: var(--text);
+  background: var(--surface-2);
+}
+
+/* ── Попап остатков по магазинам ────────────────────── */
+.stock-popup {
+  position: fixed;
+  z-index: 9999;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0,0,0,.25);
+  padding: 8px 10px;
+  min-width: 160px;
+  font-size: 0.82rem;
+}
+.stock-popup-title {
+  font-weight: 600;
+  color: var(--muted);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  margin-bottom: 6px;
+}
+.stock-popup-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 3px 0;
+  border-bottom: 1px solid var(--border);
+}
+.stock-popup-row:last-child { border-bottom: none; }
+.stock-popup-row--oos { opacity: .45; }
+.stock-popup-num { font-weight: 600; }
+.stock-popup-qty { color: var(--ok); text-align: right; }
+.stock-popup-row--oos .stock-popup-qty { color: var(--muted); }
+.stock-popup-price { color: var(--muted); font-size: .8rem; margin-left: auto; padding-left: 8px; }
+.stock-popup-loading { padding: 6px 0; color: var(--muted); font-size: .85rem; }
+
+/* ── Linked app order panel ─────────────────────────── */
+.linked-order-panel {
+  width: 200px;
+  flex-shrink: 0;
+  font-size: 0.85rem;
+  position: relative;
+  z-index: 3;
+}
+.linked-order-note {
+  color: var(--accent);
+  font-weight: 500;
+  margin-bottom: 10px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.linked-order-items {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.linked-order-item {
+  color: var(--text);
+  line-height: 1.4;
+}
+
+/* ── App orders page ────────────────────────────────── */
+.ao-page { padding: 0 16px 24px; }
+.ao-toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+
+.ao-list { display: flex; flex-direction: column; gap: 6px; }
+
+.ao-row {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 12px;
+  font-size: 0.88rem;
+}
+.ao-row--canceled { opacity: 0.55; }
+.ao-row--dupe { border-left: 3px solid #e53935; background: color-mix(in srgb, #e53935 6%, var(--surface)); }
+
+.ao-row-main {
+  display: grid;
+  grid-template-columns: 80px 70px 40px 1fr 140px 80px auto;
+  align-items: center;
+  column-gap: 10px;
+}
+
+.ao-num        { font-weight: 700; color: var(--accent); }
+.ao-time       { color: var(--muted); font-size: 0.82rem; }
+.ao-store-badge { font-weight: 700; font-size: 0.85rem; color: var(--ok); white-space: nowrap; }
+.ao-client     { font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ao-phone      { color: var(--muted); font-size: 0.82rem; }
+.ao-total      { font-weight: 600; text-align: right; color: var(--text); }
+
+.ao-items {
+  display: none;
+}
+.ao-note {
+  margin-top: 3px;
+  font-size: 0.8rem;
+  color: var(--accent);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

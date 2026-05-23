@@ -1,5 +1,5 @@
 import { state } from '../state';
-import { escapeHtml, formatPhone, formatProductName, unitPrice } from '../utils';
+import { escapeHtml, formatPhone, formatProductName, unitPrice, RE_PKG } from '../utils';
 import { getCartSum } from '../data/cart';
 import { searchClients, findClientByPhone, getClientAddresses, getAllClientPhones, addrKey } from '../data/clients';
 import { buildOrderNumbers } from '../ui/receipt';
@@ -236,7 +236,7 @@ export function renderCartItems(): string {
 
 export function renderAppMode(): string {
   const { orderNumber, orderAmount, deliveryPrice, packageQty } = state.orderApp;
-  const pkg = state.localProducts.find((lp) => /пакет/i.test(lp.name));
+  const pkg = state.localProducts.find((lp) => RE_PKG.test(lp.name));
   const pkgName = pkg ? escapeHtml(pkg.name) : 'Пакет';
   const pkgPrice = pkg ? `${pkg.price.toLocaleString('ru-RU')} ₽` : '';
   const editBanner = state.editingOrderId ? '<div class="edit-banner">Редактирование заказа</div>' : '';
@@ -314,7 +314,7 @@ export function renderCartFooter(): string {
 
   const hasWeightItem = isApp && state.appOrderLinked
     ? state.appOrders.find((o) => o.number === state.appOrderLinked)
-        ?.cart_products.some((p) => !p.pack_item || p.pack_item.volume === 0)
+        ?.cart_products.some((p) => p.product?.type === 'WEIGHT')
     : false;
 
   const actionBtn = state.editingOrderId

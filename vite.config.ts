@@ -280,6 +280,18 @@ function saveDiskCache(file: string, map: Map<string, CacheEntry>): void {
 const catalogCache = loadDiskCache(CATALOG_CACHE_FILE);
 const vendorCache  = loadDiskCache(VENDOR_CACHE_FILE);
 
+const WARMUP_STORE_IDS = ['2', '4', '5', '6', '7', '9'];
+const WARMUP_INTERVAL_MS = 12 * 60 * 1000; // каждые 12 мин, до истечения 15-мин TTL
+
+function getStoredToken(): string {
+  try {
+    const row = _db.prepare('SELECT value FROM kv WHERE key = ?').get('shared_settings') as { value: string } | undefined;
+    if (!row) return '';
+    const s = JSON.parse(row.value) as { authToken?: string };
+    return s.authToken?.trim() ?? '';
+  } catch { return ''; }
+}
+
 let warmupRunning = false;
 
 async function warmCatalogInBackground(token: string, storeIds: string[]): Promise<void> {
@@ -1551,6 +1563,20 @@ function attachMiddlewares(middlewares: { use: (p: string, h: Middleware) => voi
     vendorCache, VENDOR_CACHE_FILE, VENDOR_TTL,
   ));
 }
+
+// ── Scheduled server-side cache warmup ──────────────────────────────────────
+
+function scheduledWarmup(): void {
+  const token = getStoredToken();
+  if (!token) return;
+  console.log('[desk-cache] прогрев каталога…');
+  void warmCatalogInBackground(token, WARMUP_STORE_IDS);
+}
+
+// Первый прогрев через 5 сек после старта (токен уже в БД)
+setTimeout(scheduledWarmup, 5_000);
+// Периодический прогрев — держит кэш всегда тёплым
+setInterval(scheduledWarmup, WARMUP_INTERVAL_MS);
 
 // ── Vite plugin & config ─────────────────────────────────────────────────────
 

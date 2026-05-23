@@ -1,0 +1,256 @@
+/* ── Out-of-stock tiles ──────────────────────────────── */
+
+.tile-instock {
+  border-color: rgba(62, 207, 142, 0.45) !important;
+}
+
+.tile-draft {
+  cursor: default;
+}
+
+.tile-draft:hover {
+  border-color: var(--border);
+  background: var(--surface);
+}
+
+.tile-stopped {
+  border-color: #dc2626 !important;
+}
+.tile-stopped:hover {
+  border-color: #b91c1c !important;
+}
+.stopped-badge {
+  background: #dc2626;
+  color: #fff;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  padding: 1px 6px 2px;
+  border-radius: 3px;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.tile-oos {
+  opacity: 0.72;
+  border-color: rgba(240, 113, 120, 0.45) !important;
+}
+
+.tile-oos .tile-name {
+  color: var(--error);
+}
+
+.tile-oos .tile-price {
+  font-size: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.oos-label {
+  color: var(--error);
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+
+.oos-price {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.cat-group-nocat {
+  margin-top: 8px;
+  border-top: 1px solid var(--border);
+  padding-top: 6px;
+}
+
+.cat-group-pending {
+  margin-top: 4px;
+}
+
+.moderated-search-section {
+  margin-top: 12px;
+}
+
+.moderated-search-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 4px 2px 6px;
+}
+
+.tile-pending {
+  opacity: 0.85;
+  border-color: rgba(255, 185, 0, 0.35) !important;
+}
+
+.tile-pending .tile-name {
+  color: var(--text);
+}
+
+.pending-price {
+  margin-left: 6px;
+  font-weight: 500;
+}
+
+.pending-label,
+.rejected-label {
+  color: #b08000;
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+
+.cat-group-local {
+  margin-top: 4px;
+}
+
+/* Local product tiles */
+.tile-local {
+  border-color: rgba(130, 100, 230, 0.35) !important;
+  position: relative;
+  cursor: grab;
+}
+
+.tile-drag-handle {
+  position: absolute;
+  bottom: 5px;
+  right: 6px;
+  font-size: 1rem;
+  color: var(--muted);
+  opacity: 0;
+  transition: opacity 0.15s;
+  pointer-events: none;
+  line-height: 1;
+}
+
+.tile-local:hover .tile-drag-handle {
+  opacity: 0.5;
+}
+
+.tile-local.tile-dragging {
+  opacity: 0.35;
+  cursor: grabbing;
+}
+
+.tile-local.tile-drag-over {
+  border-color: var(--accent) !important;
+  background: var(--surface-2);
+}
+
+.tile-del-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 20px;
+  height: 20px;
+  border: none;
+  background: rgba(240, 113, 120, 0.15);
+  color: var(--error);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.7rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.15s;
+  z-index: 2;
+}
+
+.tile-local:hover .tile-del-btn {
+  opacity: 1;
+}
+
+.tile-edit-btn {
+  position: absolute;
+  top: 4px;
+  right: 28px;
+  width: 20px;
+  height: 20px;
+  border: none;
+  background: rgba(100, 150, 230, 0.15);
+  color: var(--accent);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.15s;
+  z-index: 2;
+}
+
+.tile-local:hover .tile-edit-btn,
+.tile-local.tile-editing .tile-edit-btn {
+  opacity: 1;
+}
+
+.tile-edit-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.tile-edit-price-input {
+  flex: 1;
+  min-width: 0;
+  padding: 3px 6px;
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.85rem;
+  outline: none;
+}
+
+.tile-edit-save-btn {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tile-local.tile-editing {
+  cursor: default;
+}
+
+/* Local product creation form */
+.local-add-bar {
+  padding: 8px 0 12px;
+}
+
+.local-product-form {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.local-form-title {
+  margin: 0 0 12px;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.local-required {
+  color: var(--error);
+}
+
+.local-form-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}

@@ -3,7 +3,7 @@ import { saveClient, saveOrderMeta, saveOrderApp, saveOrders, saveOrderMode, sav
 import { render } from '../render/trigger';
 import { upsertClientRecord } from './clients';
 import { buildCartItems, roundQty } from './cart';
-import { dayKeyGMT3, unitPrice } from '../utils';
+import { dayKeyGMT3, unitPrice, RE_PKG } from '../utils';
 import { showChangeCalculator, showOrderReceipt } from '../ui/receipt';
 import { storeDisplayNum } from '../render/products-panel';
 import { formatShopOptionLabel } from '../utils/shop';
@@ -118,7 +118,7 @@ export function createOrder(): void {
     ...(isAppTab ? { deliveryPrice: state.orderApp.deliveryPrice, orderAmount: parseFloat(state.orderApp.orderAmount.replaceAll(',', '.')) || 0 } : {}),
     ...(isAppTab && state.appOrderLinked ? (() => {
       const linked = state.appOrders.find((o) => o.number === state.appOrderLinked);
-      const hasW = linked?.cart_products.some((p) => !p.pack_item || p.pack_item.volume === 0) ?? false;
+      const hasW = linked?.cart_products.some((p) => p.product?.type === 'WEIGHT') ?? false;
       return hasW ? { hasWeightItems: true } : {};
     })() : {}),
   };
@@ -208,7 +208,7 @@ export function loadOrderToCart(orderId: string): void {
       orderNumber: order.orderNumber ?? '',
       orderAmount: String(order.orderAmount ?? ''),
       deliveryPrice: order.deliveryPrice ?? 300,
-      packageQty: order.items.reduce((sum, i) => /пакет/i.test(i.name) ? sum + i.qty : sum, 0) || 1,
+      packageQty: order.items.reduce((sum, i) => RE_PKG.test(i.name) ? sum + i.qty : sum, 0) || 1,
     };
     saveOrderApp(state.orderApp);
     state.orderMode = 'app';

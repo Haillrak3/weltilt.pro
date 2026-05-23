@@ -71,6 +71,7 @@ export interface ModeratedProduct {
   formatted_qty?: string;
   bar_codes?: string[];
   brewery?: string;
+  price?: number;
   matched_product?: {
     id: number;
     name: string;
@@ -145,6 +146,7 @@ export interface AppOrderCartProduct {
   qty: number;
   total_price: number;
   pack_item?: AppOrderPackItem | null;
+  product?: { type?: string } | null;
 }
 
 export interface AppOrder {

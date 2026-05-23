@@ -1,5 +1,5 @@
 import { state } from '../state';
-import { formatProductDetails, formatQty, unitPrice } from '../utils';
+import { formatProductDetails, formatQty, unitPrice, RE_DELIVERY } from '../utils';
 import { localToProduct } from './vendor';
 import { render } from '../render/trigger';
 import { showToast } from '../ui/toast';
@@ -7,6 +7,10 @@ import type { Product, SavedOrderItem } from '../types';
 
 export function roundQty(val: number): number {
   return Math.round(val * 1000) / 1000;
+}
+
+export function calcNeededPackages(itemCount: number, literCount: number): number {
+  return Math.max(1, Math.ceil(itemCount / 7), Math.ceil(literCount / 7));
 }
 
 // Pattern order matters: 1.5 before 1 to avoid partial match
@@ -88,19 +92,23 @@ export function addDraftWithTara(product: Product, liters: number): void {
 
 function syncAutoItems(): void {
   const localIds = new Set(state.localProducts.map((lp) => localToProduct(lp).id));
-  const nonLocalCount = state.cart
-    .filter((i) => !localIds.has(i.product.id))
-    .reduce((s, i) => s + (i.draftVolume !== undefined ? i.qty / i.draftVolume : i.qty), 0);
+  const nonLocalItems = state.cart.filter((i) => !localIds.has(i.product.id));
+  const itemCount = nonLocalItems.reduce((s, i) => {
+    if (i.draftVolume !== undefined) return s + i.qty / i.draftVolume;
+    if (i.product.product_type === 'WEIGHT') return s + 1;
+    return s + i.qty;
+  }, 0);
+  const literCount = nonLocalItems.reduce((s, i) => i.draftVolume !== undefined ? s + i.qty : s, 0);
 
-  if (nonLocalCount === 0) return;
+  if (itemCount === 0 && literCount === 0) return;
 
-  const hasDelivery = state.cart.some((i) => /доставка/i.test(i.product.name ?? ''));
+  const hasDelivery = state.cart.some((i) => RE_DELIVERY.test(i.product.name ?? ''));
   if (!hasDelivery) {
     const lp = state.localProducts.find((p) => /^доставка$/i.test(p.name));
     if (lp) state.cart.push({ product: localToProduct(lp), qty: 1 });
   }
 
-  const neededPkgs = Math.max(1, Math.ceil(nonLocalCount / 7));
+  const neededPkgs = calcNeededPackages(itemCount, literCount);
   const pkgLp = state.localProducts.find((p) => /^пакет$/i.test(p.name));
   if (pkgLp) {
     const pkgProduct = localToProduct(pkgLp);
@@ -121,7 +129,7 @@ export function addToCart(product: Product): void {
   if (existing) existing.qty += 1;
   else state.cart.push({ product, qty: 1 });
 
-  if (/доставка/i.test(product.name ?? '')) {
+  if (RE_DELIVERY.test(product.name ?? '')) {
     const defaultLp = state.localProducts.find((p) => /^доставка$/i.test(p.name));
     if (defaultLp) {
       const defaultId = localToProduct(defaultLp).id;

@@ -1,6 +1,9 @@
 import type { Category, Product } from './types';
 import { lookupCountry } from './data/countries';
 
+export const RE_PKG = /пакет/i;
+export const RE_DELIVERY = /доставка/i;
+
 export function debounce<T extends unknown[]>(fn: (...args: T) => void, ms: number): (...args: T) => void {
   let timer: ReturnType<typeof setTimeout> | undefined;
   return (...args: T) => { clearTimeout(timer); timer = setTimeout(() => fn(...args), ms); };

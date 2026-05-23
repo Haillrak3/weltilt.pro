@@ -1,6 +1,6 @@
 import { state } from '../state';
 import { escapeHtml, formatPrice, formatQty, isOutOfStock, fuzzyMatch, formatProductName, getCountry } from '../utils';
-import { storeDisplayNum } from './products-panel';
+import { storeDisplayNum, renderPendingTiles } from './products-panel';
 import { formatShopOptionLabel } from '../utils/shop';
 import type { Product } from '../types';
 
@@ -69,9 +69,17 @@ function renderResults(): string {
   }
 
   const results = mergeResults(q);
-  if (!results.length) {
+  const pendingMatches = state.pendingProducts.filter((p) => fuzzyMatch(p.name.trim(), q));
+
+  if (!results.length && !pendingMatches.length) {
     return `<p class="panel-status">Ничего не найдено по «${escapeHtml(q)}»</p>`;
   }
+
+  const pendingSection = pendingMatches.length
+    ? `<div class="moderated-search-section"><div class="moderated-search-title">На модерации</div>${renderPendingTiles(pendingMatches)}</div>`
+    : '';
+
+  if (!results.length) return pendingSection;
 
   return `<div class="product-grid">${results.map(({ product: p, storesInStock, hasStock }) => {
     const oos = !hasStock;
@@ -98,7 +106,7 @@ function renderResults(): string {
         <div class="tile-price">${oos ? '<span class="oos-label">Нет в наличии</span>' : escapeHtml(formatPrice(p))}</div>
         <div class="search-store-badges">${storeBadges}</div>
       </div>`;
-  }).join('')}</div>`;
+  }).join('')}</div>${pendingSection}`;
 }
 
 export function renderSearchPage(): string {

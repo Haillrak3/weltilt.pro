@@ -66,7 +66,9 @@ function findVendorPrice(exchangeId: number, name: string): number | undefined {
 export function moderatedToProduct(item: ModeratedProduct): Product {
   const qtyMatch = item.formatted_qty?.match(/^([\d.,]+)/);
   const available_qty = qtyMatch ? parseFloat(qtyMatch[1].replace(',', '.')) : undefined;
-  const price = findVendorPrice(item.id, item.name.trim());
+  const price = (item.price != null && item.price > 0)
+    ? item.price
+    : findVendorPrice(item.id, item.name.trim());
   return {
     id: -(item.id + 1_000_000),
     name: item.name.trim(),

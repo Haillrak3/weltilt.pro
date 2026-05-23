@@ -27,6 +27,7 @@ export async function loadCategories(): Promise<void> {
     }));
     void prefetchAll().then(() => triggerServerWarmup(ALL_STORE_IDS, state.settings.authToken));
     void loadVendorProducts();
+    void loadPendingProducts();
   } catch (e) {
     state.categoriesError = e instanceof ApiError ? e.message : 'Не удалось загрузить категории';
     state.categories = [];

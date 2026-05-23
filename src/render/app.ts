@@ -1,9 +1,9 @@
 import { state } from '../state';
-import { saveClient, saveOrderMeta, saveOrderApp, saveOrderMode, saveCurrentPage, loadHandledOrders, saveHandledOrders } from '../storage';
+import { saveClient, saveOrderMeta, saveOrderApp, saveOrderMode, saveCurrentPage, saveHandledOrders } from '../storage';
 import { saveSettings } from '../config/settings';
 import { openMangoAdmin } from '../ui/mango-admin';
 import { runAsAdmin, getOperatorName } from '../auth';
-import { escapeHtml, formatPhone, todayGMT3, yesterdayGMT3, debounce, formatQty, formatPrice } from '../utils';
+import { escapeHtml, formatPhone, todayGMT3, yesterdayGMT3, debounce, formatQty, formatPrice, RE_PKG } from '../utils';
 import { NO_CATEGORY_ID, PENDING_ID, LOCAL_CATEGORY_ID } from '../types';
 import type { SavedOrder } from '../types';
 
@@ -21,7 +21,7 @@ import { newOrder, createOrder, loadOrderToCart, changeOrderStatus, changeOrderS
   removeOrder, restoreOrder, permanentDeleteOrder, toggleOrderExpand, changeOrderItemQty, setOrderItemQty, removeOrderItem,
   loadOrdersFromServer } from '../data/orders';
 import { openClientHistoryModal } from '../ui/order-preview-modal';
-import { addToCart, addDraftWithTara, removeDraftWithTara, changeCartQty, removeFromCart, roundQty, getCartSum } from '../data/cart';
+import { addToCart, addDraftWithTara, removeDraftWithTara, changeCartQty, removeFromCart, roundQty, getCartSum, calcNeededPackages } from '../data/cart';
 import { loadCategories, toggleCategory, selectSubcategory } from '../data/categories';
 import { getAllProducts, getAppOrders } from '../api/client';
 import { selectStore } from '../data/stores';
@@ -60,7 +60,6 @@ function applyTheme(light: boolean): void {
 function parseNum(v: string): number { return Number(v.replaceAll(',', '.')); }
 
 let zoneDebounceTimer = 0;
-let dragLocalId: string | null = null;
 
 function updateZoneBadgeDOM(): void {
   const storeEl = document.getElementById('store-zone-info');
@@ -202,34 +201,67 @@ async function showStockPopup(btn: HTMLElement, productId: number): Promise<void
   positionPopup(popup, btn);
 }
 
-function bindEvents(): void {
-  const searchEl = document.getElementById('product-search') as HTMLInputElement | null;
-  const debouncedSearch = debounce(renderApp, 300);
-  searchEl?.addEventListener('input', () => { state.searchQuery = searchEl.value; debouncedSearch(); });
+function bindNavEvents(): void {
+  document.getElementById('btn-logout')?.addEventListener('click', async () => {
+    sessionStorage.removeItem('orderdesk_auth');
+    await fetch('/desk-api/auth/session', { method: 'DELETE' }).catch(() => {});
+    state.settings.authToken = '';
+    saveSettings(state.settings);
+    location.reload();
+  });
+  document.getElementById('btn-reload')?.addEventListener('click', () => { void loadCategories(); });
+  (document.getElementById('theme-toggle') as HTMLInputElement | null)
+    ?.addEventListener('change', (e) => { applyTheme((e.target as HTMLInputElement).checked); });
 
+  document.getElementById('tab-products')?.addEventListener('click', () => {
+    state.currentPage = 'products'; saveCurrentPage('products');
+    newOrder();
+    if (state.orderMode === 'app') { void loadAppOrders(); startAppOrdersPolling(); }
+  });
+  document.getElementById('tab-orders')?.addEventListener('click', () => {
+    state.currentPage = 'orders'; saveCurrentPage('orders');
+    stopAppOrdersPolling(); renderApp(); void loadOrdersFromServer();
+  });
+  document.getElementById('tab-analytics')?.addEventListener('click', () => { state.currentPage = 'analytics'; saveCurrentPage('analytics'); renderApp(); });
+  document.getElementById('tab-refs')?.addEventListener('click', () => { state.currentPage = 'refs'; saveCurrentPage('refs'); renderApp(); });
+  document.getElementById('tab-search')?.addEventListener('click', () => {
+    state.currentPage = 'search'; saveCurrentPage('search');
+    renderApp();
+    void loadAllStoresProducts();
+  });
 
-  document.querySelectorAll<HTMLButtonElement>('.cart-tab').forEach((btn) => {
+  document.querySelectorAll<HTMLButtonElement>('.mob-nav-btn[data-mob-panel]').forEach((btn) => {
     btn.addEventListener('click', () => {
-      state.cartTab = btn.dataset.tab as typeof state.cartTab;
+      state.mobilePanel = btn.dataset.mobPanel as typeof state.mobilePanel;
       renderApp();
     });
+  });
+  document.querySelectorAll<HTMLButtonElement>('[data-an-tab]').forEach((btn) => {
+    btn.addEventListener('click', () => { state.analyticsTab = btn.dataset.anTab as typeof state.analyticsTab; renderApp(); });
+  });
+  document.querySelectorAll<HTMLButtonElement>('[data-an-period]').forEach((btn) => {
+    btn.addEventListener('click', () => { state.analyticsPeriod = btn.dataset.anPeriod as typeof state.analyticsPeriod; renderApp(); });
+  });
+}
+
+function bindOrderModeEvents(): void {
+  document.querySelectorAll<HTMLButtonElement>('.cart-tab').forEach((btn) => {
+    btn.addEventListener('click', () => { state.cartTab = btn.dataset.tab as typeof state.cartTab; renderApp(); });
   });
 
   document.querySelectorAll<HTMLButtonElement>('.mode-btn[data-mode]').forEach((btn) => {
     btn.addEventListener('click', () => {
       const newMode = btn.dataset.mode as 'phone' | 'app';
       if (state.orderMode === newMode) return;
-
       const hasPhone = state.client.phone.replace(/\D/g, '').length >= 7;
       const hasCartItems = state.cart.length > 0;
       if (hasCartItems && hasPhone && !confirm('Корзина будет очищена. Продолжить?')) return;
-
       state.orderMode = newMode;
       saveOrderMode(newMode);
       state.cart = [];
       if (newMode === 'phone') { state.appOrderLinked = null; stopAppOrdersPolling(); }
       if (newMode === 'app') {
-        const pkg = state.localProducts.find((lp) => /пакет/i.test(lp.name));
+        const pkg = state.localProducts.find((lp) => RE_PKG.test(lp.name));
         if (pkg) {
           if (state.orderApp.packageQty < 1) state.orderApp.packageQty = 1;
           state.cart.push({ product: localToProduct(pkg), qty: state.orderApp.packageQty });
@@ -242,11 +274,6 @@ function bindEvents(): void {
     });
   });
 
-  document.getElementById('btn-app-client-expand')?.addEventListener('click', () => {
-    state.appClientExpanded = !state.appClientExpanded;
-    renderApp();
-  });
-
   document.querySelectorAll<HTMLButtonElement>('.meta-btn').forEach((btn) => {
     btn.addEventListener('click', () => {
       const { metaGroup, metaVal } = btn.dataset;
@@ -257,6 +284,32 @@ function bindEvents(): void {
     });
   });
 
+  document.getElementById('btn-app-client-expand')?.addEventListener('click', () => {
+    state.appClientExpanded = !state.appClientExpanded;
+    renderApp();
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('.store-btn').forEach((btn) => {
+    btn.addEventListener('click', () => { if (btn.dataset.storeId) selectStore(btn.dataset.storeId); });
+  });
+  document.getElementById('btn-stores-expand')?.addEventListener('click', () => { state.storesExpanded = true; renderApp(); });
+  document.getElementById('btn-stores-collapse')?.addEventListener('click', () => { state.storesExpanded = false; renderApp(); });
+
+  document.getElementById('btn-mango-admin')?.addEventListener('click', () => void runAsAdmin(() => openMangoAdmin()));
+  document.getElementById('mango-op-select')?.addEventListener('change', async (e) => {
+    const phone = (e.target as HTMLSelectElement).value;
+    if (!phone) return;
+    try {
+      await fetch('/desk-api/mango/bind-operator', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ phone }) });
+      state.mangoMyPhone = phone;
+      state.orderMeta.operator = phone;
+      saveOrderMeta(state.orderMeta);
+      renderApp();
+    } catch { /* ignore */ }
+  });
+}
+
+function bindClientEvents(): void {
   const suggestions = searchClients(state.client.phone);
   document.querySelectorAll<HTMLLIElement>('.client-suggestion').forEach((li) => {
     li.addEventListener('click', () => {
@@ -265,8 +318,7 @@ function bindEvents(): void {
       if (!s) return;
       Object.assign(state.client, {
         phone: formatPhone(s.phone), name: s.name, street: s.street, house: s.house,
-        entrance: s.entrance, floor: s.floor, apartment: s.apartment,
-        intercom: s.intercom, notes: s.notes,
+        entrance: s.entrance, floor: s.floor, apartment: s.apartment, intercom: s.intercom, notes: s.notes,
       });
       state.clientSuggestHidden = true;
       saveClient(state.client);
@@ -275,37 +327,20 @@ function bindEvents(): void {
     });
   });
 
-  // ── Единая кнопка инфо о клиенте ──────────────────────────────────────────
   document.getElementById('btn-client-info')?.addEventListener('click', (e) => {
     e.stopPropagation();
     state.clientInfoPanel = state.clientInfoPanel ? null : 'menu';
     renderApp();
   });
-
-  document.getElementById('btn-ci-phones')?.addEventListener('click', (e) => {
-    e.stopPropagation();
-    state.clientInfoPanel = 'phones';
-    renderApp();
-  });
-
-  document.getElementById('btn-ci-history')?.addEventListener('click', () => {
-    state.clientInfoPanel = null;
-    openClientHistoryModal(state.client.phone);
-  });
-
-  document.getElementById('btn-ci-addresses')?.addEventListener('click', (e) => {
-    e.stopPropagation();
-    state.clientInfoPanel = 'addresses';
-    renderApp();
-  });
+  document.getElementById('btn-ci-phones')?.addEventListener('click', (e) => { e.stopPropagation(); state.clientInfoPanel = 'phones'; renderApp(); });
+  document.getElementById('btn-ci-history')?.addEventListener('click', () => { state.clientInfoPanel = null; openClientHistoryModal(state.client.phone); });
+  document.getElementById('btn-ci-addresses')?.addEventListener('click', (e) => { e.stopPropagation(); state.clientInfoPanel = 'addresses'; renderApp(); });
 
   document.querySelectorAll<HTMLButtonElement>('.addr-dd-item[data-phone-idx]').forEach((btn) => {
     btn.addEventListener('click', () => {
-      const digits = state.client.phone.replace(/\D/g, '');
-      const client = findClientByPhone(digits);
+      const client = findClientByPhone(state.client.phone.replace(/\D/g, ''));
       if (!client) return;
-      const idx = Number(btn.dataset.phoneIdx);
-      const norm = getAllClientPhones(client)[idx];
+      const norm = getAllClientPhones(client)[Number(btn.dataset.phoneIdx)];
       if (!norm) return;
       state.client.phone = formatPhone(norm) || norm;
       state.clientInfoPanel = null;
@@ -316,8 +351,7 @@ function bindEvents(): void {
 
   document.querySelectorAll<HTMLButtonElement>('.addr-dd-item[data-addr-idx]').forEach((btn) => {
     btn.addEventListener('click', () => {
-      const digits = state.client.phone.replace(/\D/g, '');
-      const client = findClientByPhone(digits);
+      const client = findClientByPhone(state.client.phone.replace(/\D/g, ''));
       if (!client) return;
       const idx = Number(btn.dataset.addrIdx);
       if (idx === -1) {
@@ -343,11 +377,7 @@ function bindEvents(): void {
         const digits = el.value.replace(/\D/g, '');
         const found = digits.length === 11 ? findClientByPhone(digits) : null;
         if (found) {
-          Object.assign(state.client, {
-            name: found.name, street: found.street, house: found.house,
-            entrance: found.entrance, floor: found.floor,
-            apartment: found.apartment, intercom: found.intercom, notes: found.notes ?? '',
-          });
+          Object.assign(state.client, { name: found.name, street: found.street, house: found.house, entrance: found.entrance, floor: found.floor, apartment: found.apartment, intercom: found.intercom, notes: found.notes ?? '' });
           state.clientSuggestHidden = true;
         } else {
           state.clientSuggestHidden = false;
@@ -374,240 +404,6 @@ function bindEvents(): void {
     });
   });
 
-  document.querySelectorAll<HTMLButtonElement>('.store-btn').forEach((btn) => {
-    btn.addEventListener('click', () => { if (btn.dataset.storeId) selectStore(btn.dataset.storeId); });
-  });
-  document.getElementById('btn-stores-expand')?.addEventListener('click', () => { state.storesExpanded = true; renderApp(); });
-  document.getElementById('btn-stores-collapse')?.addEventListener('click', () => { state.storesExpanded = false; renderApp(); });
-  document.getElementById('btn-mango-admin')?.addEventListener('click', () => void runAsAdmin(() => openMangoAdmin()));
-
-  document.getElementById('mango-op-select')?.addEventListener('change', async (e) => {
-    const phone = (e.target as HTMLSelectElement).value;
-    if (!phone) return;
-    try {
-      await fetch('/desk-api/mango/bind-operator', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone }),
-      });
-      state.mangoMyPhone = phone;
-      state.orderMeta.operator = phone;
-      saveOrderMeta(state.orderMeta);
-      renderApp();
-    } catch { /* ignore */ }
-  });
-
-  document.getElementById('btn-logout')?.addEventListener('click', async () => {
-    sessionStorage.removeItem('orderdesk_auth');
-    await fetch('/desk-api/auth/session', { method: 'DELETE' }).catch(() => {});
-    state.settings.authToken = '';
-    saveSettings(state.settings);
-    location.reload();
-  });
-  document.getElementById('btn-reload')?.addEventListener('click', () => { void loadCategories(); });
-  (document.getElementById('theme-toggle') as HTMLInputElement | null)
-    ?.addEventListener('change', (e) => { applyTheme((e.target as HTMLInputElement).checked); });
-  document.getElementById('btn-create-order')?.addEventListener('click', () => createOrder());
-  document.getElementById('btn-cancel-edit')?.addEventListener('click', () => {
-    state.editingOrderId = null;
-    state.cart = [];
-    state.currentPage = 'orders';
-    renderApp();
-  });
-  document.getElementById('tab-products')?.addEventListener('click', () => {
-    state.currentPage = 'products'; saveCurrentPage('products');
-    newOrder();
-    if (state.orderMode === 'app') { void loadAppOrders(); startAppOrdersPolling(); }
-  });
-  document.getElementById('tab-orders')?.addEventListener('click', () => { state.currentPage = 'orders'; saveCurrentPage('orders'); stopAppOrdersPolling(); renderApp(); void loadOrdersFromServer(); });
-
-  document.querySelectorAll<HTMLButtonElement>('.mob-nav-btn[data-mob-panel]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      state.mobilePanel = btn.dataset.mobPanel as typeof state.mobilePanel;
-      renderApp();
-    });
-  });
-  document.getElementById('tab-analytics')?.addEventListener('click', () => { state.currentPage = 'analytics'; saveCurrentPage('analytics'); renderApp(); });
-
-  document.querySelectorAll<HTMLButtonElement>('[data-an-tab]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      state.analyticsTab = btn.dataset.anTab as typeof state.analyticsTab;
-      renderApp();
-    });
-  });
-  document.querySelectorAll<HTMLButtonElement>('[data-an-period]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      state.analyticsPeriod = btn.dataset.anPeriod as typeof state.analyticsPeriod;
-      renderApp();
-    });
-  });
-  document.getElementById('tab-refs')?.addEventListener('click', () => { state.currentPage = 'refs'; saveCurrentPage('refs'); renderApp(); });
-  document.getElementById('tab-search')?.addEventListener('click', () => {
-    state.currentPage = 'search'; saveCurrentPage('search');
-    renderApp();
-    void loadAllStoresProducts();
-  });
-
-  document.getElementById('ao-refresh-btn')?.addEventListener('click', () => { void loadAppOrders(); });
-  document.getElementById('ao-orders-search')?.addEventListener('input', (e) => {
-    _appOrdersSearch = (e.target as HTMLInputElement).value;
-    const list = document.getElementById('ao-orders-list');
-    if (list) list.innerHTML = renderInlineAppOrders();
-    bindAppOrderButtons();
-  });
-  document.getElementById('ao-back-btn')?.addEventListener('click', () => {
-    state.appOrderLinked = null;
-    renderApp();
-  });
-
-  bindAppOrderButtons();
-
-  document.querySelectorAll<HTMLButtonElement>('[data-ao-period]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      state.appOrdersPeriod = btn.dataset.aoPeriod as typeof state.appOrdersPeriod;
-      void loadAppOrders();
-    });
-  });
-
-
-  (document.getElementById('search-all-input') as HTMLInputElement | null)?.addEventListener('input', (e) => {
-    state.searchAllQuery = (e.target as HTMLInputElement).value;
-    updateSearchDOM();
-  });
-
-  (document.getElementById('refs-search') as HTMLInputElement | null)?.addEventListener('input', (e) => {
-    state.refsClientSearch = (e.target as HTMLInputElement).value;
-    state.refsPage = 0;
-    renderApp();
-  });
-
-  document.getElementById('refs-prev-page')?.addEventListener('click', () => {
-    if (state.refsPage > 0) { state.refsPage--; renderApp(); }
-  });
-  document.getElementById('refs-next-page')?.addEventListener('click', () => {
-    state.refsPage++;
-    renderApp();
-  });
-
-  document.getElementById('btn-countries-toggle')?.addEventListener('click', () => {
-    state.countriesExpanded = !state.countriesExpanded;
-    renderApp();
-  });
-
-  document.getElementById('btn-country-add')?.addEventListener('click', () => {
-    const kw = (document.getElementById('country-keyword') as HTMLInputElement | null)?.value.trim();
-    const cn = (document.getElementById('country-name') as HTMLInputElement | null)?.value.trim();
-    if (!kw || !cn) return;
-    void saveCountries([...state.countries, { keyword: kw, country: cn }]);
-  });
-
-  document.querySelectorAll<HTMLButtonElement>('.country-del-btn').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const idx = Number(btn.dataset.countryIdx);
-      void saveCountries(state.countries.filter((_, i) => i !== idx));
-    });
-  });
-
-  document.querySelectorAll<HTMLButtonElement>('.refs-client-row[data-refs-phone]').forEach((btn) => {
-    btn.addEventListener('click', () => openClientModal(btn.dataset.refsPhone ?? ''));
-  });
-
-  const renderKeepOrdersScroll = () => {
-    const el = document.querySelector<HTMLElement>('.orders-main');
-    const top = el?.scrollTop ?? 0;
-    renderApp();
-    document.querySelector<HTMLElement>('.orders-main')?.scrollTo({ top, behavior: 'instant' });
-  };
-
-  document.getElementById('of-all')?.addEventListener('click', () => {
-    state.ordersFilterFrom = ''; state.ordersFilterTo = ''; renderKeepOrdersScroll();
-  });
-  document.getElementById('of-today')?.addEventListener('click', () => {
-    const t = todayGMT3(); state.ordersFilterFrom = t; state.ordersFilterTo = t; renderKeepOrdersScroll();
-  });
-  document.getElementById('of-yesterday')?.addEventListener('click', () => {
-    const y = yesterdayGMT3(); state.ordersFilterFrom = y; state.ordersFilterTo = y; renderKeepOrdersScroll();
-  });
-  (document.getElementById('of-from') as HTMLInputElement | null)?.addEventListener('change', (e) => {
-    state.ordersFilterFrom = (e.target as HTMLInputElement).value; renderKeepOrdersScroll();
-  });
-  (document.getElementById('of-to') as HTMLInputElement | null)?.addEventListener('change', (e) => {
-    state.ordersFilterTo = (e.target as HTMLInputElement).value; renderKeepOrdersScroll();
-  });
-
-  document.querySelectorAll<HTMLButtonElement>('[data-filter-store]').forEach((btn) => {
-    btn.addEventListener('click', () => { state.ordersFilterStore = btn.dataset.filterStore!; renderKeepOrdersScroll(); });
-  });
-  document.querySelectorAll<HTMLButtonElement>('[data-filter-status]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      state.ordersFilterStatus = btn.dataset.filterStatus! as SavedOrder['status'] | '';
-      renderKeepOrdersScroll();
-    });
-  });
-
-  document.getElementById('btn-filter-attention')?.addEventListener('click', () => {
-    state.ordersFilterAttention = !state.ordersFilterAttention;
-    renderKeepOrdersScroll();
-  });
-
-  document.querySelectorAll<HTMLButtonElement>('.order-store-btn').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const { orderId, storeId } = btn.dataset;
-      if (orderId && storeId) changeOrderStore(orderId, storeId);
-    });
-  });
-
-  document.querySelectorAll<HTMLButtonElement>('.order-status-btn').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const { orderId, orderNext } = btn.dataset;
-      if (orderId && orderNext) changeOrderStatus(orderId, orderNext as SavedOrder['status']);
-    });
-  });
-
-  document.querySelectorAll<HTMLButtonElement>('.order-expand-btn').forEach((btn) => {
-    btn.addEventListener('click', () => { if (btn.dataset.orderId) toggleOrderExpand(btn.dataset.orderId); });
-  });
-
-  // Телефон в заказе — показать инлайн-попап с кнопкой обратного звонка
-  document.querySelectorAll<HTMLButtonElement>('.order-phone-btn').forEach((btn) => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const existing = btn.parentElement?.querySelector('.order-phone-popup');
-      document.querySelectorAll('.order-phone-popup').forEach(p => p.remove());
-      if (existing) return; // второй клик по тому же — закрыть
-
-      const phone = btn.dataset.phone ?? '';
-      const popup = document.createElement('span');
-      popup.className = 'order-phone-popup';
-      popup.innerHTML = `<button type="button" class="order-callback-btn" data-phone="${phone.replace(/"/g, '&quot;')}">&#128222; Обратный звонок</button>`;
-      btn.after(popup);
-
-      popup.querySelector('.order-callback-btn')?.addEventListener('click', async (ev) => {
-        ev.stopPropagation();
-        const cbBtn = popup.querySelector('.order-callback-btn') as HTMLButtonElement;
-        cbBtn.disabled = true;
-        cbBtn.textContent = '…';
-        try {
-          const digits = phone.replace(/\D/g, '');
-          const operatorPhone = (state.orderMeta.operator || sessionStorage.getItem('orderdesk_auth') || state.settings.phoneNumber).replace(/\D/g, '');
-          const res = await fetch('/desk-api/mango/callback', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ phone: digits, operatorPhone }),
-          });
-          const data = await res.json() as { ok?: boolean; error?: string };
-          popup.remove();
-          if (res.ok) showToast('Звонок инициирован');
-          else showToast(`Ошибка: ${data.error ?? res.status}`);
-        } catch {
-          popup.remove();
-          showToast('Ошибка соединения с сервером');
-        }
-      });
-    });
-  });
-
-
   document.getElementById('btn-mango-callback')?.addEventListener('click', async () => {
     const phone = state.client.phone.replace(/\D/g, '');
     if (phone.length < 7) return;
@@ -615,11 +411,7 @@ function bindEvents(): void {
     if (btn) { btn.disabled = true; btn.textContent = '…'; }
     try {
       const operatorPhone = (state.orderMeta.operator || sessionStorage.getItem('orderdesk_auth') || state.settings.phoneNumber).replace(/\D/g, '');
-      const res = await fetch('/desk-api/mango/callback', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone, operatorPhone }),
-      });
+      const res = await fetch('/desk-api/mango/callback', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ phone, operatorPhone }) });
       const data = await res.json() as { ok?: boolean; error?: string };
       if (res.ok) showToast('Звонок инициирован');
       else showToast(`Ошибка: ${data.error ?? res.status}`);
@@ -630,125 +422,206 @@ function bindEvents(): void {
     }
   });
 
+  document.addEventListener('click', (e) => {
+    if (state.clientInfoPanel && !(e.target as Element).closest('.ci-wrap')) {
+      state.clientInfoPanel = null;
+      renderApp();
+    }
+  }, { once: true });
+}
+
+function bindCartControlEvents(): void {
+  document.getElementById('btn-create-order')?.addEventListener('click', () => createOrder());
+  document.getElementById('btn-cancel-edit')?.addEventListener('click', () => {
+    state.editingOrderId = null;
+    state.cart = [];
+    state.currentPage = 'orders';
+    renderApp();
+  });
+
+  document.querySelectorAll<HTMLInputElement>('.cart-price-input[data-cart-price]').forEach((input) => {
+    input.addEventListener('change', () => {
+      const item = state.cart[Number(input.dataset.cartPrice)];
+      if (item) { item.product.price = Math.max(0, parseNum(input.value) || 0); renderApp(); }
+    });
+    input.addEventListener('click', (e) => e.stopPropagation());
+  });
+
+  document.querySelectorAll<HTMLInputElement>('.qty-input[data-cart-qty]').forEach((input) => {
+    input.addEventListener('change', () => {
+      const item = state.cart[Number(input.dataset.cartQty)];
+      if (item) { item.qty = Math.max(0.001, roundQty(parseNum(input.value) || 0.001)); renderApp(); }
+    });
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('.qty-btn[data-cart-dec]').forEach((btn) => {
+    btn.addEventListener('pointerdown', (e) => { e.preventDefault(); });
+    btn.addEventListener('click', () => changeCartQty(Number(btn.dataset.cartDec), -1));
+  });
+  document.querySelectorAll<HTMLButtonElement>('.qty-btn[data-cart-inc]').forEach((btn) => {
+    btn.addEventListener('pointerdown', (e) => { e.preventDefault(); });
+    btn.addEventListener('click', () => changeCartQty(Number(btn.dataset.cartInc), 1));
+  });
+  document.querySelectorAll<HTMLButtonElement>('.cart-del[data-cart-del]').forEach((btn) => {
+    btn.addEventListener('click', () => removeFromCart(Number(btn.dataset.cartDel)));
+  });
+
+  const saveOA = () => saveOrderApp(state.orderApp);
+  const updatePackage = (qty: number) => {
+    qty = Math.max(1, qty);
+    state.orderApp.packageQty = qty;
+    saveOA();
+    const pkg = state.localProducts.find((lp) => RE_PKG.test(lp.name));
+    if (!pkg) return;
+    const product = localToProduct(pkg);
+    const isPkg = (item: { product: { id: number; name?: string } }) =>
+      item.product.id === product.id || RE_PKG.test(item.product.name ?? '');
+    const existing = state.cart.find(isPkg);
+    if (existing) {
+      existing.qty = qty;
+      existing.product = product;
+    } else {
+      state.cart.push({ product, qty });
+    }
+    renderApp();
+  };
+
+  (document.getElementById('oa-order-number') as HTMLInputElement | null)?.addEventListener('input', (e) => { state.orderApp.orderNumber = (e.target as HTMLInputElement).value; saveOA(); });
+  (document.getElementById('oa-order-amount') as HTMLInputElement | null)?.addEventListener('input', (e) => { state.orderApp.orderAmount = (e.target as HTMLInputElement).value; saveOA(); updateCartTotal(); });
+  (document.getElementById('oa-delivery-price') as HTMLInputElement | null)?.addEventListener('change', (e) => { state.orderApp.deliveryPrice = parseNum((e.target as HTMLInputElement).value) || 0; saveOA(); updateCartTotal(); });
+  (document.getElementById('oa-pkg-qty') as HTMLInputElement | null)?.addEventListener('change', (e) => updatePackage(parseNum((e.target as HTMLInputElement).value)));
+  document.getElementById('oa-pkg-dec')?.addEventListener('click', () => updatePackage(state.orderApp.packageQty - 1));
+  document.getElementById('oa-pkg-inc')?.addEventListener('click', () => updatePackage(state.orderApp.packageQty + 1));
+}
+
+function bindOrdersPageEvents(): void {
+  const renderKeepOrdersScroll = () => {
+    const el = document.querySelector<HTMLElement>('.orders-main');
+    const top = el?.scrollTop ?? 0;
+    renderApp();
+    document.querySelector<HTMLElement>('.orders-main')?.scrollTo({ top, behavior: 'instant' });
+  };
+
+  document.getElementById('of-all')?.addEventListener('click', () => { state.ordersFilterFrom = ''; state.ordersFilterTo = ''; renderKeepOrdersScroll(); });
+  document.getElementById('of-today')?.addEventListener('click', () => { const t = todayGMT3(); state.ordersFilterFrom = t; state.ordersFilterTo = t; renderKeepOrdersScroll(); });
+  document.getElementById('of-yesterday')?.addEventListener('click', () => { const y = yesterdayGMT3(); state.ordersFilterFrom = y; state.ordersFilterTo = y; renderKeepOrdersScroll(); });
+  (document.getElementById('of-from') as HTMLInputElement | null)?.addEventListener('change', (e) => { state.ordersFilterFrom = (e.target as HTMLInputElement).value; renderKeepOrdersScroll(); });
+  (document.getElementById('of-to') as HTMLInputElement | null)?.addEventListener('change', (e) => { state.ordersFilterTo = (e.target as HTMLInputElement).value; renderKeepOrdersScroll(); });
+
+  document.querySelectorAll<HTMLButtonElement>('[data-filter-store]').forEach((btn) => {
+    btn.addEventListener('click', () => { state.ordersFilterStore = btn.dataset.filterStore!; renderKeepOrdersScroll(); });
+  });
+  document.querySelectorAll<HTMLButtonElement>('[data-filter-status]').forEach((btn) => {
+    btn.addEventListener('click', () => { state.ordersFilterStatus = btn.dataset.filterStatus! as SavedOrder['status'] | ''; renderKeepOrdersScroll(); });
+  });
+  document.getElementById('btn-filter-attention')?.addEventListener('click', () => { state.ordersFilterAttention = !state.ordersFilterAttention; renderKeepOrdersScroll(); });
+
+  document.querySelectorAll<HTMLButtonElement>('.order-store-btn').forEach((btn) => {
+    btn.addEventListener('click', () => { const { orderId, storeId } = btn.dataset; if (orderId && storeId) changeOrderStore(orderId, storeId); });
+  });
+  document.querySelectorAll<HTMLButtonElement>('.order-status-btn').forEach((btn) => {
+    btn.addEventListener('click', () => { const { orderId, orderNext } = btn.dataset; if (orderId && orderNext) changeOrderStatus(orderId, orderNext as SavedOrder['status']); });
+  });
+  document.querySelectorAll<HTMLButtonElement>('.order-expand-btn').forEach((btn) => {
+    btn.addEventListener('click', () => { if (btn.dataset.orderId) toggleOrderExpand(btn.dataset.orderId); });
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('.order-phone-btn').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const existing = btn.parentElement?.querySelector('.order-phone-popup');
+      document.querySelectorAll('.order-phone-popup').forEach(p => p.remove());
+      if (existing) return;
+      const phone = btn.dataset.phone ?? '';
+      const popup = document.createElement('span');
+      popup.className = 'order-phone-popup';
+      popup.innerHTML = `<button type="button" class="order-callback-btn" data-phone="${phone.replace(/"/g, '&quot;')}">&#128222; Обратный звонок</button>`;
+      btn.after(popup);
+      popup.querySelector('.order-callback-btn')?.addEventListener('click', async (ev) => {
+        ev.stopPropagation();
+        const cbBtn = popup.querySelector('.order-callback-btn') as HTMLButtonElement;
+        cbBtn.disabled = true; cbBtn.textContent = '…';
+        try {
+          const digits = phone.replace(/\D/g, '');
+          const operatorPhone = (state.orderMeta.operator || sessionStorage.getItem('orderdesk_auth') || state.settings.phoneNumber).replace(/\D/g, '');
+          const res = await fetch('/desk-api/mango/callback', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ phone: digits, operatorPhone }) });
+          const data = await res.json() as { ok?: boolean; error?: string };
+          popup.remove();
+          if (res.ok) showToast('Звонок инициирован'); else showToast(`Ошибка: ${data.error ?? res.status}`);
+        } catch { popup.remove(); showToast('Ошибка соединения с сервером'); }
+      });
+    });
+  });
+
   document.querySelectorAll<HTMLButtonElement>('.order-edit-btn').forEach((btn) => {
     btn.addEventListener('click', () => { if (btn.dataset.orderId) loadOrderToCart(btn.dataset.orderId); });
   });
-
   document.querySelectorAll<HTMLButtonElement>('.order-receipt-btn, .ch-receipt-btn').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const order = state.orders.find((o) => o.id === btn.dataset.orderId);
-      if (order) showOrderReceipt(order);
-    });
+    btn.addEventListener('click', () => { const order = state.orders.find((o) => o.id === btn.dataset.orderId); if (order) showOrderReceipt(order); });
   });
-
   document.querySelectorAll<HTMLButtonElement>('.order-del-btn:not(.order-perm-del-btn)').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      if (btn.dataset.orderId) removeOrder(btn.dataset.orderId);
-    });
+    btn.addEventListener('click', () => { if (btn.dataset.orderId) removeOrder(btn.dataset.orderId); });
   });
-
-  document.getElementById('btn-show-trash')?.addEventListener('click', () => {
-    state.ordersShowTrash = true; renderKeepOrdersScroll();
-  });
-  document.getElementById('btn-trash-back')?.addEventListener('click', () => {
-    state.ordersShowTrash = false; renderKeepOrdersScroll();
-  });
-
+  document.getElementById('btn-show-trash')?.addEventListener('click', () => { state.ordersShowTrash = true; renderKeepOrdersScroll(); });
+  document.getElementById('btn-trash-back')?.addEventListener('click', () => { state.ordersShowTrash = false; renderKeepOrdersScroll(); });
   document.querySelectorAll<HTMLButtonElement>('.order-restore-btn').forEach((btn) => {
     btn.addEventListener('click', () => { if (btn.dataset.orderId) restoreOrder(btn.dataset.orderId); });
   });
   document.querySelectorAll<HTMLButtonElement>('.order-perm-del-btn').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      if (btn.dataset.orderId && confirm('Удалить заказ навсегда? Это действие необратимо.')) permanentDeleteOrder(btn.dataset.orderId);
-    });
+    btn.addEventListener('click', () => { if (btn.dataset.orderId && confirm('Удалить заказ навсегда? Это действие необратимо.')) permanentDeleteOrder(btn.dataset.orderId); });
   });
 
   document.querySelectorAll<HTMLButtonElement>('[data-oitem-dec]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const { orderId, itemIdx } = btn.dataset;
-      if (orderId && itemIdx != null) changeOrderItemQty(orderId, Number(itemIdx), -1);
-    });
+    btn.addEventListener('click', () => { const { orderId, itemIdx } = btn.dataset; if (orderId && itemIdx != null) changeOrderItemQty(orderId, Number(itemIdx), -1); });
   });
-
   document.querySelectorAll<HTMLButtonElement>('[data-oitem-inc]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const { orderId, itemIdx } = btn.dataset;
-      if (orderId && itemIdx != null) changeOrderItemQty(orderId, Number(itemIdx), 1);
-    });
+    btn.addEventListener('click', () => { const { orderId, itemIdx } = btn.dataset; if (orderId && itemIdx != null) changeOrderItemQty(orderId, Number(itemIdx), 1); });
   });
-
   document.querySelectorAll<HTMLInputElement>('[data-oitem-qty]').forEach((input) => {
-    input.addEventListener('change', () => {
-      const { orderId, itemIdx } = input.dataset;
-      if (orderId && itemIdx != null) setOrderItemQty(orderId, Number(itemIdx), parseNum(input.value));
-    });
+    input.addEventListener('change', () => { const { orderId, itemIdx } = input.dataset; if (orderId && itemIdx != null) setOrderItemQty(orderId, Number(itemIdx), parseNum(input.value)); });
   });
-
   document.querySelectorAll<HTMLButtonElement>('[data-oitem-del]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const { orderId, itemIdx } = btn.dataset;
-      if (orderId && itemIdx != null) removeOrderItem(orderId, Number(itemIdx));
-    });
+    btn.addEventListener('click', () => { const { orderId, itemIdx } = btn.dataset; if (orderId && itemIdx != null) removeOrderItem(orderId, Number(itemIdx)); });
   });
+}
 
-  document.getElementById('btn-no-category')?.addEventListener('click', () => {
-    state.categories.forEach((n) => { n.expanded = false; });
-    void selectSubcategory(NO_CATEGORY_ID);
-  });
-
-  document.getElementById('btn-pending')?.addEventListener('click', () => {
-    state.categories.forEach((n) => { n.expanded = false; });
-    void selectSubcategory(PENDING_ID);
-  });
-
-  document.getElementById('btn-pending-prev')?.addEventListener('click', () => {
-    if (state.pendingPage > 0) { state.pendingPage--; renderApp(); }
-  });
-
+function bindCategoryEvents(): void {
+  document.getElementById('btn-no-category')?.addEventListener('click', () => { state.categories.forEach((n) => { n.expanded = false; }); void selectSubcategory(NO_CATEGORY_ID); });
+  document.getElementById('btn-pending')?.addEventListener('click', () => { state.categories.forEach((n) => { n.expanded = false; }); void selectSubcategory(PENDING_ID); });
+  document.getElementById('btn-pending-prev')?.addEventListener('click', () => { if (state.pendingPage > 0) { state.pendingPage--; renderApp(); } });
   document.getElementById('btn-pending-next')?.addEventListener('click', () => {
-    const totalPages = Math.ceil(state.pendingProducts.length / 30);
-    if (state.pendingPage < totalPages - 1) { state.pendingPage++; renderApp(); }
+    if (state.pendingPage < Math.ceil(state.pendingProducts.length / 30) - 1) { state.pendingPage++; renderApp(); }
   });
-
   document.getElementById('btn-local-products')?.addEventListener('click', () => {
     state.categories.forEach((n) => { n.expanded = false; });
     state.showLocalProductForm = false;
     void selectSubcategory(LOCAL_CATEGORY_ID);
   });
+  document.getElementById('btn-filter-import')?.addEventListener('click', () => { state.filterImport = !state.filterImport; renderApp(); });
 
-  document.getElementById('btn-filter-import')?.addEventListener('click', () => {
-    state.filterImport = !state.filterImport;
-    renderApp();
+  document.querySelectorAll('.cat-parent').forEach((btn) => {
+    btn.addEventListener('click', () => { void toggleCategory(Number((btn as HTMLButtonElement).dataset.catIndex)); });
   });
-
-  document.getElementById('btn-local-add')?.addEventListener('click', () => {
-    state.showLocalProductForm = true;
-    renderApp();
+  document.querySelectorAll('.sub-btn').forEach((btn) => {
+    btn.addEventListener('click', () => { void selectSubcategory(Number((btn as HTMLButtonElement).dataset.subId)); });
   });
+}
 
+function bindLocalProductEvents(): void {
+  document.getElementById('btn-local-add')?.addEventListener('click', () => { state.showLocalProductForm = true; renderApp(); });
   document.getElementById('btn-local-cancel')?.addEventListener('click', () => {
     state.showLocalProductForm = false;
     state.localProductForm = { name: '', price: '', productType: 'PIECE' };
     renderApp();
   });
-
   document.getElementById('btn-local-save')?.addEventListener('click', addLocalProduct);
 
-  (document.getElementById('lpf-name') as HTMLInputElement | null)?.addEventListener('input', (e) => {
-    state.localProductForm.name = (e.target as HTMLInputElement).value;
-  });
-  (document.getElementById('lpf-price') as HTMLInputElement | null)?.addEventListener('input', (e) => {
-    state.localProductForm.price = (e.target as HTMLInputElement).value;
-  });
-  (document.getElementById('lpf-type') as HTMLSelectElement | null)?.addEventListener('change', (e) => {
-    state.localProductForm.productType = (e.target as HTMLSelectElement).value;
-  });
+  (document.getElementById('lpf-name') as HTMLInputElement | null)?.addEventListener('input', (e) => { state.localProductForm.name = (e.target as HTMLInputElement).value; });
+  (document.getElementById('lpf-price') as HTMLInputElement | null)?.addEventListener('input', (e) => { state.localProductForm.price = (e.target as HTMLInputElement).value; });
+  (document.getElementById('lpf-type') as HTMLSelectElement | null)?.addEventListener('change', (e) => { state.localProductForm.productType = (e.target as HTMLSelectElement).value; });
 
   document.querySelectorAll<HTMLButtonElement>('.tile-del-btn[data-local-del]').forEach((btn) => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      if (btn.dataset.localDel) deleteLocalProduct(btn.dataset.localDel);
-    });
+    btn.addEventListener('click', (e) => { e.stopPropagation(); if (btn.dataset.localDel) deleteLocalProduct(btn.dataset.localDel); });
   });
 
   document.querySelectorAll<HTMLButtonElement>('.tile-edit-btn[data-local-edit]').forEach((btn) => {
@@ -763,26 +636,20 @@ function bindEvents(): void {
       if (state.editingLocalProductId) {
         setTimeout(() => {
           const input = document.querySelector<HTMLInputElement>(`.tile-edit-price-input[data-local-edit-id="${id}"]`);
-          input?.focus();
-          input?.select();
+          input?.focus(); input?.select();
         }, 0);
       }
     });
   });
 
   document.querySelectorAll<HTMLInputElement>('.tile-edit-price-input').forEach((input) => {
-    input.addEventListener('input', (e) => {
-      state.localEditPrice = (e.target as HTMLInputElement).value;
-    });
+    input.addEventListener('input', (e) => { state.localEditPrice = (e.target as HTMLInputElement).value; });
     input.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {
-        const id = input.dataset.localEditId!;
         const price = parseFloat(state.localEditPrice.replace(',', '.'));
-        if (!isNaN(price)) updateLocalProduct(id, price);
+        if (!isNaN(price)) updateLocalProduct(input.dataset.localEditId!, price);
       } else if (e.key === 'Escape') {
-        state.editingLocalProductId = null;
-        state.localEditPrice = '';
-        renderApp();
+        state.editingLocalProductId = null; state.localEditPrice = ''; renderApp();
       }
     });
   });
@@ -790,59 +657,29 @@ function bindEvents(): void {
   document.querySelectorAll<HTMLButtonElement>('.tile-edit-save-btn[data-local-edit-save]').forEach((btn) => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
-      const id = btn.dataset.localEditSave!;
       const price = parseFloat(state.localEditPrice.replace(',', '.'));
-      if (!isNaN(price)) updateLocalProduct(id, price);
+      if (!isNaN(price)) updateLocalProduct(btn.dataset.localEditSave!, price);
     });
   });
 
   document.querySelectorAll<HTMLDivElement>('.product-tile[data-local-id]').forEach((tile) => {
     tile.addEventListener('click', () => {
-      const localId = tile.dataset.localId;
-      const lp = state.localProducts.find((x) => x.id === localId);
-      if (lp) {
-        addToCart(localToProduct(lp));
-        if (state.orderMode === 'phone') state.cartTab = 'cart';
-        animateTile(`.product-tile[data-local-id="${localId}"]`);
-      }
+      const lp = state.localProducts.find((x) => x.id === tile.dataset.localId);
+      if (lp) { addToCart(localToProduct(lp)); if (state.orderMode === 'phone') state.cartTab = 'cart'; animateTile(`.product-tile[data-local-id="${tile.dataset.localId}"]`); }
     });
-
-    tile.addEventListener('dragstart', (e) => {
-      dragLocalId = tile.dataset.localId ?? null;
-      e.dataTransfer!.effectAllowed = 'move';
-      setTimeout(() => tile.classList.add('tile-dragging'), 0);
-    });
-    tile.addEventListener('dragend', () => {
-      tile.classList.remove('tile-dragging');
-      document.querySelectorAll('.tile-drag-over').forEach((el) => el.classList.remove('tile-drag-over'));
-    });
-    tile.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      if (tile.dataset.localId !== dragLocalId) tile.classList.add('tile-drag-over');
-    });
+    tile.addEventListener('dragstart', (e) => { state.dragLocalId = tile.dataset.localId ?? null; e.dataTransfer!.effectAllowed = 'move'; setTimeout(() => tile.classList.add('tile-dragging'), 0); });
+    tile.addEventListener('dragend', () => { tile.classList.remove('tile-dragging'); document.querySelectorAll('.tile-drag-over').forEach((el) => el.classList.remove('tile-drag-over')); });
+    tile.addEventListener('dragover', (e) => { e.preventDefault(); if (tile.dataset.localId !== state.dragLocalId) tile.classList.add('tile-drag-over'); });
     tile.addEventListener('dragleave', () => tile.classList.remove('tile-drag-over'));
     tile.addEventListener('drop', (e) => {
-      e.preventDefault();
-      tile.classList.remove('tile-drag-over');
+      e.preventDefault(); tile.classList.remove('tile-drag-over');
       const toId = tile.dataset.localId;
-      if (dragLocalId && toId && dragLocalId !== toId) reorderLocalProduct(dragLocalId, toId);
+      if (state.dragLocalId && toId && state.dragLocalId !== toId) reorderLocalProduct(state.dragLocalId, toId);
     });
   });
+}
 
-  document.querySelectorAll('.cat-parent').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const index = Number((btn as HTMLButtonElement).dataset.catIndex);
-      void toggleCategory(index);
-    });
-  });
-
-  document.querySelectorAll('.sub-btn').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const id = Number((btn as HTMLButtonElement).dataset.subId);
-      void selectSubcategory(id);
-    });
-  });
-
+function bindProductTileEvents(): void {
   const findProduct = (id: number) => {
     const fromCache = findProductInCache(id);
     if (fromCache) return fromCache;
@@ -855,6 +692,11 @@ function bindEvents(): void {
     return state.vendorProducts.find((p) => p.id === id);
   };
 
+  const searchEl = document.getElementById('product-search') as HTMLInputElement | null;
+  const debouncedSearch = debounce(renderApp, 300);
+  searchEl?.addEventListener('input', () => { state.searchQuery = searchEl.value; debouncedSearch(); });
+  (document.getElementById('search-all-input') as HTMLInputElement | null)?.addEventListener('input', (e) => { state.searchAllQuery = (e.target as HTMLInputElement).value; updateSearchDOM(); });
+
   document.querySelectorAll<HTMLDivElement>('.product-tile').forEach((tile) => {
     tile.addEventListener('click', () => {
       const id = Number(tile.dataset.addId);
@@ -866,135 +708,72 @@ function bindEvents(): void {
       }
     });
   });
-
   document.querySelectorAll<HTMLButtonElement>('.tile-info-btn').forEach((btn) => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const product = findProduct(Number(btn.dataset.infoId));
-      if (product) openProductModal(product);
-    });
+    btn.addEventListener('click', (e) => { e.stopPropagation(); const product = findProduct(Number(btn.dataset.infoId)); if (product) openProductModal(product); });
   });
-
-
   document.querySelectorAll<HTMLButtonElement>('[data-draft-id]').forEach((btn) => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       const product = findProduct(Number(btn.dataset.draftId));
       const vol = Number(btn.dataset.draftVol);
-      if (product && vol) {
-        setLastDraftClick(product.id, vol, 'add');
-        addDraftWithTara(product, vol);
-        if (state.orderMode === 'phone') state.cartTab = 'cart';
-      }
+      if (product && vol) { setLastDraftClick(product.id, vol, 'add'); addDraftWithTara(product, vol); if (state.orderMode === 'phone') state.cartTab = 'cart'; }
     });
   });
-
   document.querySelectorAll<HTMLButtonElement>('[data-draft-rm-id]').forEach((btn) => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       const product = findProduct(Number(btn.dataset.draftRmId));
       const vol = Number(btn.dataset.draftVol);
-      if (product && vol) {
-        setLastDraftClick(product.id, vol, 'rm');
-        removeDraftWithTara(product, vol);
-      }
+      if (product && vol) { setLastDraftClick(product.id, vol, 'rm'); removeDraftWithTara(product, vol); }
     });
   });
+}
 
-  document.querySelectorAll<HTMLInputElement>('.cart-price-input[data-cart-price]').forEach((input) => {
-    input.addEventListener('change', () => {
-      const index = Number(input.dataset.cartPrice);
-      const item = state.cart[index];
-      if (item) { item.product.price = Math.max(0, parseNum(input.value) || 0); renderApp(); }
-    });
-    input.addEventListener('click', (e) => e.stopPropagation());
+function bindAppOrdersEvents(): void {
+  document.getElementById('ao-refresh-btn')?.addEventListener('click', () => { void loadAppOrders(); });
+  document.getElementById('ao-orders-search')?.addEventListener('input', (e) => {
+    state.appOrdersSearch = (e.target as HTMLInputElement).value;
+    const list = document.getElementById('ao-orders-list');
+    if (list) list.innerHTML = renderInlineAppOrders();
+    bindAppOrderButtons();
   });
-
-  document.querySelectorAll<HTMLInputElement>('.qty-input[data-cart-qty]').forEach((input) => {
-    input.addEventListener('change', () => {
-      const index = Number(input.dataset.cartQty);
-      const val = Math.max(0.001, roundQty(parseNum(input.value) || 0.001));
-      const item = state.cart[index];
-      if (item) { item.qty = val; renderApp(); }
-    });
+  document.getElementById('ao-back-btn')?.addEventListener('click', () => { state.appOrderLinked = null; renderApp(); });
+  document.querySelectorAll<HTMLButtonElement>('[data-ao-period]').forEach((btn) => {
+    btn.addEventListener('click', () => { state.appOrdersPeriod = btn.dataset.aoPeriod as typeof state.appOrdersPeriod; void loadAppOrders(); });
   });
+  bindAppOrderButtons();
+}
 
-  document.querySelectorAll<HTMLButtonElement>('.qty-btn[data-cart-dec]').forEach((btn) => {
-    btn.addEventListener('pointerdown', (e) => { e.preventDefault(); });
-    btn.addEventListener('click', () => changeCartQty(Number(btn.dataset.cartDec), -1));
+function bindRefsEvents(): void {
+  (document.getElementById('refs-search') as HTMLInputElement | null)?.addEventListener('input', (e) => { state.refsClientSearch = (e.target as HTMLInputElement).value; state.refsPage = 0; renderApp(); });
+  document.getElementById('refs-prev-page')?.addEventListener('click', () => { if (state.refsPage > 0) { state.refsPage--; renderApp(); } });
+  document.getElementById('refs-next-page')?.addEventListener('click', () => { state.refsPage++; renderApp(); });
+
+  document.getElementById('btn-countries-toggle')?.addEventListener('click', () => { state.countriesExpanded = !state.countriesExpanded; renderApp(); });
+  document.getElementById('btn-country-add')?.addEventListener('click', () => {
+    const kw = (document.getElementById('country-keyword') as HTMLInputElement | null)?.value.trim();
+    const cn = (document.getElementById('country-name') as HTMLInputElement | null)?.value.trim();
+    if (kw && cn) void saveCountries([...state.countries, { keyword: kw, country: cn }]);
   });
-
-  document.querySelectorAll<HTMLButtonElement>('.qty-btn[data-cart-inc]').forEach((btn) => {
-    btn.addEventListener('pointerdown', (e) => { e.preventDefault(); });
-    btn.addEventListener('click', () => changeCartQty(Number(btn.dataset.cartInc), 1));
+  document.querySelectorAll<HTMLButtonElement>('.country-del-btn').forEach((btn) => {
+    btn.addEventListener('click', () => { void saveCountries(state.countries.filter((_, i) => i !== Number(btn.dataset.countryIdx))); });
   });
-
-  document.querySelectorAll<HTMLButtonElement>('.cart-del[data-cart-del]').forEach((btn) => {
-    btn.addEventListener('click', () => removeFromCart(Number(btn.dataset.cartDel)));
+  document.querySelectorAll<HTMLButtonElement>('.refs-client-row[data-refs-phone]').forEach((btn) => {
+    btn.addEventListener('click', () => openClientModal(btn.dataset.refsPhone ?? ''));
   });
+}
 
-  // ── Order App tab ─────────────────────────────────
-  const saveOA = () => saveOrderApp(state.orderApp);
-
-  (document.getElementById('oa-order-number') as HTMLInputElement | null)
-    ?.addEventListener('input', (e) => {
-      state.orderApp.orderNumber = (e.target as HTMLInputElement).value;
-      saveOA();
-    });
-
-  (document.getElementById('oa-order-amount') as HTMLInputElement | null)
-    ?.addEventListener('input', (e) => {
-      state.orderApp.orderAmount = (e.target as HTMLInputElement).value;
-      saveOA();
-      updateCartTotal();
-    });
-
-  (document.getElementById('oa-delivery-price') as HTMLInputElement | null)
-    ?.addEventListener('change', (e) => {
-      state.orderApp.deliveryPrice = parseNum((e.target as HTMLInputElement).value) || 0;
-      saveOA();
-      updateCartTotal();
-    });
-
-  const updatePackage = (qty: number) => {
-    qty = Math.max(1, qty);
-    state.orderApp.packageQty = qty;
-    saveOA();
-    const pkg = state.localProducts.find((lp) => /пакет/i.test(lp.name));
-    if (!pkg) return;
-    const product = localToProduct(pkg);
-    const isPkg = (item: { product: { id: number; name?: string } }) =>
-      item.product.id === product.id || /пакет/i.test(item.product.name ?? '');
-    if (qty === 0) {
-      const idx = state.cart.findIndex(isPkg);
-      if (idx !== -1) state.cart.splice(idx, 1);
-    } else {
-      const existing = state.cart.find(isPkg);
-      if (existing) {
-        existing.qty = qty;
-        existing.product = product; // нормализуем id на случай если был 0 из БД
-      } else {
-        state.cart.push({ product, qty });
-      }
-    }
-    renderApp();
-  };
-
-  (document.getElementById('oa-pkg-qty') as HTMLInputElement | null)
-    ?.addEventListener('change', (e) => updatePackage(parseNum((e.target as HTMLInputElement).value)));
-
-  document.getElementById('oa-pkg-dec')
-    ?.addEventListener('click', () => updatePackage(state.orderApp.packageQty - 1));
-
-  document.getElementById('oa-pkg-inc')
-    ?.addEventListener('click', () => updatePackage(state.orderApp.packageQty + 1));
-
-  document.addEventListener('click', (e) => {
-    if (state.clientInfoPanel && !(e.target as Element).closest('.ci-wrap')) {
-      state.clientInfoPanel = null;
-      renderApp();
-    }
-  }, { once: true });
+function bindEvents(): void {
+  bindNavEvents();
+  bindOrderModeEvents();
+  bindClientEvents();
+  bindCartControlEvents();
+  bindOrdersPageEvents();
+  bindCategoryEvents();
+  bindLocalProductEvents();
+  bindProductTileEvents();
+  bindAppOrdersEvents();
+  bindRefsEvents();
 }
 
 function bindAppOrderButtons(): void {
@@ -1024,11 +803,7 @@ function bindAppOrderButtons(): void {
         s + (p.pack_item && p.pack_item.volume > 0 ? p.qty : 0.5), 0);
       const totalLiters = order.cart_products.reduce((s, p) =>
         s + (p.pack_item && p.pack_item.volume > 0 ? p.qty * p.pack_item.volume : 0), 0);
-      const packages = Math.max(
-        Math.ceil(totalQty / 7),
-        totalLiters > 0 ? Math.ceil(totalLiters / 7) : 0,
-        1,
-      );
+      const packages = calcNeededPackages(totalQty, totalLiters);
 
       const rawPhone = order.user.phone_number.country_code + order.user.phone_number.phone_number;
       state.appOrderLinked = order.number;
@@ -1036,7 +811,13 @@ function bindAppOrderButtons(): void {
       if (order.user.name) state.client.name = order.user.name;
       const dbClient = findClientByPhone(rawPhone);
       const addrs = dbClient ? getClientAddresses(dbClient) : [];
-      if (addrs.length > 0 && !state.client.street && !state.client.house) {
+      state.client.street = '';
+      state.client.house = '';
+      state.client.entrance = '';
+      state.client.floor = '';
+      state.client.apartment = '';
+      state.client.intercom = '';
+      if (addrs.length > 0) {
         const a = addrs[0];
         state.client.street = a.street ?? '';
         state.client.house = a.house ?? '';
@@ -1053,7 +834,7 @@ function bindAppOrderButtons(): void {
       state.orderMode = 'app';
       saveOrderMode('app');
       state.cart = [];
-      const pkg = state.localProducts.find((lp) => /пакет/i.test(lp.name));
+      const pkg = state.localProducts.find((lp) => RE_PKG.test(lp.name));
       if (pkg) state.cart.push({ product: localToProduct(pkg), qty: packages });
       state.currentPage = 'products';
       renderApp();
@@ -1065,25 +846,19 @@ const OUR_STORE_NUMS: Record<number, string> = {
   12: '1', 7: '2', 11: '3', 10: '4', 13: '5', 6: '6', 14: '7', 15: '8', 16: '9',
 };
 const ACTIVE_STATUSES = new Set(['CREATED', 'ACTIVE', 'PACKAGING', 'READY_FOR_PICK_UP']);
-const _handledOrders: Set<string> = loadHandledOrders(state.orderMeta.operator);
 
 function markHandled(orderNum: string): void {
-  _handledOrders.add(orderNum);
-  saveHandledOrders(state.orderMeta.operator, _handledOrders);
-  saveHandledOrders(state.orderMeta.operator, _handledOrders);
+  state.handledOrders.add(orderNum);
+  saveHandledOrders(state.orderMeta.operator, state.handledOrders);
 }
-let _appOrdersSearch = '';
 
 function renderInlineAppOrders(): string {
   const { appOrders, appOrdersLoading } = state;
   if (appOrdersLoading) return `<div class="ao-inline-row ao-inline-status">Загружаем заказы…</div>`;
 
-  const todayStr = todayGMT3();
-  const q = _appOrdersSearch.replace(/\D/g, '');
+  const q = state.appOrdersSearch.replace(/\D/g, '');
   const waiting = appOrders.filter((o) => {
     if (!ACTIVE_STATUSES.has(o.status) || !OUR_STORE_NUMS[o.store.id]) return false;
-    const d = new Date(new Date(o.order_date).getTime() + 3 * 3600_000);
-    if (d.toISOString().slice(0, 10) !== todayStr) return false;
     if (!q) return true;
     const phone = (o.user.phone_number.country_code + o.user.phone_number.phone_number).replace(/\D/g, '');
     return phone.includes(q) || o.number.replace(/\D/g, '').includes(q);
@@ -1093,7 +868,7 @@ function renderInlineAppOrders(): string {
   const rows = waiting.map((o) => {
     const storeNum = OUR_STORE_NUMS[o.store.id];
     const note = o.note ? `<div class="ao-inline-note">${escapeHtml(o.note)}</div>` : '';
-    const isNew = !_handledOrders.has(o.number);
+    const isNew = !state.handledOrders.has(o.number);
     return `<div class="ao-inline-row${isNew ? ' ao-inline-row--new' : ''}">
       ${isNew ? '<div class="ao-new-badge">новый</div>' : ''}
       <div class="ao-inline-store">Магазин №${storeNum}</div>
@@ -1140,15 +915,13 @@ function renderLinkedAppOrder(): string {
 
   return `<aside class="panel linked-order-panel">
     <div class="ao-search-wrap">
-      <input type="text" class="ao-search-input" id="ao-orders-search" placeholder="Телефон или № заказа" value="${escapeHtml(_appOrdersSearch)}">
+      <input type="text" class="ao-search-input" id="ao-orders-search" placeholder="Телефон или № заказа" value="${escapeHtml(state.appOrdersSearch)}">
     </div>
     <div class="panel-body scroll" id="ao-orders-list">
       ${renderInlineAppOrders()}
     </div>
   </aside>`;
 }
-
-let _appOrdersPollTimer: ReturnType<typeof setInterval> | null = null;
 
 export async function loadAppOrders(silent = false): Promise<void> {
   if (!silent) {
@@ -1179,13 +952,13 @@ export async function loadAppOrders(silent = false): Promise<void> {
 
 export function startAppOrdersPolling(): void {
   stopAppOrdersPolling();
-  _appOrdersPollTimer = setInterval(() => { void loadAppOrders(true); }, 15_000);
+  state.appOrdersPollTimer = setInterval(() => { void loadAppOrders(true); }, 15_000);
 }
 
 export function stopAppOrdersPolling(): void {
-  if (_appOrdersPollTimer !== null) {
-    clearInterval(_appOrdersPollTimer);
-    _appOrdersPollTimer = null;
+  if (state.appOrdersPollTimer !== null) {
+    clearInterval(state.appOrdersPollTimer);
+    state.appOrdersPollTimer = null;
   }
 }
 
@@ -1195,6 +968,7 @@ function updateCartTotal(): void {
   const el = document.querySelector<HTMLElement>('.cart-total span:last-child');
   if (el) el.textContent = total.toLocaleString('ru-RU') + ' ₽';
 }
+
 
 export function renderApp(): void {
   if (state.currentPage !== 'products') stopAppOrdersPolling();
